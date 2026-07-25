@@ -42,6 +42,8 @@ body.dark-mode .back-link{color:#94a3b8;}
 body.dark-mode .back-link:hover{color:#818cf8;}
 body.dark-mode .success-title{color:#f8fafc;}
 body.dark-mode .success-text{color:#94a3b8;}
+body.dark-mode .login-btn-top{background:#1e293b;border-color:#334155;color:#94a3b8;}
+body.dark-mode .login-btn-top:hover{background:#334155;color:#818cf8;}
 
 /* Soft background */
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.10),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.07),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;transition:all 0.3s ease;}
@@ -127,8 +129,15 @@ select.inp option{background:#fff;color:#1e293b;}
 /* Step label */
 .step-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
 
+/* Top controls container */
+.top-controls{position:fixed;top:20px;right:20px;display:flex;gap:10px;z-index:100;}
+
+/* Login button top */
+.login-btn-top{height:44px;padding:0 16px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;color:#64748b;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);text-decoration:none;}
+.login-btn-top:hover{background:#f1f5f9;color:#6366f1;}
+
 /* Theme toggle */
-.theme-toggle{position:fixed;top:20px;right:20px;width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.theme-toggle{width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
 .theme-toggle:hover{background:#f1f5f9;color:#6366f1;}
 body.dark-mode .theme-toggle{background:#1e293b;border-color:#334155;color:#94a3b8;}
 body.dark-mode .theme-toggle:hover{background:#334155;color:#818cf8;}
@@ -157,8 +166,14 @@ body.dark-mode .ref-banner{background:rgba(99,102,241,0.15);color:#818cf8;border
     <div class="shape shape-3"></div>
   </div>
   
-  <!-- Theme Toggle -->
-  <button class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
+  <!-- Top Controls (Login & Theme Toggle) -->
+  <div class="top-controls">
+    <a href="login.html" class="login-btn-top">
+      <i class="fa-solid fa-right-to-bracket"></i>
+      <span>Login</span>
+    </a>
+    <button class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
+  </div>
   
   <!-- Toast -->
   <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
