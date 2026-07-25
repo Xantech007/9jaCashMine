@@ -123,7 +123,7 @@ body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8
 .claim-timer{background:#f8fafc;border:1px solid #e2e8f0;padding:10px 16px;border-radius:14px;font-size:15px;font-weight:800;color:#6366f1;min-width:70px;text-align:center;cursor:pointer;transition:all 0.3s;}
 .claim-timer.ready{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 12px rgba(99,102,241,0.2);}
 .claim-timer.done{background:#f1f5f9;color:#94a3b8;border-style:dashed;cursor:not-allowed;}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:10px 20px 24px;display:flex;justify-content:space-around;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:10px 20px 24px;display:flex;justify-around:align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
 .nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:#94a3b8;text-decoration:none;font-size:10px;font-weight:600;transition:all 0.3s;border:none;background:none;cursor:pointer;}
 .nav-item i{font-size:20px;}
 .nav-item.active{color:#6366f1;}
@@ -192,6 +192,12 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
 .notify-btn{flex:1;padding:12px;border-radius:14px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:6px;}
 .notify-btn-allow{background:linear-gradient(135deg,#10b981,#34d399);color:#fff;}
 .notify-btn-deny{background:#334155;color:#94a3b8;}
+.plan-badge{font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;display:inline-block;margin-top:4px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.badge-free{background:#e2e8f0;color:#475569;}
+.badge-basic{background:#dbeafe;color:#1e40af;}
+.badge-silver{background:#f1f5f9;color:#0f172a;border:1px solid #cbd5e1;}
+.badge-gold{background:#fef3c7;color:#92400e;}
+.badge-diamond{background:linear-gradient(135deg,#e0e7ff,#fae8ff);color:#4338ca;border:1px solid #c7d2fe;}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 .anim{animation:slideUp 0.6s ease both;}
 .d1{animation-delay:0.1s;}
@@ -261,6 +267,7 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
     <div>
       <div class="greeting" id="greeting">Good morning</div>
       <div class="name" id="userName">FlutterW Euro Earn User</div>
+      <div id="planBadge" class="plan-badge badge-free">Free Plan</div>
     </div>
   </div>
   <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
@@ -304,33 +311,33 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
 <div class="claim-card anim d3" id="claimArea">
   <div class="claim-icon"><i class="fa-solid fa-gift"></i></div>
   <div class="claim-info">
-    <div class="claim-title">Claim €2.00</div>
-    <div class="claim-sub">Next: <span id="claimNext">1:00</span> - <span id="claimProgress">0</span>/50 today</div>
+    <div class="claim-title" id="claimTitleText">Claim €2.00</div>
+    <div class="claim-sub">Next: <span id="claimNext">1:00</span> - <span id="claimProgress">0</span>/<span id="claimMaxText">50</span> today</div>
   </div>
   <div class="claim-timer" id="claimTimer" onclick="doClaim()">1:00</div>
 </div>
 <div class="sec-title anim d4" id="checkinTitle"><i class="fa-solid fa-fire"></i> Daily Check-In</div>
 <div class="checkin-wrap anim d4" id="checkinWrap">
-  <div class="checkin-day active" id="day0" data-reward="5">
-    <div class="day-num">1</div><div class="day-label">Today</div><div class="day-reward">€5</div>
+  <div class="checkin-day active" id="day0">
+    <div class="day-num">1</div><div class="day-label">Today</div><div class="day-reward" id="rewardDay0">€5</div>
   </div>
-  <div class="checkin-day locked" id="day1" data-reward="10">
-    <div class="day-num">2</div><div class="day-label">Tomorrow</div><div class="day-reward">€10</div>
+  <div class="checkin-day locked" id="day1">
+    <div class="day-num">2</div><div class="day-label">Tomorrow</div><div class="day-reward" id="rewardDay1">€10</div>
   </div>
-  <div class="checkin-day locked" id="day2" data-reward="15">
-    <div class="day-num">3</div><div class="day-label">Day 3</div><div class="day-reward">€15</div>
+  <div class="checkin-day locked" id="day2">
+    <div class="day-num">3</div><div class="day-label">Day 3</div><div class="day-reward" id="rewardDay2">€15</div>
   </div>
-  <div class="checkin-day locked" id="day3" data-reward="20">
-    <div class="day-num">4</div><div class="day-label">Day 4</div><div class="day-reward">€20</div>
+  <div class="checkin-day locked" id="day3">
+    <div class="day-num">4</div><div class="day-label">Day 4</div><div class="day-reward" id="rewardDay3">€20</div>
   </div>
-  <div class="checkin-day locked" id="day4" data-reward="30">
-    <div class="day-num">5</div><div class="day-label">Day 5</div><div class="day-reward">€30</div>
+  <div class="checkin-day locked" id="day4">
+    <div class="day-num">5</div><div class="day-label">Day 5</div><div class="day-reward" id="rewardDay4">€30</div>
   </div>
-  <div class="checkin-day locked" id="day5" data-reward="50">
-    <div class="day-num">6</div><div class="day-label">Day 6</div><div class="day-reward">€50</div>
+  <div class="checkin-day locked" id="day5">
+    <div class="day-num">6</div><div class="day-label">Day 6</div><div class="day-reward" id="rewardDay5">€50</div>
   </div>
-  <div class="checkin-day locked" id="day6" data-reward="100">
-    <div class="day-num">7</div><div class="day-label">Day 7</div><div class="day-reward">€100</div>
+  <div class="checkin-day locked" id="day6">
+    <div class="day-num">7</div><div class="day-label">Day 7</div><div class="day-reward" id="rewardDay6">€100</div>
   </div>
 </div>
 <button class="cta-btn anim d4" id="checkinBtn" onclick="doCheckin()">
@@ -366,34 +373,120 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   <button class="nav-item" onclick="toggleDarkMode()" id="darkNavBtn"><i class="fa-solid fa-moon" id="themeIcon"></i><span id="themeText">Dark</span></button>
 </div>
 <script>
+// --- HARDCODED PLANS CONFIGURATION (as defined in upgrade.html) ---
+const PLANS_CONFIG = {
+  free: {
+    name: "Free Plan",
+    badgeClass: "badge-free",
+    dailyMiningLimit: 300,
+    miningPower: "1x",
+    claimAmount: 2.00,
+    maxClaimsPerDay: 50,
+    checkinRewards: [5, 10, 15, 20, 30, 50, 100]
+  },
+  basic: {
+    name: "Basic Plan",
+    badgeClass: "badge-basic",
+    dailyMiningLimit: 800,
+    miningPower: "2x",
+    claimAmount: 5.00,
+    maxClaimsPerDay: 80,
+    checkinRewards: [10, 20, 30, 40, 60, 100, 200]
+  },
+  silver: {
+    name: "Silver Plan",
+    badgeClass: "badge-silver",
+    dailyMiningLimit: 2000,
+    miningPower: "5x",
+    claimAmount: 12.00,
+    maxClaimsPerDay: 120,
+    checkinRewards: [25, 50, 75, 100, 150, 250, 500]
+  },
+  gold: {
+    name: "Gold Plan",
+    badgeClass: "badge-gold",
+    dailyMiningLimit: 5000,
+    miningPower: "10x",
+    claimAmount: 30.00,
+    maxClaimsPerDay: 200,
+    checkinRewards: [50, 100, 150, 200, 300, 500, 1000]
+  },
+  diamond: {
+    name: "Diamond Plan",
+    badgeClass: "badge-diamond",
+    dailyMiningLimit: 12000,
+    miningPower: "25x",
+    claimAmount: 75.00,
+    maxClaimsPerDay: 500,
+    checkinRewards: [100, 200, 300, 400, 600, 1000, 2500]
+  }
+};
+
 let userData = null;
 try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch(e) { userData = null; }
 if (!userData) { window.location.href = "start.html"; }
 
+let currentPlanKey = "free";
+let currentPlan = PLANS_CONFIG.free;
+
 let balance = parseFloat(localStorage.getItem("walletBalance")) || 0;
 let balanceHidden = false;
-const CHECKIN_REWARDS = [5, 10, 15, 20, 30, 50, 100];
 let checkinData = JSON.parse(localStorage.getItem("checkinData")) || { streak: 0, lastCheckin: null, claimedDays: [] };
-const CLAIM_AMOUNT = 2;
 const CLAIM_INTERVAL = 60;
-const MAX_CLAIMS_PER_DAY = 50;
 let claimData = JSON.parse(localStorage.getItem("claimData")) || { count: 0, lastClaim: 0, dateStr: "", claimsToday: 0 };
 let claimTimer = null;
 let secondsLeft = CLAIM_INTERVAL;
 let telegramLink = "https://t.me/#1";
 
 const TUTORIAL_STEPS = [
-  { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn your first €300. Mining runs daily!", position: "bottom" },
+  { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn daily rewards. Mining runs daily!", position: "bottom" },
   { id: "withdrawBtn", title: "Withdraw Cash", desc: "Tap Withdraw to cash out your earnings to your linked bank account.", position: "bottom" },
   { id: "tasksBtn", title: "Complete Tasks", desc: "Visit the Tasks page to earn extra cash by completing simple social media tasks.", position: "bottom" },
   { id: "eyeBtn", title: "Hide Balance", desc: "Tap the eye icon anytime to hide or show your balance for privacy.", position: "bottom" },
-  { id: "claimArea", title: "Claim Every Minute", desc: "Tap Claim every 60 seconds to collect €2.00 free cash! Up to 50 times daily.", position: "top" },
-  { id: "checkinBtn", title: "Daily Check-In", desc: "Check in every day to collect increasing rewards: €5, €10, €15, €20, €30, €50, €100!", position: "top" }
+  { id: "claimArea", title: "Claim Every Minute", desc: "Tap Claim every 60 seconds to collect free cash based on your active plan!", position: "top" },
+  { id: "checkinBtn", title: "Daily Check-In", desc: "Check in every day to collect increasing plan bonuses and rewards!", position: "top" }
 ];
 let currentTutorialStep = 0;
 let tutorialActive = false;
 let db = null;
 let auth = null;
+
+function applyPlanFeatures() {
+  let userPlanStr = (userData && userData.plan) ? userData.plan.toString().toLowerCase().trim() : "free";
+  if (!PLANS_CONFIG[userPlanStr]) {
+    userPlanStr = "free";
+  }
+  currentPlanKey = userPlanStr;
+  currentPlan = PLANS_CONFIG[currentPlanKey];
+
+  const badgeEl = document.getElementById("planBadge");
+  if (badgeEl) {
+    badgeEl.textContent = currentPlan.name;
+    badgeEl.className = "plan-badge " + currentPlan.badgeClass;
+  }
+
+  const claimTitle = document.getElementById("claimTitleText");
+  if (claimTitle) {
+    claimTitle.textContent = "Claim " + formatMoney(currentPlan.claimAmount);
+  }
+
+  const maxClaimText = document.getElementById("claimMaxText");
+  if (maxClaimText) {
+    maxClaimText.textContent = currentPlan.maxClaimsPerDay;
+  }
+
+  const powerEl = document.getElementById("miningPower");
+  if (powerEl) {
+    powerEl.textContent = currentPlan.miningPower;
+  }
+
+  for (let i = 0; i < 7; i++) {
+    const rEl = document.getElementById("rewardDay" + i);
+    if (rEl && currentPlan.checkinRewards[i]) {
+      rEl.textContent = "€" + currentPlan.checkinRewards[i];
+    }
+  }
+}
 
 function initFirebase() {
   try {
@@ -672,7 +765,7 @@ function doCheckin() {
   const todayStr = new Date().toDateString();
   if (checkinData.lastCheckin === todayStr) { showToast("Already checked in today!"); return; }
   const dayIndex = checkinData.claimedDays.length;
-  const amount = CHECKIN_REWARDS[Math.min(dayIndex, 6)];
+  const amount = currentPlan.checkinRewards[Math.min(dayIndex, 6)];
   balance += amount; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + amount;
   checkinData.claimedDays.push(todayStr); checkinData.lastCheckin = todayStr; checkinData.streak += 1;
   if (checkinData.claimedDays.length > 7) checkinData.claimedDays = [];
@@ -697,7 +790,7 @@ function initClaim() {
   const nextEl = document.getElementById("claimNext");
   const progressEl = document.getElementById("claimProgress");
   progressEl.textContent = claimData.claimsToday;
-  if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { timerEl.textContent = "DONE"; timerEl.className = "claim-timer done"; nextEl.textContent = "Come back tomorrow"; return; }
+  if (claimData.claimsToday >= currentPlan.maxClaimsPerDay) { timerEl.textContent = "DONE"; timerEl.className = "claim-timer done"; nextEl.textContent = "Come back tomorrow"; return; }
   if (elapsed >= CLAIM_INTERVAL) { secondsLeft = 0; timerEl.textContent = "CLAIM"; timerEl.className = "claim-timer ready"; } 
   else { secondsLeft = CLAIM_INTERVAL - elapsed; timerEl.className = "claim-timer"; startClaimTimer(); }
 }
@@ -714,27 +807,29 @@ function startClaimTimer() {
 function doClaim() {
   if (tutorialActive && currentTutorialStep === 4) { nextTutorial(); }
   resetDailyIfNeeded();
-  if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { showToast("Daily claim limit reached (50/50)"); return; }
-  balance += CLAIM_AMOUNT; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + CLAIM_AMOUNT;
+  if (claimData.claimsToday >= currentPlan.maxClaimsPerDay) { showToast("Daily claim limit reached (" + currentPlan.maxClaimsPerDay + "/" + currentPlan.maxClaimsPerDay + ")"); return; }
+  const claimAmt = currentPlan.claimAmount;
+  balance += claimAmt; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + claimAmt;
   claimData.count += 1; claimData.claimsToday += 1; claimData.lastClaim = Math.floor(Date.now() / 1000);
   localStorage.setItem("claimData", JSON.stringify(claimData));
-  saveUserData(); addToActivity("Auto Claim", CLAIM_AMOUNT, "in"); updateBalance();
+  saveUserData(); addToActivity("Auto Claim", claimAmt, "in"); updateBalance();
   const timerEl = document.getElementById("claimTimer");
   const progressEl = document.getElementById("claimProgress");
   progressEl.textContent = claimData.claimsToday;
-  showToast("+" + formatMoney(CLAIM_AMOUNT) + " claimed! (" + claimData.claimsToday + "/" + MAX_CLAIMS_PER_DAY + ")");
-  if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { timerEl.textContent = "DONE"; timerEl.className = "claim-timer done"; document.getElementById("claimNext").textContent = "Come back tomorrow"; return; }
+  showToast("+" + formatMoney(claimAmt) + " claimed! (" + claimData.claimsToday + "/" + currentPlan.maxClaimsPerDay + ")");
+  if (claimData.claimsToday >= currentPlan.maxClaimsPerDay) { timerEl.textContent = "DONE"; timerEl.className = "claim-timer done"; document.getElementById("claimNext").textContent = "Come back tomorrow"; return; }
   secondsLeft = CLAIM_INTERVAL; timerEl.className = "claim-timer"; startClaimTimer();
 }
 
 function startMining() {
   if (tutorialActive && currentTutorialStep === 0) { nextTutorial(); }
   const todayMined = parseFloat(localStorage.getItem("todayMined") || "0");
-  if (todayMined >= 300) {
-    Swal.fire({ icon: "info", title: "Mining Limit Reached", text: "You've already mined €300 today. Upgrade your plan to continue.", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" });
+  const maxLimit = currentPlan.dailyMiningLimit;
+  if (todayMined >= maxLimit) {
+    Swal.fire({ icon: "info", title: "Mining Limit Reached", text: "You've already mined " + formatMoney(maxLimit) + " today on your " + currentPlan.name + ". Upgrade your plan to continue.", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" });
     return;
   }
-  Swal.fire({ title: "Start Mining?", html: '<p style="color:#64748b;margin-top:8px;">Your plan is <b>Free Miner</b>. Mine up to <b>€300</b> daily.</p>', showCancelButton: true, confirmButtonText: "START MINING", cancelButtonText: "Cancel", confirmButtonColor: "#6366f1", reverseButtons: true, background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" }).then(function(r) { if (r.isConfirmed) runMining(); });
+  Swal.fire({ title: "Start Mining?", html: '<p style="color:#64748b;margin-top:8px;">Your plan is <b>' + currentPlan.name + '</b>. Mine up to <b>' + formatMoney(maxLimit) + '</b> daily.</p>', showCancelButton: true, confirmButtonText: "START MINING", cancelButtonText: "Cancel", confirmButtonColor: "#6366f1", reverseButtons: true, background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" }).then(function(r) { if (r.isConfirmed) runMining(); });
 }
 
 function runMining() {
@@ -743,12 +838,12 @@ function runMining() {
 }
 
 function completeMining() {
-  const amount = 300; balance += amount; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + amount;
+  const amount = currentPlan.dailyMiningLimit; balance += amount; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + amount;
   localStorage.setItem("todayMined", amount.toString()); localStorage.setItem("lastMineDate", new Date().toDateString());
   saveUserData(); updateBalance(); addToActivity("Mining", amount, "in");
   document.getElementById("totalMined").textContent = formatMoney(userData.totalMined || 0);
   sendMiningNotification(amount);
-  Swal.fire({ icon: "success", title: "Mining Complete!", text: "+€300.00 added to your balance", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" });
+  Swal.fire({ icon: "success", title: "Mining Complete!", text: "+" + formatMoney(amount) + " added to your balance", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" });
 }
 
 function checkDailyReset() {
@@ -915,8 +1010,24 @@ function editBank() {
 
 function setNav(el) { document.querySelectorAll(".nav-item").forEach(function(n) { n.classList.remove("active"); }); el.classList.add("active"); }
 
+function syncUserData(fresh) {
+  userData = fresh;
+  localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+  balance = fresh.balance || balance;
+  
+  applyPlanFeatures();
+  updateBalance();
+  document.getElementById("totalMined").textContent = formatMoney(userData.totalMined || 0);
+  initCheckin();
+  initClaim();
+  loadActivity();
+}
+
 window.addEventListener("DOMContentLoaded", function() {
   initFirebase(); initDarkMode(); loadTelegramConfig(); initNotifySystem();
+  
+  applyPlanFeatures();
+  
   const hour = new Date().getHours();
   let greet = "Good evening";
   if (hour < 12) greet = "Good morning"; else if (hour < 17) greet = "Good afternoon";
@@ -931,7 +1042,6 @@ window.addEventListener("DOMContentLoaded", function() {
   
   updateBalance();
   document.getElementById("totalMined").textContent = formatMoney(userData.totalMined || 0);
-  document.getElementById("miningPower").textContent = (userData.miningPower || 1) + "x";
   initCheckin(); initClaim(); loadActivity(); checkDailyReset(); initTutorial();
   
   if (db && userData && userData.phone) {
@@ -939,19 +1049,16 @@ window.addEventListener("DOMContentLoaded", function() {
       .then(function(doc) { 
         if (doc.exists) { 
           const fresh = doc.data(); 
-          userData = fresh; 
-          localStorage.setItem("9jaCashUser", JSON.stringify(userData)); 
-          balance = fresh.balance || balance; 
-          updateBalance(); 
-          document.getElementById("totalMined").textContent = formatMoney(fresh.totalMined || 0); 
-          loadActivity(); 
+          syncUserData(fresh);
         } 
       })
-      .catch(function(err) {});
+      .catch(function(err) { console.error("Error fetching user doc:", err); });
   }
 });
 
 window.addEventListener("focus", function() {
+  try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch(e) {}
+  applyPlanFeatures();
   checkDailyReset(); 
   balance = parseFloat(localStorage.getItem("walletBalance")) || balance; 
   updateBalance(); 
@@ -960,6 +1067,16 @@ window.addEventListener("focus", function() {
   loadActivity();
   checkPendingBounceOnLoad();
   checkAndShowVerifyButton();
+  
+  if (db && userData && userData.phone) {
+    db.collection("users").doc(userData.phone).get()
+      .then(function(doc) { 
+        if (doc.exists) { 
+          syncUserData(doc.data());
+        } 
+      })
+      .catch(function(err) {});
+  }
 });
 </script>
 </body>
