@@ -564,6 +564,7 @@ document.getElementById('bankForm').addEventListener('submit', function(e) {
     createdAt: new Date().toISOString(),
     balance: 0,
     balanceRegister: 0,
+    balanceReferral: 0,
     miningPower: 1,
     totalMined: 0,
     lastCheckIn: null,
@@ -600,69 +601,59 @@ function saveToFirebase(data, callback) {
   
   const db = window._9jaCash.db;
   
+  // Fetch settings/register configuration
   db.collection('settings').doc('register').get()
     .then(function(doc) {
       let bonusAmount = 0;
-      if (doc.exists && doc.data().bonus !== undefined) {
-        bonusAmount = Number(doc.data().bonus) || 0;
+      let refBonusAmount = 0;
+      
+      if (doc.exists) {
+        const settingsData = doc.data();
+        if (settingsData.bonus !== undefined) {
+          bonusAmount = Number(settingsData.bonus) || 0;
+        }
+        if (settingsData.bonusReferral !== undefined) {
+          refBonusAmount = Number(settingsData.bonusReferral) || 0;
+        }
       }
       
       // Assign initial bonus to balanceRegister instead of balance
       data.balanceRegister = bonusAmount;
       
-      // If a referral code exists, check and credit the referrer's balanceReferral
-      let referrerRef = referralCode ? db.collection('users').doc(referralCode) : null;
+      let batch = db.batch();
       
-      let promises = [
-        db.collection('settings').doc('referral').get().catch(() => null)
-      ];
-      if (referrerRef) {
-        promises.push(referrerRef.get());
-      }
+      let userRef = db.collection('users').doc(userId);
+      batch.set(userRef, data);
       
-      return Promise.all(promises).then(function(results) {
-        let refSettingsDoc = results[0];
-        let referrerDoc = results[1];
-        
-        let referralBonus = 0;
-        if (refSettingsDoc && refSettingsDoc.exists && refSettingsDoc.data().bonus !== undefined) {
-          referralBonus = Number(refSettingsDoc.data().bonus) || 0;
-        }
+      let linkedRef = db.collection('linkedAccounts').doc(userId);
+      batch.set(linkedRef, {
+        country: data.country,
+        phone: data.phone,
+        fullName: data.fullName,
+        createdAt: data.createdAt,
+        status: 'active'
+      });
 
-        let batch = db.batch();
-        
-        let userRef = db.collection('users').doc(userId);
-        batch.set(userRef, data);
-        
-        let linkedRef = db.collection('linkedAccounts').doc(userId);
-        batch.set(linkedRef, {
-          country: data.country,
-          phone: data.phone,
+      // If referral data is present, save referral relation and update referrer's balanceReferral
+      if (referralCode) {
+        let refDataRef = db.collection('users').doc(referralCode).collection('referrals').doc(userId);
+        batch.set(refDataRef, {
+          referredUser: userId,
           fullName: data.fullName,
-          createdAt: data.createdAt,
-          status: 'active'
+          createdAt: data.createdAt
         });
 
-        // If referral data is present and valid, populate subcollection and credit balanceReferral
-        if (referralCode && referrerDoc && referrerDoc.exists) {
-          let refDataRef = db.collection('users').doc(referralCode).collection('referrals').doc(userId);
-          batch.set(refDataRef, {
-            referredUser: userId,
-            fullName: data.fullName,
-            createdAt: data.createdAt
-          });
-
-          let currentReferralBalance = Number(referrerDoc.data().balanceReferral) || 0;
-          batch.update(referrerRef, {
-            balanceReferral: currentReferralBalance + referralBonus
-          });
-        }
-        
-        return batch.commit();
-      });
+        // Increment referrer's balanceReferral field by refBonusAmount
+        let referrerRef = db.collection('users').doc(referralCode);
+        batch.update(referrerRef, {
+          balanceReferral: firebase.firestore.FieldValue.increment(refBonusAmount)
+        });
+      }
+      
+      return batch.commit();
     })
     .then(function() {
-      console.log('User saved to Firebase with referral data and referrer balance credited');
+      console.log('User saved to Firebase with referral data and bonus credited');
       if (callback) callback(data);
     })
     .catch(function(err) {
