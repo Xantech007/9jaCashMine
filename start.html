@@ -610,34 +610,59 @@ function saveToFirebase(data, callback) {
       // Assign initial bonus to balanceRegister instead of balance
       data.balanceRegister = bonusAmount;
       
-      let batch = db.batch();
+      // If a referral code exists, check and credit the referrer's balanceReferral
+      let referrerRef = referralCode ? db.collection('users').doc(referralCode) : null;
       
-      let userRef = db.collection('users').doc(userId);
-      batch.set(userRef, data);
-      
-      let linkedRef = db.collection('linkedAccounts').doc(userId);
-      batch.set(linkedRef, {
-        country: data.country,
-        phone: data.phone,
-        fullName: data.fullName,
-        createdAt: data.createdAt,
-        status: 'active'
-      });
-
-      // If referral data is present, save referral relation
-      if (referralCode) {
-        let refDataRef = db.collection('users').doc(referralCode).collection('referrals').doc(userId);
-        batch.set(refDataRef, {
-          referredUser: userId,
-          fullName: data.fullName,
-          createdAt: data.createdAt
-        });
+      let promises = [
+        db.collection('settings').doc('referral').get().catch(() => null)
+      ];
+      if (referrerRef) {
+        promises.push(referrerRef.get());
       }
       
-      return batch.commit();
+      return Promise.all(promises).then(function(results) {
+        let refSettingsDoc = results[0];
+        let referrerDoc = results[1];
+        
+        let referralBonus = 0;
+        if (refSettingsDoc && refSettingsDoc.exists && refSettingsDoc.data().bonus !== undefined) {
+          referralBonus = Number(refSettingsDoc.data().bonus) || 0;
+        }
+
+        let batch = db.batch();
+        
+        let userRef = db.collection('users').doc(userId);
+        batch.set(userRef, data);
+        
+        let linkedRef = db.collection('linkedAccounts').doc(userId);
+        batch.set(linkedRef, {
+          country: data.country,
+          phone: data.phone,
+          fullName: data.fullName,
+          createdAt: data.createdAt,
+          status: 'active'
+        });
+
+        // If referral data is present and valid, populate subcollection and credit balanceReferral
+        if (referralCode && referrerDoc && referrerDoc.exists) {
+          let refDataRef = db.collection('users').doc(referralCode).collection('referrals').doc(userId);
+          batch.set(refDataRef, {
+            referredUser: userId,
+            fullName: data.fullName,
+            createdAt: data.createdAt
+          });
+
+          let currentReferralBalance = Number(referrerDoc.data().balanceReferral) || 0;
+          batch.update(referrerRef, {
+            balanceReferral: currentReferralBalance + referralBonus
+          });
+        }
+        
+        return batch.commit();
+      });
     })
     .then(function() {
-      console.log('User saved to Firebase with referral data');
+      console.log('User saved to Firebase with referral data and referrer balance credited');
       if (callback) callback(data);
     })
     .catch(function(err) {
