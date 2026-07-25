@@ -149,7 +149,7 @@ body.light-mode .top-title{color:#1e293b;}
   </div>
   <div class="detail-surface">
     <div class="label-text">Amount Attempted</div>
-    <div class="value-text red" id="amountAttempted">₦0</div>
+    <div class="value-text red" id="amountAttempted">€0.00</div>
   </div>
   <div class="detail-surface hidden" id="detailExtraRow">
     <div class="label-text" id="extraLabel">Extra</div>
@@ -223,20 +223,78 @@ function toggleTheme() {
 }
 
 // ========== FORMAT MONEY ==========
-function formatMoney(num) {
-  if (num === null || num === undefined || num === "") return "₦0";
-  let n = parseFloat(num);
-  if (isNaN(n)) return "₦0";
-  if (n >= 1000000) return "₦" + (n / 1000000).toFixed(2) + "M";
-  return "₦" + n.toLocaleString("en-NG");
+function formatMoney(amount, isLocalCurrency, currencySymbol) {
+  if (amount === null || amount === undefined || amount === "") return "€0.00";
+  let n = parseFloat(amount);
+  if (isNaN(n)) return "€0.00";
+
+  const isLocal = isLocalCurrency === true || isLocalCurrency === "true";
+  const symbol = isLocal ? (currencySymbol || "₦") : "€";
+
+  if (isLocal) {
+    let roundedUp = Math.ceil(n);
+    return symbol + roundedUp.toLocaleString("en-US") + ".00";
+  }
+
+  return symbol + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// ========== DETECT FLOW — COMPLETELY FIXED ==========
-function detectFlow() {
+// ========== EXTRACT KEY FROM URL PARAMETERS ==========
+function getDocIdFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("docId") || params.get("id") || params.get("doc") || params.get("key") || params.get("ref") || params.get("tx_ref");
+}
+
+// ========== FETCH DEPOSIT FROM FIRESTORE OR LOCALSTORAGE ==========
+async function fetchDepositData(docId) {
+  // 1. Try Firestore if docId exists and Firebase DB is accessible
+  if (docId && window._9jaCash && window._9jaCash.db) {
+    try {
+      const docSnap = await window._9jaCash.db.collection("deposits").doc(docId).get();
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        data.docId = docSnap.id;
+        return data;
+      }
+    } catch (err) {
+      console.warn("Could not fetch deposit document from Firestore:", err);
+    }
+  }
+
+  // 2. Fallback to LocalStorage
+  const stored = localStorage.getItem("latestDepositData");
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch(e) {
+      console.error("LocalStorage deposit parse error:", e);
+    }
+  }
+
+  return null;
+}
+
+// ========== DETECT FLOW FROM URL DOCID OR LOCALSTORAGE ==========
+async function detectFlow() {
   flowData = null;
   flowType = "unknown";
 
-  // 1. Check PAYOUT KEY FIRST (9jaCashPaymentData from buy.html)
+  const docId = getDocIdFromURL();
+  const fetchedDeposit = await fetchDepositData(docId);
+
+  if (fetchedDeposit) {
+    flowData = fetchedDeposit;
+    if (fetchedDeposit.type === "payout_key" || fetchedDeposit.type === "payout_key_purchase") {
+      flowType = "payout_key";
+    } else if (fetchedDeposit.type === "upgrade" || fetchedDeposit.plan) {
+      flowType = "upgrade";
+    } else {
+      flowType = "deposit";
+    }
+    return;
+  }
+
+  // Fallback checks from LocalStorage if no document was found
   const storedPayment = localStorage.getItem("9jaCashPaymentData");
   if (storedPayment) {
     try {
@@ -246,25 +304,9 @@ function detectFlow() {
         flowType = "payout_key";
         return;
       }
-    } catch(e) {
-      console.log("PaymentData parse error:", e);
-    }
-  }
-
-  // 2. Check PAYOUT KEY DETAILS (fallback)
-  const payoutDetails = localStorage.getItem("9jaCashPayoutKeyDetails");
-  if (payoutDetails) {
-    try {
-      const parsed = JSON.parse(payoutDetails);
-      if (parsed && (parsed.plan || parsed.type === "payout_key")) {
-        flowData = parsed;
-        flowType = "payout_key";
-        return;
-      }
     } catch(e) {}
   }
 
-  // 3. Check UPGRADE (selectedPlan from upgrade.html)
   const storedUpgrade = localStorage.getItem("selectedPlan");
   if (storedUpgrade) {
     try {
@@ -278,30 +320,8 @@ function detectFlow() {
         flowType = "upgrade";
         return;
       }
-    } catch(e) {
-      console.log("selectedPlan parse error:", e);
-    }
-  }
-
-  // 4. Fallback: check 9jaCashUpgradeSuccess
-  const upgradeSuccess = localStorage.getItem("9jaCashUpgradeSuccess");
-  if (upgradeSuccess) {
-    try {
-      const parsed = JSON.parse(upgradeSuccess);
-      if (parsed && (parsed.name || parsed.planName)) {
-        flowData = {
-          name: parsed.name || parsed.planName || "Plan Upgrade",
-          amount: parsed.amount || parsed.price || 0,
-          earningLimit: parsed.earningLimit || parsed.limit || 0
-        };
-        flowType = "upgrade";
-        return;
-      }
     } catch(e) {}
   }
-
-  flowType = "unknown";
-  flowData = null;
 }
 
 // ========== LOAD ADMIN SETTINGS ==========
@@ -317,7 +337,6 @@ async function loadAdminSettings() {
     }
   }
 
-  // Fallback defaults
   if (!adminSettings) {
     adminSettings = {
       failedRetryRedirect: "payment.html",
@@ -325,68 +344,82 @@ async function loadAdminSettings() {
       failedRetryLabel: "Retry Payment",
       failedDashboardLabel: "Back to Dashboard",
       failedMessage: "We could not confirm your payment. Please check your details and try again.",
-      failedSupportHandle: "@apex_custometcare"
+      failedSupportHandle: "@Team_FlutterW_support"
     };
   }
 }
 
-// ========== UPDATE UI — FIXED ==========
-function updateUI() {
-  detectFlow();
+// ========== UPDATE UI ==========
+async function updateUI() {
+  await detectFlow();
 
+  const docId = getDocIdFromURL();
   let amount = 0;
   let itemName = "Payment";
-
-  if (flowType === "payout_key" && flowData) {
-    // ========== PAYOUT KEY FLOW ==========
-    amount = parseFloat(flowData.price) || 0;
-    itemName = flowData.plan || "Payout Key";
-
-    // Show extra row for daily limit
-    const extraRow = document.getElementById("detailExtraRow");
-    const extraLabel = document.getElementById("extraLabel");
-    const extraValue = document.getElementById("extraValue");
-    
-    extraRow.classList.remove("hidden");
-    extraLabel.textContent = "Daily Limit";
-    const dailyLimit = flowData.dailyLimit || 0;
-    extraValue.textContent = dailyLimit === 999999 ? "Unlimited" : dailyLimit + " withdrawals/day";
-
-  } else if (flowType === "upgrade" && flowData) {
-    // ========== UPGRADE FLOW ==========
-    amount = parseFloat(flowData.amount) || 0;
-    itemName = flowData.name || "Plan Upgrade";
-
-    // Show extra row for earning limit
-    const extraRow = document.getElementById("detailExtraRow");
-    const extraLabel = document.getElementById("extraLabel");
-    const extraValue = document.getElementById("extraValue");
-    
-    extraRow.classList.remove("hidden");
-    extraLabel.textContent = "Earning Limit";
-    extraValue.textContent = formatMoney(flowData.earningLimit || 0) + " max";
-
-  } else {
-    // ========== UNKNOWN ==========
-    document.getElementById("detailExtraRow").classList.add("hidden");
-  }
-
-  // Update all display fields
-  document.getElementById("detailItem").textContent = itemName;
-  document.getElementById("amountAttempted").textContent = formatMoney(amount);
-  document.getElementById("currentDate").textContent = new Date().toLocaleString("en-NG", {
+  let txId = docId || "TX-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+  let dateText = new Date().toLocaleString("en-NG", {
     day: "numeric", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit"
   });
-  document.getElementById("detailTxId").textContent = "TX-" + Math.random().toString(36).substring(2, 10).toUpperCase();
 
-  // Update message
-  document.getElementById("failMessage").textContent = adminSettings.failedMessage || "We could not confirm your payment. Please check your details and try again.";
+  const extraRow = document.getElementById("detailExtraRow");
+  const extraLabel = document.getElementById("extraLabel");
+  const extraValue = document.getElementById("extraValue");
 
-  // Update support handle
-  document.getElementById("supportHandle").textContent = adminSettings.failedSupportHandle || "@FlutterW_Support";
+  if (flowData) {
+    // Determine Amount
+    amount = flowData.amount || flowData.price || 0;
 
-  // Update buttons based on flow type
+    // Determine Item Name
+    itemName = flowData.plan || flowData.name || flowData.type || "Standard Deposit";
+
+    // Determine TxId
+    if (flowData.docId || flowData.id || flowData.reference || flowData.key) {
+      txId = flowData.docId || flowData.id || flowData.reference || flowData.key;
+    }
+
+    // Determine Date
+    if (flowData.timestamp && flowData.timestamp.toDate) {
+      dateText = flowData.timestamp.toDate().toLocaleString("en-NG", {
+        day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+      });
+    } else if (flowData.date) {
+      dateText = flowData.date;
+    }
+
+    // Specific Extra Info per Flow
+    if (flowType === "payout_key") {
+      extraRow.classList.remove("hidden");
+      extraLabel.textContent = "Daily Limit";
+      const dailyLimit = flowData.dailyLimit || 0;
+      extraValue.textContent = dailyLimit === 999999 ? "Unlimited" : dailyLimit + " withdrawals/day";
+    } else if (flowType === "upgrade") {
+      extraRow.classList.remove("hidden");
+      extraLabel.textContent = "Earning Limit";
+      extraValue.textContent = formatMoney(flowData.earningLimit || 0, flowData.isLocalCurrency, flowData.currencySymbol) + " max";
+    } else {
+      extraRow.classList.add("hidden");
+    }
+  } else {
+    extraRow.classList.add("hidden");
+  }
+
+  // Update display elements
+  document.getElementById("detailItem").textContent = itemName;
+  document.getElementById("amountAttempted").textContent = formatMoney(amount, flowData ? flowData.isLocalCurrency : false, flowData ? flowData.currencySymbol : null);
+  document.getElementById("currentDate").textContent = dateText;
+  document.getElementById("detailTxId").textContent = txId;
+
+  // Update failure message and support handle
+  if (flowData && flowData.reason) {
+    document.getElementById("failMessage").textContent = flowData.reason;
+  } else {
+    document.getElementById("failMessage").textContent = adminSettings.failedMessage || "We could not confirm your payment. Please check your details and try again.";
+  }
+
+  document.getElementById("supportHandle").textContent = adminSettings.failedSupportHandle || "@Team_FlutterW_support";
+
+  // Update button labels & actions
   const rBtn = document.getElementById("retryBtn");
   const dBtn = document.getElementById("dashBtn");
 
@@ -445,7 +478,7 @@ function showToast(msg) {
 async function init() {
   initTheme();
   await loadAdminSettings();
-  updateUI();
+  await updateUI();
 }
 
 window.addEventListener("DOMContentLoaded", init);
