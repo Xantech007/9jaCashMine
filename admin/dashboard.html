@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Admin Dashboard - FlutterW Euro Earn</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc;min-height:100vh;transition:all 0.3s ease;}
+
+body.light-mode{background:#f8fafc;color:#1e293b;}
+body.light-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;}
+body.light-mode .card{background:#fff;border-color:#e2e8f0;box-shadow:0 4px 24px rgba(0,0,0,0.06);}
+body.light-mode .menu-btn{background:#fff;border-color:#e2e8f0;color:#1e293b;box-shadow:0 2px 12px rgba(0,0,0,0.03);}
+body.light-mode .menu-btn:hover{background:#f1f5f9;border-color:#6366f1;}
+body.light-mode .header-title{color:#1e293b;}
+body.light-mode .footer-text{color:#94a3b8;}
+body.light-mode .theme-toggle{color:#64748b;}
+body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f0;}
+
+.soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.12),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.08),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.06),transparent 50%),#0f172a;transition:all 0.3s ease;}
+
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 40px;}
+
+.topbar{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between;}
+.logout-btn{width:44px;height:44px;border-radius:14px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#ef4444;font-size:16px;cursor:pointer;transition:all 0.3s;}
+.logout-btn:hover{background:#334155;}
+.logout-btn:active{transform:scale(0.92);}
+.header-title{font-size:18px;font-weight:800;color:#f8fafc;transition:color 0.3s;}
+.theme-toggle{width:44px;height:44px;border-radius:14px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:16px;cursor:pointer;transition:all 0.3s;}
+.theme-toggle:hover{background:#334155;color:#818cf8;}
+
+.flow-badge{display:inline-flex;align-items:center;gap:6px;background:#1e293b;border:1px solid #334155;border-radius:50px;padding:6px 14px;font-size:11px;font-weight:700;color:#10b981;margin-bottom:16px;}
+.flow-badge i{font-size:12px;}
+
+.welcome-box{text-align:center;padding:10px 0 24px;}
+.welcome-title{font-size:22px;font-weight:900;letter-spacing:-0.5px;}
+.welcome-subtitle{font-size:13px;color:#94a3b8;margin-top:4px;font-weight:500;}
+
+.menu-grid{display:grid;grid-template-columns:repeat(1, 1fr);gap:14px;margin-bottom:16px;}
+.menu-btn{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all 0.3s ease;text-decoration:none;box-shadow:0 4px 20px rgba(0,0,0,0.15);}
+.menu-btn:hover{transform:translateY(-2px);border-color:#6366f1;box-shadow:0 6px 24px rgba(99,102,241,0.25);}
+.menu-btn:active{transform:scale(0.98);}
+
+.menu-left{display:flex;align-items:center;gap:16px;}
+.menu-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.menu-info h3{font-size:15px;font-weight:700;letter-spacing:-0.2px;}
+.menu-info p{font-size:12px;color:#94a3b8;margin-top:2px;font-weight:500;}
+.menu-arrow{width:32px;height:32px;border-radius:10px;background:rgba(99,102,241,0.1);color:#6366f1;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.3s;}
+.menu-btn:hover .menu-arrow{background:#6366f1;color:#fff;}
+
+.footer{text-align:center;margin-top:32px;}
+.footer-text{font-size:12px;color:#64748b;font-weight:500;}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.anim{animation:slideUp 0.6s ease both;}
+</style>
+</head>
+<body>
+
+<div class="soft-bg"></div>
+
+<div class="app">
+
+<div class="topbar anim">
+  <button class="logout-btn" onclick="handleLogout()" title="Logout">
+    <i class="fa-solid fa-right-from-bracket"></i>
+  </button>
+  <div class="header-title">Admin Control Hub</div>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <i class="fa-solid fa-sun" id="themeIcon"></i>
+  </button>
+</div>
+
+<div class="anim" style="text-align:center;">
+  <div class="flow-badge">
+    <i class="fa-solid fa-circle-check"></i> <span>System Online</span>
+  </div>
+</div>
+
+<div class="welcome-box anim">
+  <div class="welcome-title">Welcome Back, Admin</div>
+  <div class="welcome-subtitle">Select a management module below to oversee platform activity</div>
+</div>
+
+<div class="menu-grid anim">
+  
+  <!-- Users Button -->
+  <a href="users.html" class="menu-btn">
+    <div class="menu-left">
+      <div class="menu-icon" style="background:rgba(99,102,241,0.1);color:#6366f1;">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <div class="menu-info">
+        <h3>Manage Users</h3>
+        <p>View accounts, update statuses & balances</p>
+      </div>
+    </div>
+    <div class="menu-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+  </a>
+
+  <!-- Deposits Button -->
+  <a href="deposits.html" class="menu-btn">
+    <div class="menu-left">
+      <div class="menu-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
+        <i class="fa-solid fa-wallet"></i>
+      </div>
+      <div class="menu-info">
+        <h3>Manage Deposits</h3>
+        <p>Approve or decline funding requests</p>
+      </div>
+    </div>
+    <div class="menu-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+  </a>
+
+  <!-- Withdrawals Button -->
+  <a href="withdrawals.html" class="menu-btn">
+    <div class="menu-left">
+      <div class="menu-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
+        <i class="fa-solid fa-money-bill-transfer"></i>
+      </div>
+      <div class="menu-info">
+        <h3>Manage Withdrawals</h3>
+        <p>Review and process payout requests</p>
+      </div>
+    </div>
+    <div class="menu-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+  </a>
+
+  <!-- Tasks Button -->
+  <a href="tasks.html" class="menu-btn">
+    <div class="menu-left">
+      <div class="menu-icon" style="background:rgba(236,72,153,0.1);color:#ec4899;">
+        <i class="fa-solid fa-list-check"></i>
+      </div>
+      <div class="menu-info">
+        <h3>Manage Tasks</h3>
+        <p>Create and configure earning tasks</p>
+      </div>
+    </div>
+    <div class="menu-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+  </a>
+
+  <!-- Settings Button -->
+  <a href="settings.html" class="menu-btn">
+    <div class="menu-left">
+      <div class="menu-icon" style="background:rgba(139,92,246,0.1);color:#8b5cf6;">
+        <i class="fa-solid fa-gears"></i>
+      </div>
+      <div class="menu-info">
+        <h3>Platform Settings</h3>
+        <p>Configure regional rates, bonuses & config</p>
+      </div>
+    </div>
+    <div class="menu-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+  </a>
+
+</div>
+
+<div class="footer anim">
+  <div class="footer-text">FlutterW Euro Earn 2026 • Admin Dashboard</div>
+</div>
+
+</div>
+
+<script>
+// Verify admin session on load
+const adminSession = localStorage.getItem("9jaCashAdmin");
+if (!adminSession) {
+  window.location.href = "login.html";
+}
+
+function initTheme() {
+  const isLight = localStorage.getItem("9jaCashDark") !== "true";
+  if (isLight) {
+    document.body.classList.add("light-mode");
+    document.getElementById("themeIcon").className = "fa-solid fa-moon";
+  }
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.toggle("light-mode");
+  localStorage.setItem("9jaCashDark", !isLight);
+  document.getElementById("themeIcon").className = isLight ? "fa-solid fa-moon" : "fa-solid fa-sun";
+}
+
+function handleLogout() {
+  Swal.fire({
+    title: "Logout Admin?",
+    text: "Are you sure you want to exit the admin control hub?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#ef4444",
+    cancelButtonColor: "#64748b",
+    confirmButtonText: "Yes, Logout",
+    background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
+    color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
+  }).then((result) => {
+    if (result.isConfirmed) {
+      localStorage.removeItem("9jaCashAdmin");
+      window.location.href = "login.html";
+    }
+  });
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+});
+</script>
+
+</body>
+</html>
