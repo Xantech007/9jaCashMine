@@ -241,7 +241,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   // ========== EXTRACT KEY FROM URL PARAMETERS ==========
   function getDepositKeyFromURL() {
     const params = new URLSearchParams(window.location.search);
-    return params.get("id") || params.get("key") || params.get("ref") || params.get("tx_ref");
+    return params.get("docId") || params.get("id") || params.get("doc") || params.get("key") || params.get("ref") || params.get("tx_ref");
   }
 
   // ========== LOAD CUSTOMER CARE FROM FIREBASE / STORAGE ==========
@@ -274,7 +274,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   // ========== RENDER DATA INTO PAGE UI ==========
   function renderDepositUI(deposit, depositKey) {
     // Show Transaction ID or Key
-    document.getElementById("keyDisplay").textContent = depositKey || deposit.id || deposit.reference || "N/A";
+    const finalKey = depositKey || deposit.id || deposit.docId || deposit.reference || "N/A";
+    document.getElementById("keyDisplay").textContent = finalKey;
 
     // Display Plan/Type
     document.getElementById("planDisplay").textContent = deposit.plan || deposit.type || "Standard Payment";
@@ -325,12 +326,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
       }
     }
 
-    // 2. Fallback to LocalStorage if key query failed or isn't present
+    // 2. Fallback to LocalStorage if key query failed or document wasn't found directly
     const stored = localStorage.getItem("latestDepositData");
     if (stored) {
       try {
         const deposit = JSON.parse(stored);
-        renderDepositUI(deposit, depositKey || deposit.id);
+        renderDepositUI(deposit, depositKey || deposit.docId || deposit.id);
         return;
       } catch (e) {
         console.error("Error parsing deposit data from local storage:", e);
