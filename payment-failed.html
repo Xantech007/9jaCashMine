@@ -197,10 +197,15 @@ body.light-mode .top-title{color:#1e293b;}
 <div class="toast-box" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
 
 <script>
+// Authentication check: redirect to start.html if user is not logged in
 let userData = null;
 try {
   userData = JSON.parse(localStorage.getItem("9jaCashUser"));
 } catch(e) { userData = null; }
+
+if (!userData) {
+  window.location.href = "start.html";
+}
 
 let flowType = "unknown";
 let flowData = null;
