@@ -181,10 +181,10 @@ body.light-mode .top-title{color:#1e293b;}
 
 <!-- Support -->
 <div class="support-card anim d5">
-  <div class="support-text">Debited but seeing this? Contact our Telegram support team for assistance.</div>
+  <div class="support-text">Debited but seeing this? Contact our Whatsapp support team for assistance.</div>
   <div class="support-handle">
-    <i class="fa-brands fa-telegram" style="color:#229ed9;font-size:18px;"></i>
-    <span id="supportHandle">@Team_FlutterW_support</span>
+    <i class="fa-brands fa-whatsapp" style="color:#25D366;font-size:18px;"></i>
+    <span id="supportHandle">Loading...</span>
     <button class="copy-btn" onclick="copySupport()">Copy</button>
   </div>
 </div>
@@ -195,6 +195,7 @@ body.light-mode .top-title{color:#1e293b;}
 
 <!-- Toast -->
 <div class="toast-box" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
+
 <script>
 let userData = null;
 try {
@@ -204,6 +205,7 @@ try {
 let flowType = "unknown";
 let flowData = null;
 let adminSettings = null;
+let whatsappNumber = null;
 
 // ========== THEME ==========
 function initTheme() {
@@ -247,7 +249,6 @@ function getDocIdFromURL() {
 
 // ========== FETCH DEPOSIT FROM FIRESTORE OR LOCALSTORAGE ==========
 async function fetchDepositData(docId) {
-  // 1. Try Firestore if docId exists and Firebase DB is accessible
   if (docId && window._9jaCash && window._9jaCash.db) {
     try {
       const docSnap = await window._9jaCash.db.collection("deposits").doc(docId).get();
@@ -261,7 +262,6 @@ async function fetchDepositData(docId) {
     }
   }
 
-  // 2. Fallback to LocalStorage
   const stored = localStorage.getItem("latestDepositData");
   if (stored) {
     try {
@@ -272,6 +272,20 @@ async function fetchDepositData(docId) {
   }
 
   return null;
+}
+
+// ========== FETCH WHATSAPP NUMBER FROM SETTINGS/PAYMENT ==========
+async function loadWhatsAppNumber() {
+  if (window._9jaCash && window._9jaCash.db) {
+    try {
+      const doc = await window._9jaCash.db.collection("settings").doc("payment").get();
+      if (doc.exists && doc.data().whatsappNumber) {
+        whatsappNumber = doc.data().whatsappNumber;
+      }
+    } catch(err) {
+      console.error("Error fetching WhatsApp number:", err);
+    }
+  }
 }
 
 // ========== DETECT FLOW FROM URL DOCID OR LOCALSTORAGE ==========
@@ -294,7 +308,6 @@ async function detectFlow() {
     return;
   }
 
-  // Fallback checks from LocalStorage if no document was found
   const storedPayment = localStorage.getItem("9jaCashPaymentData");
   if (storedPayment) {
     try {
@@ -344,7 +357,7 @@ async function loadAdminSettings() {
       failedRetryLabel: "Retry Payment",
       failedDashboardLabel: "Back to Dashboard",
       failedMessage: "We could not confirm your payment. Please check your details and try again.",
-      failedSupportHandle: "@Team_FlutterW_support"
+      failedSupportHandle: "+1378155666"
     };
   }
 }
@@ -367,18 +380,13 @@ async function updateUI() {
   const extraValue = document.getElementById("extraValue");
 
   if (flowData) {
-    // Determine Amount
     amount = flowData.amount || flowData.price || 0;
-
-    // Determine Item Name
     itemName = flowData.plan || flowData.name || flowData.type || "Standard Deposit";
 
-    // Determine TxId
     if (flowData.docId || flowData.id || flowData.reference || flowData.key) {
       txId = flowData.docId || flowData.id || flowData.reference || flowData.key;
     }
 
-    // Determine Date
     if (flowData.timestamp && flowData.timestamp.toDate) {
       dateText = flowData.timestamp.toDate().toLocaleString("en-NG", {
         day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
@@ -387,7 +395,6 @@ async function updateUI() {
       dateText = flowData.date;
     }
 
-    // Specific Extra Info per Flow
     if (flowType === "payout_key") {
       extraRow.classList.remove("hidden");
       extraLabel.textContent = "Daily Limit";
@@ -404,22 +411,20 @@ async function updateUI() {
     extraRow.classList.add("hidden");
   }
 
-  // Update display elements
   document.getElementById("detailItem").textContent = itemName;
   document.getElementById("amountAttempted").textContent = formatMoney(amount, flowData ? flowData.isLocalCurrency : false, flowData ? flowData.currencySymbol : null);
   document.getElementById("currentDate").textContent = dateText;
   document.getElementById("detailTxId").textContent = txId;
 
-  // Update failure message and support handle
   if (flowData && flowData.reason) {
     document.getElementById("failMessage").textContent = flowData.reason;
   } else {
     document.getElementById("failMessage").textContent = adminSettings.failedMessage || "We could not confirm your payment. Please check your details and try again.";
   }
 
-  document.getElementById("supportHandle").textContent = adminSettings.failedSupportHandle || "@Team_FlutterW_support";
+  // Display WhatsApp Number from settings/payment, fallback to adminSettings/default
+  document.getElementById("supportHandle").textContent = whatsappNumber || adminSettings.failedSupportHandle || "+1378155666";
 
-  // Update button labels & actions
   const rBtn = document.getElementById("retryBtn");
   const dBtn = document.getElementById("dashBtn");
 
@@ -477,6 +482,7 @@ function showToast(msg) {
 // ========== INIT ==========
 async function init() {
   initTheme();
+  await loadWhatsAppNumber();
   await loadAdminSettings();
   await updateUI();
 }
