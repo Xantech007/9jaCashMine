@@ -173,7 +173,7 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
 .tutorial-progress{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:10001;display:flex;gap:6px;}
 .tutorial-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.3);transition:all 0.3s;}
 .tutorial-dot.active{background:#6366f1;width:24px;border-radius:4px;}
-@keyframes tutorialPulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0.7);}50%{box-shadow:0 0 0 12px rgba(99,102,241,0);}}
+@keyframes tutorialPulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0.7);}50%{box-shadow:0 0 0 12px rgba(99,102,241,0.0);}}
 .skip-tour-btn{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:10001;padding:10px 24px;border-radius:50px;background:rgba(0,0,0,0.6);color:#fff;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,0.2);cursor:pointer;backdrop-filter:blur(10px);display:none;align-items:center;gap:8px;transition:all 0.3s;}
 .skip-tour-btn.show{display:flex;}
 .skip-tour-btn:hover{background:rgba(239,68,68,0.8);border-color:rgba(239,68,68,0.5);}
@@ -294,7 +294,7 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
   </button>
 </div>
 
-<!-- Referral Program Section (Placed above the claim section)[cite: 3] -->
+<!-- Referral Program Section -->
 <div class="referral-card anim d3" id="referralCard">
   <div class="referral-header">
     <div class="referral-icon"><i class="fa-solid fa-user-plus"></i></div>
@@ -522,7 +522,6 @@ function copyReferralLink() {
   navigator.clipboard.writeText(refLink).then(function() {
     showToast("Referral link copied!");
   }).catch(function() {
-    // Fallback
     const textArea = document.createElement("textarea");
     textArea.value = refLink;
     document.body.appendChild(textArea);
@@ -579,12 +578,24 @@ function loadReferralsList() {
           }
         }
         
+        // Determine referral plan status
+        let refPlan = (data.plan || "free").toString().toLowerCase().trim();
+        if (!refPlan.endsWith("plan")) {
+          refPlan += " plan";
+        }
+        
+        let isActive = (refPlan !== "free plan" && PLANS_CONFIG[refPlan] !== undefined);
+        
+        let statusBadge = isActive 
+          ? '<div style="font-size:12px;font-weight:700;color:#10b981;">Active</div>' 
+          : '<div style="font-size:12px;font-weight:700;color:#ef4444;">Inactive</div>';
+        
         html += `<div class="ref-list-item">
           <div>
             <div class="ref-item-name">${name}</div>
             <div class="ref-item-date">Joined: ${dateStr || 'Recent'}</div>
           </div>
-          <div style="font-size:12px;font-weight:700;color:#10b981;">Active</div>
+          <div>${statusBadge}</div>
         </div>`;
       });
       
@@ -751,7 +762,6 @@ function updateBalance() {
   }
   localStorage.setItem("walletBalance", balance);
   
-  // Render Referral and Registration bonuses if existing and > 0[cite: 1]
   const chipsArea = document.getElementById("bonusChipsArea");
   if (chipsArea) {
     let chipsHtml = "";
