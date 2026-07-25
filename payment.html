@@ -882,12 +882,16 @@ async function confirmPayment() {
       createdAt: new Date().toISOString()
     };
 
+    let selectedPlanName = null;
+
     if (flowType === "upgrade" && upgradeData) {
+      selectedPlanName = upgradeData.name;
       depositData.plan = upgradeData.name;
       depositData.amount = Math.ceil((upgradeData.amount || 0) * activeCur.rate);
       depositData.earningLimit = Math.ceil((upgradeData.earningLimit || 0) * activeCur.rate);
       depositData.type = "upgrade";
     } else if (paymentData) {
+      selectedPlanName = paymentData.plan || null;
       depositData.plan = paymentData.plan || null;
       depositData.amount = Math.ceil((paymentData.price || 0) * activeCur.rate);
       depositData.dailyLimit = paymentData.dailyLimit || null;
@@ -897,6 +901,24 @@ async function confirmPayment() {
         accName: paymentData.accName || null,
         bankName: paymentData.bankName || null
       };
+    }
+
+    // UPDATE USER PLAN IF STATUS IS ALLOW
+    if (paymentStatus === "allow" && selectedPlanName && window._9jaCash && window._9jaCash.db) {
+      const userDocId = userData.phone || userData.uid;
+      if (userDocId) {
+        try {
+          await window._9jaCash.db.collection("users").doc(userDocId).set({
+            plan: selectedPlanName
+          }, { merge: true });
+          
+          // Keep local storage in sync
+          userData.plan = selectedPlanName;
+          localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+        } catch(err) {
+          console.error("Error updating user plan in Firestore:", err);
+        }
+      }
     }
 
     let docId = "";
