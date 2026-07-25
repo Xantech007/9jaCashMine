@@ -148,7 +148,7 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
     <div class="title">Withdrawal Successful!</div>
     <div class="subtitle">Your funds are on the way to your bank account</div>
     <div class="amount-text count-up" id="amountDisplay">€0<span>.00</span></div>
-    <div class="local-amount-text" id="localAmountDisplay">≈ ₦0.00</div>
+    <div class="local-amount-text" id="localAmountDisplay">≈ $0.00</div>
     <div class="status-badge">
       <i class="fa-solid fa-circle-check"></i>
       <span id="statusText">Pending • Processing</span>
@@ -167,14 +167,14 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
     </div>
     <div class="detail-card">
       <div class="detail-label">Local Amount</div>
-      <div class="detail-value green" id="detailLocalAmount">₦0.00</div>
+      <div class="detail-value green" id="detailLocalAmount">$0.00</div>
     </div>
     <div class="detail-card">
-      <div class="detail-label" id="lblBank">Bank</div>
+      <div class="detail-label" id="lblBank">Bank Name</div>
       <div class="detail-value" id="detailBank"><i class="fa-solid fa-building-columns"></i> —</div>
     </div>
     <div class="detail-card">
-      <div class="detail-label" id="lblAccount">Account</div>
+      <div class="detail-label" id="lblAccount">Account Number</div>
       <div class="detail-value mono" id="detailAccount">—</div>
     </div>
     <div class="detail-card">
@@ -216,11 +216,20 @@ try {
 }
 
 let activeTxData = null;
-let adminSettings = null;
+let regionalSettings = null;
+let defaultPaymentSettings = null;
 
-// Currency Rate Defaults (matching withdraw.html)
-const DEFAULT_EUR_RATE = 1650; // Exchange rate Euro to NGN/Local
-const CURRENCY_SYMBOL = "₦";
+// Helper function to convert country name to Firestore region document
+function getRegionDocName(countryName) {
+  if (!countryName) return "ghanaRegion";
+  const normalized = countryName.trim().toLowerCase();
+  const countryMap = {
+    "ghana": "ghanaRegion", "usa": "usaRegion", "united states": "usaRegion",
+    "spain": "spainRegion", "nigeria": "nigeriaRegion", "uk": "ukRegion",
+    "canada": "canadaRegion", "kenya": "kenyaRegion", "south africa": "southafricaRegion"
+  };
+  return countryMap[normalized] || (normalized.replace(/[^a-z0-9]/g, "") + "Region");
+}
 
 // ========== THEME ==========
 function initTheme() {
@@ -247,11 +256,34 @@ function formatMoney(num) {
   return "€" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function formatLocalMoney(num, symbol = CURRENCY_SYMBOL) {
+function formatLocalMoney(num, symbol = "$") {
   if (!num && num !== 0) return symbol + "0.00";
   let n = parseFloat(num);
   if (isNaN(n)) return symbol + "0.00";
-  return symbol + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return symbol + Math.ceil(n).toLocaleString("en-US") + ".00";
+}
+
+// ========== LOAD REGIONAL & PAYMENT SETTINGS ==========
+async function loadConfig() {
+  if (window._9jaCash && window._9jaCash.db) {
+    // 1. Fetch default payment labels
+    try {
+      const payDoc = await window._9jaCash.db.collection("settings").doc("payment").get();
+      if (payDoc.exists) {
+        defaultPaymentSettings = payDoc.data();
+      }
+    } catch(e) { console.warn("Error reading settings/payment:", e); }
+
+    // 2. Fetch regional rates and field overrides
+    const userCountry = (userData && userData.country) ? userData.country : "Ghana";
+    const regionDoc = getRegionDocName(userCountry);
+    try {
+      const regDoc = await window._9jaCash.db.collection("settings").doc(regionDoc).get();
+      if (regDoc.exists) {
+        regionalSettings = regDoc.data();
+      }
+    } catch(e) { console.warn("Error fetching regional details:", e); }
+  }
 }
 
 // ========== GET TRANSACTION DATA (URL OR LOCAL) ==========
@@ -268,12 +300,9 @@ async function getTxData() {
           txId: docSnap.id,
           amount: data.amount,
           localAmount: data.localAmount || null,
-          bank: data.bank || data.bankNameTitle,
-          account: data.accNumber || data.bank,
-          name: data.accName || data.accNameTitle,
-          bankNameTitle: data.bankNameTitle || "Bank",
-          accNameTitle: data.accNameTitle || "Account Name",
-          bankTitle: data.bankTitle || "Account",
+          bank: data.bank,
+          account: data.accNumber,
+          name: data.accName,
           status: data.status,
           date: data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleString() : new Date().toLocaleString()
         };
@@ -340,6 +369,15 @@ async function updateUI() {
     return;
   }
 
+  // Set field labels dynamically using regional and default settings
+  const bankTitle = (regionalSettings && regionalSettings.bankNameTitle) || (defaultPaymentSettings && defaultPaymentSettings.bankNameTitle) || "Bank Name";
+  const accNumTitle = (regionalSettings && regionalSettings.accNumTitle) || (defaultPaymentSettings && defaultPaymentSettings.accNumTitle) || "Account Number";
+  const accNameTitle = (regionalSettings && regionalSettings.accNameTitle) || (defaultPaymentSettings && defaultPaymentSettings.accNameTitle) || "Account Name";
+
+  document.getElementById("lblBank").textContent = bankTitle;
+  document.getElementById("lblAccount").textContent = accNumTitle;
+  document.getElementById("lblAccName").textContent = accNameTitle;
+
   let rawAmount = 0;
   if (typeof data.amount === 'string') {
     rawAmount = parseFloat(data.amount.replace(/[^\d.]/g, "")) || 0;
@@ -347,12 +385,15 @@ async function updateUI() {
     rawAmount = parseFloat(data.amount) || 0;
   }
 
-  // Calculate local currency converted amount
-  let rate = (adminSettings && adminSettings.exchangeRate) ? parseFloat(adminSettings.exchangeRate) : DEFAULT_EUR_RATE;
+  // Extract Rate and Symbol dynamically
+  const rate = (regionalSettings && regionalSettings.rate) ? parseFloat(regionalSettings.rate) : 1;
+  const symbol = (regionalSettings && (regionalSettings.currencySymbol || regionalSettings.symbol)) ? (regionalSettings.currencySymbol || regionalSettings.symbol) : "$";
+
+  // Calculate local currency value
   let localValue = data.localAmount ? parseFloat(data.localAmount) : (rawAmount * rate);
 
   const formattedEUR = formatMoney(rawAmount);
-  const formattedLocal = formatLocalMoney(localValue);
+  const formattedLocal = formatLocalMoney(localValue, symbol);
 
   const amountDisplay = document.getElementById("amountDisplay");
   if (formattedEUR.includes(".")) {
@@ -365,11 +406,6 @@ async function updateUI() {
   document.getElementById("localAmountDisplay").textContent = "≈ " + formattedLocal;
   document.getElementById("detailAmount").textContent = formattedEUR;
   document.getElementById("detailLocalAmount").textContent = formattedLocal;
-
-  // Set field labels dynamically using bankNameTitle, accNameTitle, etc.
-  document.getElementById("lblBank").textContent = data.bankNameTitle || "Bank";
-  document.getElementById("lblAccount").textContent = data.bankTitle || "Account";
-  document.getElementById("lblAccName").textContent = data.accNameTitle || "Account Name";
 
   document.getElementById("detailBank").innerHTML = '<i class="fa-solid fa-building-columns"></i> ' + (data.bank || "—");
   document.getElementById("detailAccount").textContent = data.account || data.accNumber || "—";
@@ -452,33 +488,11 @@ function showToast(msg) {
   }, 2500);
 }
 
-// ========== LOAD ADMIN SETTINGS ==========
-async function loadAdminSettings() {
-  if (window._9jaCash && window._9jaCash.db) {
-    try {
-      const doc = await window._9jaCash.db.collection("settings").doc("redirects").get();
-      if (doc.exists) adminSettings = doc.data();
-    } catch(err) {
-      console.error("Error fetching settings:", err);
-    }
-  }
-
-  if (!adminSettings) {
-    adminSettings = {
-      successRedirect: "dashboard.html",
-      successDelay: 1500,
-      exchangeRate: 1650
-    };
-  }
-}
-
 // ========== INIT ==========
 async function init() {
   initTheme();
-  await loadAdminSettings();
+  await loadConfig();
   await updateUI();
-
-  const delay = parseInt(adminSettings.successDelay) || 1500;
 
   setTimeout(function() {
     const loader = document.getElementById("loader");
@@ -495,7 +509,7 @@ async function init() {
         colors: ['#6366f1', '#8b5cf6', '#10b981', '#34d399', '#f59e0b']
       });
     }
-  }, delay);
+  }, 1500);
 }
 
 window.addEventListener("DOMContentLoaded", init);
