@@ -183,9 +183,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b
         <p class="text-[11px] font-semibold text-[#64748b]">Earn Daily • Withdraw Fast</p>
       </div>
     </div>
-    <div class="flex items-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-[#10b981] animate-pulse"></span>
-      <span class="text-[11px] font-bold text-[#10b981]">Live</span>
+    <div class="flex items-center gap-3">
+      <!-- Login Button for Unauthenticated State -->
+      <a id="loginNavBtn" href="login.html" class="px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50/50 text-indigo-600 font-bold text-xs hover:bg-indigo-100 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-right-to-bracket text-[10px]"></i> Login
+      </a>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-[#10b981] animate-pulse"></span>
+        <span class="text-[11px] font-bold text-[#10b981]">Live</span>
+      </div>
     </div>
   </div>
 
@@ -202,10 +208,19 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b
       <span class="pill pill-purple"><i class="fa-solid fa-check text-[10px]"></i> Daily Check-In</span>
       <span class="pill pill-amber"><i class="fa-solid fa-check text-[10px]"></i> Auto Mining</span>
     </div>
-    <a class='btn-primary block w-full py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2' href='/start.html'>
-      <span>Get Started</span>
-      <i class="fa-solid fa-arrow-right text-sm"></i>
-    </a>
+    
+    <!-- Dynamic CTA Button Container -->
+    <div id="dynamicCtaContainer">
+      <a id="ctaGetStarted" class='btn-primary block w-full py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2' href='start.html'>
+        <span>Get Started</span>
+        <i class="fa-solid fa-arrow-right text-sm"></i>
+      </a>
+      <a id="ctaDashboard" class='btn-primary block w-full py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 hidden' href='dashboard.html' style="background:linear-gradient(135deg,#10b981,#34d399);box-shadow:0 4px 20px rgba(16,185,129,0.3);">
+        <span>Go to Dashboard</span>
+        <i class="fa-solid fa-arrow-right text-sm"></i>
+      </a>
+    </div>
+
     <p class="text-[11px] text-[#94a3b8] mt-4 font-medium">
       <i class="fa-solid fa-shield-halved text-[#10b981] mr-1"></i> Secure • Fast • Trusted by 50K+ users
     </p>
@@ -315,10 +330,19 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b
     </div>
     <h3 class="text-xl font-black mb-2">Ready to Start?</h3>
     <p class="text-[13px] text-[#64748b] mb-6 max-w-[280px] mx-auto">Join 50,000+ Europeans already earning daily with FlutterW Euro Earn.</p>
-    <a class='btn-primary block w-full py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2' href='/start.html'>
-      <span>Create Free Account</span>
-      <i class="fa-solid fa-arrow-right text-sm"></i>
-    </a>
+    
+    <!-- Dynamic Footer CTA Container -->
+    <div id="dynamicFooterCtaContainer">
+      <a id="footerCtaGetStarted" class='btn-primary block w-full py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2' href='start.html'>
+        <span>Create Free Account</span>
+        <i class="fa-solid fa-arrow-right text-sm"></i>
+      </a>
+      <a id="footerCtaDashboard" class='btn-primary block w-full py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2 hidden' href='dashboard.html' style="background:linear-gradient(135deg,#10b981,#34d399);box-shadow:0 4px 20px rgba(16,185,129,0.3);">
+        <span>Go to Dashboard</span>
+        <i class="fa-solid fa-arrow-right text-sm"></i>
+      </a>
+    </div>
+
     <p class="text-[11px] text-[#94a3b8] mt-4 font-medium">
       <i class="fa-solid fa-lock text-[#10b981] mr-1"></i> No upfront payment required
     </p>
@@ -350,6 +374,38 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b
 </div>
 
 <script>
+// ========== AUTH STATE CHECKER ==========
+function checkAuthStatus() {
+  const user = localStorage.getItem("9jaCashUser");
+  const loginNavBtn = document.getElementById("loginNavBtn");
+  
+  const ctaGetStarted = document.getElementById("ctaGetStarted");
+  const ctaDashboard = document.getElementById("ctaDashboard");
+  
+  const footerCtaGetStarted = document.getElementById("footerCtaGetStarted");
+  const footerCtaDashboard = document.getElementById("footerCtaDashboard");
+
+  if (user) {
+    // Logged in: hide login button in nav, hide get started, show dashboard buttons
+    if (loginNavBtn) loginNavBtn.classList.add("hidden");
+    
+    if (ctaGetStarted) ctaGetStarted.classList.add("hidden");
+    if (ctaDashboard) ctaDashboard.classList.remove("hidden");
+    
+    if (footerCtaGetStarted) footerCtaGetStarted.classList.add("hidden");
+    if (footerCtaDashboard) footerCtaDashboard.classList.remove("hidden");
+  } else {
+    // Not logged in: show login button, show get started, hide dashboard buttons
+    if (loginNavBtn) loginNavBtn.classList.remove("hidden");
+    
+    if (ctaGetStarted) ctaGetStarted.classList.remove("hidden");
+    if (ctaDashboard) ctaDashboard.classList.add("hidden");
+    
+    if (footerCtaGetStarted) footerCtaGetStarted.classList.remove("hidden");
+    if (footerCtaDashboard) footerCtaDashboard.classList.add("hidden");
+  }
+}
+
 // ========== TOAST ==========
 function showToast(msg) {
   const t = document.getElementById("toast");
@@ -538,6 +594,7 @@ function registerServiceWorker() {
 
 // ========== INIT ==========
 window.addEventListener("DOMContentLoaded", function() {
+  checkAuthStatus();
   initAthBanner();
 });
 </script>
