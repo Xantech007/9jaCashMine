@@ -39,7 +39,7 @@ body.dark-mode .tutorial-bubble::after{border-top-color:#1e293b;}
 body.dark-mode .verify-btn{background:linear-gradient(135deg,#ef4444,#dc2626);}
 body.dark-mode .act-amount.bounce{color:#f59e0b;}
 body.dark-mode .act-icon.bounce{background:#fff7ed!important;color:#f59e0b!important;}
-body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8);}
+body.dark-mode .whatsapp-float{border-color:#0f172a;}
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;transition:all 0.3s ease;}
 .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 100px;}
 .topbar{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between;}
@@ -123,11 +123,11 @@ body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8
 .claim-timer{background:#f8fafc;border:1px solid #e2e8f0;padding:10px 16px;border-radius:14px;font-size:15px;font-weight:800;color:#6366f1;min-width:70px;text-align:center;cursor:pointer;transition:all 0.3s;}
 .claim-timer.ready{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 12px rgba(99,102,241,0.2);}
 .claim-timer.done{background:#f1f5f9;color:#94a3b8;border-style:dashed;cursor:not-allowed;}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:10px 20px 24px;display:flex;justify-around:align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
-.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:#94a3b8;text-decoration:none;font-size:10px;font-weight:600;transition:all 0.3s;border:none;background:none;cursor:pointer;}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:10px 20px 24px;display:flex;justify-content:space-around;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:4px;color:#94a3b8;text-decoration:none;font-size:10px;font-weight:600;transition:all 0.3s;border:none;background:none;cursor:pointer;}
 .nav-item i{font-size:20px;}
 .nav-item.active{color:#6366f1;}
-.nav-mid{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;margin-top:-20px;box-shadow:0 4px 16px rgba(99,102,241,0.3);border:4px solid #f8fafc;transition:all 0.3s;}
+.nav-mid{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;margin-top:-20px;box-shadow:0 4px 16px rgba(99,102,241,0.3);border:4px solid #f8fafc;transition:all 0.3s;flex-shrink:0;}
 .nav-mid:active{transform:scale(0.95);}
 body.dark-mode .nav-mid{border-color:#0f172a;}
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:#1e293b;color:#fff;padding:14px 24px;border-radius:16px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;z-index:200;transition:all 0.4s;box-shadow:0 10px 40px rgba(0,0,0,0.15);border:1px solid #334155;}
@@ -154,11 +154,10 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
 .skip-tour-btn{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:10001;padding:10px 24px;border-radius:50px;background:rgba(0,0,0,0.6);color:#fff;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,0.2);cursor:pointer;backdrop-filter:blur(10px);display:none;align-items:center;gap:8px;transition:all 0.3s;}
 .skip-tour-btn.show{display:flex;}
 .skip-tour-btn:hover{background:rgba(239,68,68,0.8);border-color:rgba(239,68,68,0.5);}
-.telegram-float{position:fixed;bottom:90px;right:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#0088cc,#00a8e8);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;z-index:90;box-shadow:0 4px 20px rgba(0,136,204,0.4);border:3px solid #fff;transition:all 0.3s;text-decoration:none;}
-.telegram-float:hover{transform:scale(1.1);box-shadow:0 6px 24px rgba(0,136,204,0.5);}
-.telegram-float:active{transform:scale(0.95);}
-.telegram-float i{color:#fff;}
-body.dark-mode .telegram-float{border-color:#0f172a;}
+.whatsapp-float{position:fixed;bottom:90px;right:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;z-index:90;box-shadow:0 4px 20px rgba(37,211,102,0.4);border:3px solid #fff;transition:all 0.3s;text-decoration:none;}
+.whatsapp-float:hover{transform:scale(1.1);box-shadow:0 6px 24px rgba(37,211,102,0.5);}
+.whatsapp-float:active{transform:scale(0.95);}
+.whatsapp-float i{color:#fff;}
 .redirect-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;flex-direction:column;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);backdrop-filter:blur(20px);}
 .redirect-overlay.active{display:flex;}
 .redirect-overlay::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(99,102,241,0.15),transparent 50%),radial-gradient(circle at 70% 80%,rgba(16,185,129,0.1),transparent 50%);pointer-events:none;}
@@ -242,8 +241,8 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
     </button>
   </div>
 </div>
-<a href="#" class="telegram-float" id="telegramSupport" target="_blank">
-  <i class="fa-brands fa-telegram"></i>
+<a href="#" class="whatsapp-float" id="whatsappSupport" target="_blank">
+  <i class="fa-brands fa-whatsapp"></i>
 </a>
 <button class="skip-tour-btn" id="skipTourBtn" onclick="skipTutorial()">
   <i class="fa-solid fa-xmark"></i> Skip Tour
@@ -366,14 +365,14 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
 </div>
 <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
 <div class="bottom-nav">
-  <button class="nav-item active" onclick="setNav(this)"><i class="fa-solid fa-house"></i>Home</button>
-  <button class="nav-item" onclick="window.location.href='upgrade.html'"><i class="fa-solid fa-rocket"></i>Upgrade</button>
+  <button class="nav-item active" onclick="setNav(this)"><i class="fa-solid fa-house"></i><span>Home</span></button>
+  <button class="nav-item" onclick="window.location.href='upgrade.html'"><i class="fa-solid fa-rocket"></i><span>Upgrade</span></button>
   <button class="nav-mid" onclick="startMining()"><i class="fa-solid fa-hammer"></i></button>
-  <button class="nav-item" onclick="window.location.href='tasks.html'"><i class="fa-solid fa-list-check"></i>Tasks</button>
+  <button class="nav-item" onclick="window.location.href='tasks.html'"><i class="fa-solid fa-list-check"></i><span>Tasks</span></button>
   <button class="nav-item" onclick="toggleDarkMode()" id="darkNavBtn"><i class="fa-solid fa-moon" id="themeIcon"></i><span id="themeText">Dark</span></button>
 </div>
 <script>
-// --- HARDCODED PLANS CONFIGURATION (Supporting both full and short plan names) ---
+// --- HARDCODED PLANS CONFIGURATION ---
 const PLANS_CONFIG = {
   "free plan": {
     name: "Free Plan",
@@ -436,7 +435,7 @@ const CLAIM_INTERVAL = 60;
 let claimData = JSON.parse(localStorage.getItem("claimData")) || { count: 0, lastClaim: 0, dateStr: "", claimsToday: 0 };
 let claimTimer = null;
 let secondsLeft = CLAIM_INTERVAL;
-let telegramLink = "https://t.me/#1";
+let whatsappNumber = "";
 
 const TUTORIAL_STEPS = [
   { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn daily rewards. Mining runs daily!", position: "bottom" },
@@ -454,7 +453,6 @@ let auth = null;
 function applyPlanFeatures() {
   let userPlanStr = (userData && userData.plan) ? userData.plan.toString().toLowerCase().trim() : "free plan";
   
-  // If stored as short name like "basic", append " plan"
   if (!userPlanStr.endsWith("plan")) {
     userPlanStr += " plan";
   }
@@ -511,20 +509,25 @@ function initFirebase() {
   return false;
 }
 
-function loadTelegramConfig() {
-  const stored = localStorage.getItem("9jaCashAdminConfig");
-  if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch(e) {} }
+function loadWhatsAppConfig() {
   if (db) {
-    db.collection("admin").doc("settings").get()
-      .then(function(doc) { if (doc.exists && doc.data().telegramLink) { telegramLink = doc.data().telegramLink; updateTelegramLink(); } })
-      .catch(function(err) {});
+    db.collection("settings").doc("payment collection").get()
+      .then(function(doc) { 
+        if (doc.exists && doc.data().whatsappNumber) { 
+          whatsappNumber = doc.data().whatsappNumber; 
+          updateWhatsAppLink(); 
+        } 
+      })
+      .catch(function(err) { console.error("Error fetching WhatsApp config:", err); });
   }
-  updateTelegramLink();
 }
 
-function updateTelegramLink() {
-  const btn = document.getElementById("telegramSupport");
-  if (btn) btn.href = telegramLink;
+function updateWhatsAppLink() {
+  const btn = document.getElementById("whatsappSupport");
+  if (btn && whatsappNumber) {
+    const cleanNumber = whatsappNumber.toString().replace(/[^0-9]/g, '');
+    btn.href = "https://wa.me/" + cleanNumber;
+  }
 }
 
 function initDarkMode() {
@@ -632,10 +635,8 @@ function checkAndShowVerifyButton() {
   
   if (hasBouncedBefore) {
     wrap.classList.add("show");
-    console.log("Verify button SHOWN - bounce was previously reversed");
   } else {
     wrap.classList.remove("show");
-    console.log("Verify button HIDDEN - no bounce yet");
   }
 }
 
@@ -647,7 +648,6 @@ function executeBounce() {
     const amount = parseFloat(data.amount) || 0;
     if (amount <= 0) { localStorage.removeItem("pendingBounce"); return; }
     
-    // Return money to balance
     const currentBalance = parseFloat(localStorage.getItem("walletBalance")) || 0;
     balance = currentBalance + amount;
     userData.balance = balance;
@@ -695,11 +695,9 @@ function checkPendingBounceOnLoad() {
     const BOUNCE_DELAY = 30000;
     
     if (elapsed >= BOUNCE_DELAY) {
-      console.log("Bounce timer expired while away - executing now");
       executeBounce();
     } else {
       const remaining = BOUNCE_DELAY - elapsed;
-      console.log("Bounce scheduled in " + remaining + "ms");
       setTimeout(executeBounce, remaining);
     }
   } catch(e) {
@@ -1030,7 +1028,7 @@ function syncUserData(fresh) {
 }
 
 window.addEventListener("DOMContentLoaded", function() {
-  initFirebase(); initDarkMode(); loadTelegramConfig(); initNotifySystem();
+  initFirebase(); initDarkMode(); loadWhatsAppConfig(); initNotifySystem();
   
   applyPlanFeatures();
   
