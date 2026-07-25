@@ -153,7 +153,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   </div>
   <div class="status-row">
     <div class="status-label">Payment Method</div>
-    <div class="status-value" id="methodDisplay">Bank Transfer</div>
+    <div class="status-value" id="methodDisplay">Pay by Transfer</div>
   </div>
   <div class="status-row">
     <div class="status-label">Transaction Date</div>
@@ -173,7 +173,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   <div class="timeline-item">
     <div class="timeline-dot" id="dot2"><i class="fa-solid fa-file-invoice-dollar"></i></div>
     <div class="timeline-content">
-      <div class="timeline-title" id="step2Title">Admin Verification</div>
+      <div class="timeline-title" id="step2Title">System Verification</div>
       <div class="timeline-desc" id="step2Desc">Checking account ledger and transfer reference</div>
     </div>
   </div>
@@ -283,8 +283,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
     // Formatted converted/default amount
     document.getElementById("amountDisplay").textContent = formatDepositAmount(deposit);
     
-    // Payment Method
-    const method = deposit.paymentMethod === "crypto" ? "Crypto Payment" : (deposit.paymentMethod || "Bank Transfer");
+    // Payment Method Parsing
+    const rawMethod = (deposit.paymentMethod || "").toLowerCase();
+    let method = "Pay by Transfer"; // Default
+    
+    if (rawMethod === "crypto") {
+      method = "Crypto Payment";
+    } else if (rawMethod === "bank" || rawMethod === "bank transfer" || rawMethod === "bank_transfer") {
+      method = "Pay by Transfer";
+    } else if (deposit.paymentMethod) {
+      method = deposit.paymentMethod;
+    }
+
     document.getElementById("methodDisplay").textContent = method;
     
     // Date
