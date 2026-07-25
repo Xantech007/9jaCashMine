@@ -373,9 +373,9 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   <button class="nav-item" onclick="toggleDarkMode()" id="darkNavBtn"><i class="fa-solid fa-moon" id="themeIcon"></i><span id="themeText">Dark</span></button>
 </div>
 <script>
-// --- HARDCODED PLANS CONFIGURATION (as defined in upgrade.html) ---
+// --- HARDCODED PLANS CONFIGURATION (Supporting both full and short plan names) ---
 const PLANS_CONFIG = {
-  free: {
+  "free plan": {
     name: "Free Plan",
     badgeClass: "badge-free",
     dailyMiningLimit: 300,
@@ -384,7 +384,7 @@ const PLANS_CONFIG = {
     maxClaimsPerDay: 50,
     checkinRewards: [5, 10, 15, 20, 30, 50, 100]
   },
-  basic: {
+  "basic plan": {
     name: "Basic Plan",
     badgeClass: "badge-basic",
     dailyMiningLimit: 800,
@@ -393,7 +393,7 @@ const PLANS_CONFIG = {
     maxClaimsPerDay: 80,
     checkinRewards: [10, 20, 30, 40, 60, 100, 200]
   },
-  silver: {
+  "silver plan": {
     name: "Silver Plan",
     badgeClass: "badge-silver",
     dailyMiningLimit: 2000,
@@ -402,7 +402,7 @@ const PLANS_CONFIG = {
     maxClaimsPerDay: 120,
     checkinRewards: [25, 50, 75, 100, 150, 250, 500]
   },
-  gold: {
+  "gold plan": {
     name: "Gold Plan",
     badgeClass: "badge-gold",
     dailyMiningLimit: 5000,
@@ -411,7 +411,7 @@ const PLANS_CONFIG = {
     maxClaimsPerDay: 200,
     checkinRewards: [50, 100, 150, 200, 300, 500, 1000]
   },
-  diamond: {
+  "diamond plan": {
     name: "Diamond Plan",
     badgeClass: "badge-diamond",
     dailyMiningLimit: 12000,
@@ -426,8 +426,8 @@ let userData = null;
 try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch(e) { userData = null; }
 if (!userData) { window.location.href = "start.html"; }
 
-let currentPlanKey = "free";
-let currentPlan = PLANS_CONFIG.free;
+let currentPlanKey = "free plan";
+let currentPlan = PLANS_CONFIG["free plan"];
 
 let balance = parseFloat(localStorage.getItem("walletBalance")) || 0;
 let balanceHidden = false;
@@ -452,9 +452,15 @@ let db = null;
 let auth = null;
 
 function applyPlanFeatures() {
-  let userPlanStr = (userData && userData.plan) ? userData.plan.toString().toLowerCase().trim() : "free";
+  let userPlanStr = (userData && userData.plan) ? userData.plan.toString().toLowerCase().trim() : "free plan";
+  
+  // If stored as short name like "basic", append " plan"
+  if (!userPlanStr.endsWith("plan")) {
+    userPlanStr += " plan";
+  }
+
   if (!PLANS_CONFIG[userPlanStr]) {
-    userPlanStr = "free";
+    userPlanStr = "free plan";
   }
   currentPlanKey = userPlanStr;
   currentPlan = PLANS_CONFIG[currentPlanKey];
