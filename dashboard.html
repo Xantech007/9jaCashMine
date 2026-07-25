@@ -243,7 +243,7 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   </div>
 </div>
 <a href="#" class="telegram-float" id="telegramSupport" target="_blank">
-  <i class="fa-brands fa-whatsapp"></i>
+  <i class="fa-brands fa-telegram"></i>
 </a>
 <button class="skip-tour-btn" id="skipTourBtn" onclick="skipTutorial()">
   <i class="fa-solid fa-xmark"></i> Skip Tour
@@ -436,7 +436,7 @@ const CLAIM_INTERVAL = 60;
 let claimData = JSON.parse(localStorage.getItem("claimData")) || { count: 0, lastClaim: 0, dateStr: "", claimsToday: 0 };
 let claimTimer = null;
 let secondsLeft = CLAIM_INTERVAL;
-let whatsappNumber = "wa.me/+1234567890";
+let telegramLink = "https://t.me/#1";
 
 const TUTORIAL_STEPS = [
   { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn daily rewards. Mining runs daily!", position: "bottom" },
@@ -513,18 +513,18 @@ function initFirebase() {
 
 function loadTelegramConfig() {
   const stored = localStorage.getItem("9jaCashAdminConfig");
-  if (stored) { try { const config = JSON.parse(stored); if (config.whatsappNumber) whatsappNumber = config.whatsappNumber; } catch(e) {} }
+  if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch(e) {} }
   if (db) {
     db.collection("admin").doc("settings").get()
-      .then(function(doc) { if (doc.exists && doc.data().whatsappNumber) { whatsappNumber = doc.data().whatsappNumber; updatewhatsappNumber(); } })
+      .then(function(doc) { if (doc.exists && doc.data().telegramLink) { telegramLink = doc.data().telegramLink; updateTelegramLink(); } })
       .catch(function(err) {});
   }
-  updatewhatsappNumber();
+  updateTelegramLink();
 }
 
-function updatewhatsappNumber() {
+function updateTelegramLink() {
   const btn = document.getElementById("telegramSupport");
-  if (btn) btn.href = whatsappNumber;
+  if (btn) btn.href = telegramLink;
 }
 
 function initDarkMode() {
