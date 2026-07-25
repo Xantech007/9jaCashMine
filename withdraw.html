@@ -185,6 +185,7 @@ let regionalSettings = null;
 let defaultPaymentSettings = null;
 let registrationBonus = 0;
 let withdrawType = "balance"; // "balance" or "bonus"
+let hasAlreadyWithdrawnBonus = false;
 
 // Map country to doc region
 function getRegionDocName(countryName) {
@@ -213,6 +214,17 @@ function toggleTheme() {
 }
 
 function switchWithdrawType(type) {
+  if (type === "bonus" && hasAlreadyWithdrawnBonus) {
+    Swal.fire({
+      icon: "warning",
+      title: "Bonus Already Claimed",
+      text: "You have already submitted a withdrawal for your registration bonus. Bonus withdrawals can only be claimed once.",
+      background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
+      color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
+    });
+    return;
+  }
+
   withdrawType = type;
   document.getElementById("tabBalance").classList.toggle("active", type === "balance");
   document.getElementById("tabBonus").classList.toggle("active", type === "bonus");
@@ -240,28 +252,54 @@ function calculateConversion() {
 
 // Load Regional Config & Settings
 async function loadConfig() {
+  const userDocId = userData.phone || userData.uid;
+
   if (window._9jaCash && window._9jaCash.db) {
-    // 1. Fetch default payment labels
+    const db = window._9jaCash.db;
+
+    // 1. Check if user already withdrew bonus in Firestore
     try {
-      const payDoc = await window._9jaCash.db.collection("settings").doc("payment").get();
+      const userSnap = await db.collection("users").doc(userDocId).get();
+      if (userSnap.exists && userSnap.data().hasWithdrawnBonus) {
+        hasAlreadyWithdrawnBonus = true;
+      } else {
+        // Double check withdrawals collection
+        const bonusQuery = await db.collection("withdrawals")
+          .where("userId", "==", userDocId)
+          .where("type", "==", "bonus")
+          .get();
+        if (!bonusQuery.empty) {
+          hasAlreadyWithdrawnBonus = true;
+        }
+      }
+    } catch(e) { console.warn("Error checking bonus withdrawal history:", e); }
+
+    // Check Local Storage as secondary fallback
+    if (userData.hasWithdrawnBonus) {
+      hasAlreadyWithdrawnBonus = true;
+    }
+
+    // 2. Fetch default payment labels
+    try {
+      const payDoc = await db.collection("settings").doc("payment").get();
       if (payDoc.exists) {
         defaultPaymentSettings = payDoc.data();
       }
     } catch(e) { console.warn("Error reading settings/payment:", e); }
 
-    // 2. Fetch bonus amount from settings/register collection
+    // 3. Fetch bonus amount from settings/register collection
     try {
-      const regDoc = await window._9jaCash.db.collection("settings").doc("register").get();
+      const regDoc = await db.collection("settings").doc("register").get();
       if (regDoc.exists && regDoc.data().bonus !== undefined) {
         registrationBonus = parseFloat(regDoc.data().bonus) || 0;
       }
     } catch(e) { console.warn("Error reading settings/register:", e); }
 
-    // 3. Fetch regional rate
+    // 4. Fetch regional rate
     const userCountry = userData.country || "Ghana";
     const regionDoc = getRegionDocName(userCountry);
     try {
-      const regDoc = await window._9jaCash.db.collection("settings").doc(regionDoc).get();
+      const regDoc = await db.collection("settings").doc(regionDoc).get();
       if (regDoc.exists) {
         regionalSettings = regDoc.data();
       }
@@ -285,7 +323,11 @@ async function loadConfig() {
   const isFreePlan = !userData.plan || userData.plan.toLowerCase().includes("free");
   if (isFreePlan) {
     document.getElementById("planNotice").style.display = "flex";
-    switchWithdrawType("bonus");
+    if (!hasAlreadyWithdrawnBonus) {
+      switchWithdrawType("bonus");
+    } else {
+      calculateConversion();
+    }
   } else {
     calculateConversion();
   }
@@ -304,6 +346,18 @@ async function processWithdrawal() {
   }
   if (!bank || !accNumber || !accName) {
     showToast("Please fill in all bank details");
+    return;
+  }
+
+  // Check if user is attempting to withdraw bonus again
+  if (withdrawType === "bonus" && hasAlreadyWithdrawnBonus) {
+    Swal.fire({
+      icon: "error",
+      title: "Bonus Already Withdrawn",
+      text: "You have already claimed your registration bonus. Bonus withdrawals can only be performed once per account.",
+      background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
+      color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
+    });
     return;
   }
 
@@ -352,6 +406,11 @@ async function processWithdrawal() {
           throw new Error("User record does not exist!");
         }
 
+        // Additional safeguard check inside transaction
+        if (withdrawType === "bonus" && userDoc.data().hasWithdrawnBonus) {
+          throw new Error("You have already withdrawn your registration bonus.");
+        }
+
         const currentBalance = parseFloat(userDoc.data().balance) || 0;
 
         // Verify balance if withdrawing main balance
@@ -361,16 +420,26 @@ async function processWithdrawal() {
 
         const newBalance = Math.max(0, currentBalance - (withdrawType === "balance" ? amount : 0));
 
-        // 1. Deduct balance from user document
-        transaction.update(userRef, {
+        // Build updates object for user document
+        const userUpdates = {
           balance: withdrawType === "balance" ? newBalance : currentBalance
-        });
+        };
 
-        // Update local session data so the balance reflects instantly in app UI
+        if (withdrawType === "bonus") {
+          userUpdates.hasWithdrawnBonus = true;
+        }
+
+        // 1. Update user document
+        transaction.update(userRef, userUpdates);
+
+        // Update local session data so it reflects instantly in app UI
         if (withdrawType === "balance") {
           userData.balance = newBalance;
-          localStorage.setItem("9jaCashUser", JSON.stringify(userData));
         }
+        if (withdrawType === "bonus") {
+          userData.hasWithdrawnBonus = true;
+        }
+        localStorage.setItem("9jaCashUser", JSON.stringify(userData));
 
         // 2. Pre-generate document ID to pass in URL
         const newWithdrawalRef = db.collection("withdrawals").doc();
