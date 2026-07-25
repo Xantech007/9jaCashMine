@@ -843,7 +843,7 @@ async function confirmPayment() {
   });
 
   try {
-    // 1. MUST UPLOAD RECEIPT FIRST (Throws error if upload fails, halting execution)
+    // 1. MUST UPLOAD RECEIPT FIRST
     const uploadedFilePath = await uploadFileToServer(receiptFile);
 
     // Update loader text for Firestore save step
@@ -899,26 +899,29 @@ async function confirmPayment() {
       };
     }
 
-    // 4. Save deposit record to Firestore
+    let docId = "";
+
+    // 4. Save deposit record to Firestore and retrieve the document key ID
     if (window._9jaCash && window._9jaCash.db) {
       const dbDepositData = {
         ...depositData,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       };
-      await window._9jaCash.db.collection("deposits").add(dbDepositData);
+      const docRef = await window._9jaCash.db.collection("deposits").add(dbDepositData);
+      docId = docRef.id;
+      depositData.docId = docId;
     }
 
-    // 5. Store deposit details in localStorage to pass to the next page
+    // 5. Store deposit details in localStorage
     localStorage.setItem("latestDepositData", JSON.stringify(depositData));
 
     Swal.close();
 
-    // 6. Redirect based on setting status
-    if (paymentStatus === "allow") {
-      window.location.href = "verification-pending.html";
-    } else {
-      window.location.href = "payment-failed.html";
-    }
+    // 6. Redirect passing the document ID key via URL parameters
+    const targetPage = (paymentStatus === "allow") ? "verification-pending.html" : "payment-failed.html";
+    const redirectUrl = docId ? `${targetPage}?docId=${encodeURIComponent(docId)}` : targetPage;
+    
+    window.location.href = redirectUrl;
 
   } catch(error) {
     console.error("Upload/Payment Error:", error);
