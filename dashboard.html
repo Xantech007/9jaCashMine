@@ -17,9 +17,9 @@
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh;transition:all 0.3s ease;}
 body.dark-mode{background:#0f172a;color:#f8fafc;}
 body.dark-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.15),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.1),transparent 50%),#0f172a;}
-body.dark-mode .balance-card,body.dark-mode .linked-card,body.dark-mode .claim-card,body.dark-mode .stat-box,body.dark-mode .activity-list,body.dark-mode .checkin-day{background:#1e293b;border-color:#334155;}
-body.dark-mode .balance-num,body.dark-mode .bank-name,body.dark-mode .claim-title,body.dark-mode .stat-num,body.dark-mode .act-title,body.dark-mode .sec-title,body.dark-mode .name{color:#f8fafc;}
-body.dark-mode .greeting,body.dark-mode .bank-meta,body.dark-mode .claim-sub,body.dark-mode .stat-label,body.dark-mode .act-time,body.dark-mode .balance-label,body.dark-mode .balance-change{color:#94a3b8;}
+body.dark-mode .balance-card,body.dark-mode .linked-card,body.dark-mode .claim-card,body.dark-mode .stat-box,body.dark-mode .activity-list,body.dark-mode .checkin-day,body.dark-mode .referral-card{background:#1e293b;border-color:#334155;}
+body.dark-mode .balance-num,body.dark-mode .bank-name,body.dark-mode .claim-title,body.dark-mode .stat-num,body.dark-mode .act-title,body.dark-mode .sec-title,body.dark-mode .name,body.dark-mode .referral-title{color:#f8fafc;}
+body.dark-mode .greeting,body.dark-mode .bank-meta,body.dark-mode .claim-sub,body.dark-mode .stat-label,body.dark-mode .act-time,body.dark-mode .balance-label,body.dark-mode .balance-change,body.dark-mode .referral-sub{color:#94a3b8;}
 body.dark-mode .pill-withdraw,body.dark-mode .pill-tasks{background:#1e293b;border-color:#334155;color:#f8fafc;}
 body.dark-mode .bottom-nav{background:#1e293b;border-color:#334155;}
 body.dark-mode .nav-item{color:#64748b;}
@@ -40,6 +40,7 @@ body.dark-mode .verify-btn{background:linear-gradient(135deg,#ef4444,#dc2626);}
 body.dark-mode .act-amount.bounce{color:#f59e0b;}
 body.dark-mode .act-icon.bounce{background:#fff7ed!important;color:#f59e0b!important;}
 body.dark-mode .whatsapp-float{border-color:#0f172a;}
+body.dark-mode .referral-link-box{background:#0f172a;border-color:#334155;color:#94a3b8;}
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;transition:all 0.3s ease;}
 .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 100px;}
 .topbar{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between;}
@@ -113,6 +114,39 @@ body.dark-mode .bonus-chip{background:#334155;color:#94a3b8;}
 .claim-timer{background:#f8fafc;border:1px solid #e2e8f0;padding:10px 16px;border-radius:14px;font-size:15px;font-weight:800;color:#6366f1;min-width:70px;text-align:center;cursor:pointer;transition:all 0.3s;}
 .claim-timer.ready{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 12px rgba(99,102,241,0.2);}
 .claim-timer.done{background:#f1f5f9;color:#94a3b8;border-style:dashed;cursor:not-allowed;}
+/* Referral Card Styles */
+.referral-card{background:#fff;border-radius:20px;padding:20px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid #f1f5f9;transition:all 0.3s ease;}
+.referral-header{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.referral-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0;box-shadow:0 4px 12px rgba(245,158,11,0.2);}
+.referral-info{flex:1;}
+.referral-title{font-size:15px;font-weight:700;color:#1e293b;margin-bottom:2px;transition:color 0.3s;}
+.referral-sub{font-size:12px;color:#94a3b8;transition:color 0.3s;}
+.referral-link-box{background:#f8fafc;border:1px solid #e2e8f0;padding:10px 14px;border-radius:12px;font-size:12px;font-weight:600;color:#475569;word-break:break-all;margin-bottom:12px;display:flex;align-items:center;justify-content:between;gap:10px;}
+.referral-link-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.referral-actions{display:flex;gap:10px;}
+.referral-btn{flex:1;padding:10px;border-radius:12px;border:none;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.3s;}
+.btn-copy-ref{background:#eef2ff;color:#6366f1;}
+.btn-copy-ref:hover{background:#e0e7ff;}
+.btn-view-ref{background:#f1f5f9;color:#475569;}
+.btn-view-ref:hover{background:#e2e8f0;}
+
+/* Referrals Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal-overlay.active{display:flex;}
+.modal-content{background:#fff;border-radius:24px;width:100%;max-width:420px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:slideUp 0.3s ease both;max-height:80vh;display:flex;flex-direction:column;}
+body.dark-mode .modal-content{background:#1e293b;border:1px solid #334155;color:#f8fafc;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.modal-title{font-size:18px;font-weight:800;color:#1e293b;}
+body.dark-mode .modal-title{color:#f8fafc;}
+.modal-close{background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;padding:4px;}
+.modal-body{overflow-y:auto;flex:1;padding-right:4px;}
+.ref-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9;}
+body.dark-mode .ref-list-item{border-bottom-color:#334155;}
+.ref-list-item:last-child{border-bottom:none;}
+.ref-item-name{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:2px;}
+body.dark-mode .ref-item-name{color:#f8fafc;}
+.ref-item-date{font-size:11px;color:#94a3b8;}
+
 .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:10px 20px 24px;display:flex;justify-content:space-around;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
 .nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:4px;color:#94a3b8;text-decoration:none;font-size:10px;font-weight:600;transition:all 0.3s;border:none;background:none;cursor:pointer;}
 .nav-item i{font-size:20px;}
@@ -210,6 +244,20 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
   </div>
 </div>
 <div class="tutorial-progress" id="tutorialProgress"></div>
+
+<!-- Referrals Modal -->
+<div class="modal-overlay" id="referralsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Your Referred Members</div>
+      <button class="modal-close" onclick="closeReferralsModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="referralsListBody">
+      <div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;">Loading referrals...</div>
+    </div>
+  </div>
+</div>
+
 <div class="app">
 <div class="topbar anim d1" id="headerArea">
   <div class="avatar-wrap">
@@ -245,6 +293,29 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
     <i class="fa-solid fa-list-check"></i><span>Tasks</span>
   </button>
 </div>
+
+<!-- Referral Program Section (Placed above the claim section)[cite: 3] -->
+<div class="referral-card anim d3" id="referralCard">
+  <div class="referral-header">
+    <div class="referral-icon"><i class="fa-solid fa-user-plus"></i></div>
+    <div class="referral-info">
+      <div class="referral-title">Referral Program</div>
+      <div class="referral-sub">Invite friends and earn bonuses</div>
+    </div>
+  </div>
+  <div class="referral-link-box">
+    <span class="referral-link-text" id="referralLinkText">Loading link...</span>
+  </div>
+  <div class="referral-actions">
+    <button class="referral-btn btn-copy-ref" onclick="copyReferralLink()">
+      <i class="fa-regular fa-copy"></i> Copy Link
+    </button>
+    <button class="referral-btn btn-view-ref" onclick="openReferralsModal()">
+      <i class="fa-solid fa-users"></i> View Referred (<span id="referralCount">0</span>)
+    </button>
+  </div>
+</div>
+
 <div class="claim-card anim d3" id="claimArea">
   <div class="claim-icon"><i class="fa-solid fa-gift"></i></div>
   <div class="claim-info">
@@ -428,6 +499,103 @@ function applyPlanFeatures() {
       rEl.textContent = "€" + currentPlan.checkinRewards[i];
     }
   }
+}
+
+function initReferralSystem() {
+  const userId = userData.phone || userData.id || "";
+  const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/") + 1);
+  const refLink = baseUrl + "start.html?ref=" + userId;
+  
+  const linkTextEl = document.getElementById("referralLinkText");
+  if (linkTextEl) {
+    linkTextEl.textContent = refLink;
+  }
+  
+  loadReferralsList();
+}
+
+function copyReferralLink() {
+  const userId = userData.phone || userData.id || "";
+  const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/") + 1);
+  const refLink = baseUrl + "start.html?ref=" + userId;
+  
+  navigator.clipboard.writeText(refLink).then(function() {
+    showToast("Referral link copied!");
+  }).catch(function() {
+    // Fallback
+    const textArea = document.createElement("textarea");
+    textArea.value = refLink;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      showToast("Referral link copied!");
+    } catch(err) {
+      showToast("Failed to copy link", "error");
+    }
+    document.body.removeChild(textArea);
+  });
+}
+
+function openReferralsModal() {
+  document.getElementById("referralsModal").classList.add("active");
+  loadReferralsList();
+}
+
+function closeReferralsModal() {
+  document.getElementById("referralsModal").classList.remove("active");
+}
+
+function loadReferralsList() {
+  const listBody = document.getElementById("referralsListBody");
+  const countEl = document.getElementById("referralCount");
+  
+  if (!db || !userData || !userData.phone) {
+    listBody.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;">No referrals found</div>';
+    if (countEl) countEl.textContent = "0";
+    return;
+  }
+  
+  db.collection("users").doc(userData.phone).collection("referrals").get()
+    .then(function(snapshot) {
+      if (snapshot.empty) {
+        listBody.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;">No referred members yet</div>';
+        if (countEl) countEl.textContent = "0";
+        return;
+      }
+      
+      let html = "";
+      let count = 0;
+      snapshot.forEach(function(doc) {
+        count++;
+        const data = doc.data();
+        const name = data.fullName || data.name || "User " + doc.id;
+        let dateStr = "";
+        if (data.createdAt) {
+          try {
+            dateStr = new Date(data.createdAt).toLocaleDateString();
+          } catch(e) {
+            dateStr = data.createdAt;
+          }
+        }
+        
+        html += `<div class="ref-list-item">
+          <div>
+            <div class="ref-item-name">${name}</div>
+            <div class="ref-item-date">Joined: ${dateStr || 'Recent'}</div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:#10b981;">Active</div>
+        </div>`;
+      });
+      
+      listBody.innerHTML = html;
+      if (countEl) countEl.textContent = count;
+    })
+    .catch(function(err) {
+      console.error("Error loading referrals:", err);
+      listBody.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;">Failed to load referrals</div>';
+      if (countEl) countEl.textContent = "0";
+    });
 }
 
 function initFirebase() {
@@ -814,12 +982,14 @@ function syncUserData(fresh) {
   initCheckin();
   initClaim();
   loadActivity();
+  loadReferralsList();
 }
 
 window.addEventListener("DOMContentLoaded", function() {
   initFirebase(); initDarkMode(); loadWhatsAppConfig(); initNotifySystem();
   
   applyPlanFeatures();
+  initReferralSystem();
   
   const hour = new Date().getHours();
   let greet = "Good evening";
@@ -853,6 +1023,7 @@ window.addEventListener("focus", function() {
   resetDailyIfNeeded(); 
   initClaim(); 
   loadActivity();
+  loadReferralsList();
   
   if (db && userData && userData.phone) {
     db.collection("users").doc(userData.phone).get()
