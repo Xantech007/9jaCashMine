@@ -5,15 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FlutterW Euro Earn — Login</title>
 
-<!-- PWA / Add to Home Screen -->
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="FlutterW Euro Earn">
-<link rel="apple-touch-icon" href="FlutterWEuroEarn.png">
-<meta name="theme-color" content="#6366f1">
-<meta name="mobile-web-app-capable" content="yes">
-
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
@@ -25,211 +16,268 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;transition:all 0.3s ease;}
 
-.soft-bg{position:fixed;inset:0;z-index:0;background:
-  radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.10),transparent 50%),
-  radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.07),transparent 50%),
-  radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),
-  #f8fafc;}
+/* Dark mode */
+body.dark-mode{background:#0f172a;color:#f8fafc;}
+body.dark-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.15),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.10),transparent 50%),#0f172a;}
+body.dark-mode .card{background:#1e293b;border-color:#334155;box-shadow:0 4px 24px rgba(0,0,0,0.2);}
+body.dark-mode .inp{background:#0f172a;border-color:#334155;color:#f8fafc;}
+body.dark-mode .inp:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.15);background:#0f172a;}
+body.dark-mode .inp::placeholder{color:#64748b;}
+body.dark-mode .lbl{color:#94a3b8;}
+body.dark-mode .count{color:#64748b;}
+body.dark-mode .header-title{color:#f8fafc;}
+body.dark-mode .header-sub{color:#94a3b8;}
 
+/* Soft background */
+.soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.10),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.07),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;transition:all 0.3s ease;}
+
+/* Floating shapes */
 .shape{position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none;animation:shapeFloat 15s ease-in-out infinite;}
 .shape-1{width:200px;height:200px;background:rgba(99,102,241,0.12);top:5%;right:10%;animation-delay:0s;}
 .shape-2{width:160px;height:160px;background:rgba(16,185,129,0.10);bottom:20%;left:5%;animation-delay:5s;}
 .shape-3{width:120px;height:120px;background:rgba(236,72,153,0.08);top:40%;left:30%;animation-delay:10s;}
 @keyframes shapeFloat{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-20px) scale(1.1);}}
 
-.card{background:#fff;border-radius:24px;padding:28px;border:1px solid #f1f5f9;box-shadow:0 4px 24px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);transition:all 0.3s ease;}
+/* Card */
+.card{background:#fff;border-radius:24px;padding:28px;border:1px solid #f1f5f9;box-shadow:0 4px 24px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);transition:all 0.3s ease;width:100%;max-width:420px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899);}
 
-.btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 20px rgba(99,102,241,0.3);transition:all 0.3s;}
-.btn-primary:hover{box-shadow:0 6px 24px rgba(99,102,241,0.4);transform:translateY(-2px);}
+/* Input */
+.inp{width:100%;padding:16px 18px;border-radius:16px;background:#f8fafc;border:2px solid #e2e8f0;color:#1e293b;font-size:15px;font-weight:600;outline:none;transition:all 0.3s;font-family:'Plus Jakarta Sans',sans-serif;}
+.inp:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.1);background:#fff;}
+.inp::placeholder{color:#94a3b8;font-weight:500;}
+
+/* Label */
+.lbl{display:block;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+
+/* Primary button */
+.btn-primary{width:100%;padding:18px;border-radius:18px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:16px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 20px rgba(99,102,241,0.3);}
+.btn-primary::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transition:0.5s;}
+.btn-primary:hover::before{left:100%;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(99,102,241,0.4);}
 .btn-primary:active{transform:scale(0.97);}
 
-.input-group{position:relative;}
-.input-field{width:100%;padding:14px 16px 14px 48px;border-radius:16px;border:1.5px solid #e2e8f0;background:#fff;font-size:14px;font-weight:600;color:#1e293b;transition:all 0.3s;outline:none;}
-.input-field:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.1);}
-.input-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:16px;transition:all 0.3s;}
-.input-field:focus ~ .input-icon{color:#6366f1;}
-
-.s1{animation:slideUp 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;}
-.s2{animation:slideUp 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;}
-
+/* Animations */
 @keyframes slideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+.s1{animation:slideUp 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;}
 
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:#1e293b;color:#fff;padding:14px 24px;border-radius:16px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;z-index:200;transition:all 0.4s;box-shadow:0 10px 40px rgba(0,0,0,0.3);border:1px solid #334155;}
+/* Loader */
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;}
+.loader-ring{width:56px;height:56px;border:4px solid rgba(99,102,241,0.1);border-top:4px solid #6366f1;border-radius:50%;animation:spin 1s linear infinite;}
+.loader-text{color:#1e293b;font-size:20px;font-weight:800;margin-top:24px;letter-spacing:-0.3px;}
+.loader-sub{color:#94a3b8;font-size:14px;margin-top:8px;font-weight:500;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.hide{display:none !important;}
+
+/* App container */
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 40px;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+
+/* Header */
+.header-title{font-size:18px;font-weight:800;color:#1e293b;transition:color 0.3s;}
+.header-sub{font-size:13px;color:#64748b;font-weight:500;transition:color 0.3s;}
+
+/* Theme toggle */
+.theme-toggle{position:fixed;top:20px;right:20px;width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.theme-toggle:hover{background:#f1f5f9;color:#6366f1;}
+body.dark-mode .theme-toggle{background:#1e293b;border-color:#334155;color:#94a3b8;}
+body.dark-mode .theme-toggle:hover{background:#334155;color:#818cf8;}
+
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:#1e293b;color:#fff;padding:14px 24px;border-radius:16px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;z-index:200;transition:all 0.4s;box-shadow:0 10px 40px rgba(0,0,0,0.15);border:1px solid #334155;}
 .toast.show{transform:translateX(-50%) translateY(0);}
 .toast i{color:#10b981;}
 .toast.error i{color:#ef4444;}
-
-.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 80px;}
+body.dark-mode .toast{background:#1e293b;border-color:#334155;}
 </style>
 </head>
 <body>
-
-<div class="soft-bg">
-  <div class="shape shape-1"></div>
-  <div class="shape shape-2"></div>
-  <div class="shape shape-3"></div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"><i class="fa-solid fa-circle-check" id="toastIcon"></i><span id="toastMsg">Done</span></div>
-
-<div class="app">
-
-  <!-- Header -->
-  <div class="s1 pt-8 pb-6 flex items-center justify-between">
-    <a href="index.html" class="flex items-center gap-3 text-decoration-none">
-      <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center shadow-lg shadow-indigo-200">
-        <i class="fa-solid fa-bolt text-white text-lg"></i>
-      </div>
-      <div>
-        <h1 class="font-extrabold text-lg tracking-tight">FlutterW Euro Earn</h1>
-        <p class="text-[11px] font-semibold text-[#64748b]">Account Login</p>
-      </div>
-    </a>
-    <a href="start.html" class="px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50/50 text-indigo-600 font-bold text-xs hover:bg-indigo-100 transition flex items-center gap-1.5">
-      Register
-    </a>
+  
+  <div class="soft-bg">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
   </div>
-
-  <!-- Login Card -->
-  <div class="s2 card mb-5">
-    <div class="text-center mb-6">
-      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-200">
-        <i class="fa-solid fa-right-to-bracket text-white text-2xl"></i>
-      </div>
-      <h2 class="text-2xl font-black mb-1">Welcome Back</h2>
-      <p class="text-[13px] text-[#64748b]">Sign in with your phone number and password</p>
-    </div>
-
-    <form id="loginForm" onsubmit="handleLogin(event)">
-      <!-- Phone Number -->
-      <div class="mb-4">
-        <label class="block text-xs font-bold text-[#64748b] uppercase tracking-wider mb-2">Phone Number</label>
-        <div class="input-group">
-          <input type="tel" id="loginPhone" class="input-field" placeholder="Enter your phone number" required>
-          <i class="fa-solid fa-phone input-icon"></i>
+  
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
+  
+  <!-- Toast -->
+  <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
+  
+  <!-- LOGIN FORM -->
+  <div id="formStep" class="app">
+    <div class="card s1">
+      
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center shadow-lg shadow-indigo-200">
+          <i class="fa-solid fa-right-to-bracket text-white text-lg"></i>
         </div>
-        <p class="text-[11px] text-[#94a3b8] mt-1.5 font-medium">Enter the phone number used during registration.</p>
-      </div>
-
-      <!-- Password -->
-      <div class="mb-6">
-        <label class="block text-xs font-bold text-[#64748b] uppercase tracking-wider mb-2">Password</label>
-        <div class="input-group">
-          <input type="password" id="loginPassword" class="input-field" placeholder="Enter your password" required>
-          <i class="fa-solid fa-lock input-icon"></i>
+        <div>
+          <h1 class="header-title">Welcome Back</h1>
+          <p class="header-sub">Sign in to FlutterW Euro Earn</p>
         </div>
       </div>
-
-      <!-- Submit Button -->
-      <button type="submit" id="loginBtn" class="btn-primary w-full py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2">
-        <span id="loginBtnText">Sign In</span>
-        <i class="fa-solid fa-arrow-right text-sm" id="loginBtnIcon"></i>
-      </button>
-    </form>
-
-    <div class="text-center mt-6">
-      <p class="text-[13px] text-[#64748b]">
-        Don't have an account? <a href="start.html" class="text-[#6366f1] font-bold hover:underline">Register here</a>
-      </p>
+      
+      <form id="loginForm" class="space-y-5">
+        
+        <!-- Phone (Document ID) -->
+        <div>
+          <label class="lbl">Phone Number (Account ID)</label>
+          <input type="tel" id="phone" placeholder="enter your phone number" class="inp" required />
+        </div>
+        
+        <!-- Password -->
+        <div>
+          <label class="lbl">Password</label>
+          <input type="password" id="password" placeholder="enter your password" class="inp" required />
+        </div>
+        
+        <!-- Submit button -->
+        <div class="pt-2">
+          <button type="submit" id="loginBtn" class="btn-primary">
+            <span>Sign In</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+        
+        <div class="text-center mt-4">
+          <p class="text-sm text-[#64748b]">Don't have an account? <a href="index.html" class="text-[#6366f1] font-bold hover:underline">Create Account</a></p>
+        </div>
+        
+      </form>
     </div>
   </div>
-
-  <!-- Footer Info -->
-  <div class="text-center pb-4">
-    <p class="text-[11px] text-[#94a3b8] font-medium"><i class="fa-solid fa-shield-halved text-[#10b981] mr-1"></i> Secure Database Authentication</p>
+  
+  <!-- LOADING -->
+  <div id="loader" class="hide loader">
+    <div class="loader-ring"></div>
+    <div class="loader-text">Signing you in...</div>
+    <div class="loader-sub">Please wait</div>
   </div>
 
-</div>
-
-<script>
-// ========== TOAST ==========
-function showToast(msg, isError = false) {
-  const t = document.getElementById("toast");
-  const icon = document.getElementById("toastIcon");
-  document.getElementById("toastMsg").textContent = msg;
-  
-  if (isError) {
-    t.classList.add("error");
-    icon.className = "fa-solid fa-circle-exclamation";
-  } else {
-    t.classList.remove("error");
-    icon.className = "fa-solid fa-circle-check";
-  }
-  
-  t.classList.add("show");
-  setTimeout(function() { t.classList.remove("show"); }, 3000);
-}
-
-// ========== LOGIN HANDLER ==========
-async function handleLogin(e) {
+  <script>
+// ========== LOGIN FORM HANDLING ==========
+document.getElementById('loginForm').addEventListener('submit', function(e) {
   e.preventDefault();
   
-  const phoneInput = document.getElementById("loginPhone").value.trim();
-  const passwordInput = document.getElementById("loginPassword").value;
+  const phone = document.getElementById('phone').value.trim();
+  const password = document.getElementById('password').value.trim();
   
-  if (!phoneInput || !passwordInput) {
-    showToast("Please fill in all fields", true);
+  if (!phone) {
+    showToast('Please enter your phone number', 'error');
     return;
   }
+  if (!password) {
+    showToast('Please enter your password', 'error');
+    return;
+  }
+  
+  // Show loader
+  document.getElementById('formStep').classList.add('hide');
+  document.getElementById('loader').classList.remove('hide');
+  
+  verifyAndLogin(phone, password);
+});
 
-  const btn = document.getElementById("loginBtn");
-  const btnText = document.getElementById("loginBtnText");
-  const btnIcon = document.getElementById("loginBtnIcon");
+// ========== VERIFY AGAINST FIRESTORE ==========
+function verifyAndLogin(phone, password) {
+  if (!window._9jaCash || !window._9jaCash.db) {
+    document.getElementById('loader').classList.add('hide');
+    document.getElementById('formStep').classList.remove('hide');
+    showToast('Firebase connection not available', 'error');
+    return;
+  }
+  
+  const db = window._9jaCash.db;
+  
+  // Document ID under users collection matches phone number
+  db.collection('users').doc(phone).get()
+    .then(doc => {
+      if (!doc.exists) {
+        document.getElementById('loader').classList.add('hide');
+        document.getElementById('formStep').classList.remove('hide');
+        showToast('Account not found with this phone number', 'error');
+        return;
+      }
+      
+      const userData = doc.data();
+      
+      // Check password field under users/{phone} document
+      if (userData.password && userData.password === password) {
+        // Successful login
+        localStorage.setItem('9jaCashUser', JSON.stringify(userData));
+        localStorage.setItem('walletBalance', String(userData.balance || 0));
+        localStorage.setItem('9jaCashOnboard', 'done');
+        
+        showToast('Login successful! Redirecting...');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1000);
+      } else {
+        document.getElementById('loader').classList.add('hide');
+        document.getElementById('formStep').classList.remove('hide');
+        showToast('Incorrect password', 'error');
+      }
+    })
+    .catch(err => {
+      console.error('Login error:', err);
+      document.getElementById('loader').classList.add('hide');
+      document.getElementById('formStep').classList.remove('hide');
+      showToast('An error occurred. Please try again.', 'error');
+    });
+}
 
-  // Loading state
-  btn.disabled = true;
-  btnText.textContent = "Signing in...";
-  btnIcon.className = "fa-solid fa-spinner fa-spin text-sm";
-
-  try {
-    // Check if firebase is initialized
-    if (typeof db === 'undefined') {
-      throw new Error("Database connection not initialized. Please check firebase.js");
-    }
-
-    // Clean phone number format if needed (or query directly as document ID)
-    // Firestore document IDs under 'users' collection corresponding to user's phone
-    const userDocRef = db.collection("users").doc(phoneInput);
-    const userDoc = await userDocRef.get();
-
-    if (!userDoc.exists) {
-      throw new Error("No account found with this phone number.");
-    }
-
-    const userData = userDoc.data();
-
-    // Verify password match with the document field
-    if (userData.password !== passwordInput) {
-      throw new Error("Incorrect password. Please try again.");
-    }
-
-    // Store session in localStorage (consistent with dashboard/start implementation)
-    localStorage.setItem("9jaCashUser", JSON.stringify({
-      phone: userDoc.id,
-      fullName: userData.fullName || userData.name || "User",
-      balance: userData.balance || 0,
-      currency: userData.currency || "€"
-    }));
-
-    showToast("Login successful! Redirecting...");
-    
-    setTimeout(function() {
-      window.location.href = "dashboard.html";
-    }, 1200);
-
-  } catch (error) {
-    console.error("Login error:", error);
-    showToast(error.message || "Login failed. Please check your details.", true);
-    
-    // Reset button
-    btn.disabled = false;
-    btnText.textContent = "Sign In";
-    btnIcon.className = "fa-solid fa-arrow-right text-sm";
+// ========== THEME ==========
+function initTheme() {
+  const isDark = localStorage.getItem('9jaCashDark') === 'true';
+  if (isDark) {
+    document.body.classList.add('dark-mode');
+    document.getElementById('themeIcon').className = 'fa-solid fa-sun';
   }
 }
+
+function toggleTheme() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('9jaCashDark', isDark);
+  document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+}
+
+// ========== TOAST ==========
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  const msgEl = document.getElementById('toastMsg');
+  const icon = t.querySelector('i');
+  
+  msgEl.textContent = msg;
+  if (type === 'error') {
+    icon.className = 'fa-solid fa-circle-xmark';
+    icon.style.color = '#ef4444';
+  } else {
+    icon.className = 'fa-solid fa-circle-check';
+    icon.style.color = '#10b981';
+  }
+  
+  t.classList.add('show');
+  setTimeout(function() {
+    t.classList.remove('show');
+  }, 2500);
+}
+
+// ========== INIT ==========
+window.addEventListener('DOMContentLoaded', function() {
+  initTheme();
+  
+  // If already logged in, skip to dashboard
+  const user = localStorage.getItem('9jaCashUser');
+  const done = localStorage.getItem('9jaCashOnboard');
+  if (user && done) {
+    window.location.href = 'dashboard.html';
+  }
+});
 </script>
 
 </body>
