@@ -295,10 +295,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
 
     // Status Handling
     const status = (deposit.status || deposit.gateStatus || "").toLowerCase();
+    
     if (status === "failed" || status === "block" || status === "rejected") {
       switchToFailed();
-    } else if (status === "completed" || status === "approved" || status === "success") {
-      switchToSuccess();
+    } else {
+      // Trigger dynamic 3 to 10 seconds processing delay before displaying Success
+      const randomDelay = Math.floor(Math.random() * (10000 - 3000 + 1)) + 3000;
+      setTimeout(function() {
+        switchToSuccess();
+      }, randomDelay);
     }
   }
 
@@ -335,6 +340,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
     // 3. Fallback display when no record exists
     document.getElementById("keyDisplay").textContent = depositKey || "N/A";
     document.getElementById("planDisplay").textContent = "N/A";
+
+    // Run fallback timer animation
+    const randomDelay = Math.floor(Math.random() * (10000 - 3000 + 1)) + 3000;
+    setTimeout(function() {
+      switchToSuccess();
+    }, randomDelay);
   }
 
   // ========== SWITCH TO FAILED UI ==========
