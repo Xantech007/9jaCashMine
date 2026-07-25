@@ -336,25 +336,56 @@ async function processWithdrawal() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
 
-  const withdrawalPayload = {
-    userId: userData.phone || userData.uid || "unknown",
-    userName: userData.name || userData.fullName || "Unknown",
-    userPlan: userData.plan || "Free",
-    amount: amount,
-    type: withdrawType,
-    bank: bank,
-    accNumber: accNumber,
-    accName: accName,
-    status: "pending",
-    processDay: isFreePlan ? "Tuesday" : "Immediate",
-    createdAt: new Date().toISOString()
-  };
+  const userDocId = userData.phone || userData.uid;
 
   try {
     if (window._9jaCash && window._9jaCash.db) {
-      await window._9jaCash.db.collection("withdrawals").add({
-        ...withdrawalPayload,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      const db = window._9jaCash.db;
+      const userRef = db.collection("users").doc(userDocId);
+
+      // Perform a Firestore Transaction to safely deduct balance and write withdrawal record
+      await db.runTransaction(async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+
+        if (!userDoc.exists) {
+          throw new Error("User record does not exist!");
+        }
+
+        const currentBalance = parseFloat(userDoc.data().balance) || 0;
+
+        // Verify balance if withdrawing main balance
+        if (withdrawType === "balance" && currentBalance < amount) {
+          throw new Error("Insufficient balance for this withdrawal.");
+        }
+
+        const newBalance = Math.max(0, currentBalance - (withdrawType === "balance" ? amount : 0));
+
+        // 1. Deduct balance from user document
+        transaction.update(userRef, {
+          balance: withdrawType === "balance" ? newBalance : currentBalance
+        });
+
+        // Update local session data so the balance reflects instantly in app UI
+        if (withdrawType === "balance") {
+          userData.balance = newBalance;
+          localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+        }
+
+        // 2. Add document to withdrawals collection
+        const newWithdrawalRef = db.collection("withdrawals").doc();
+        transaction.set(newWithdrawalRef, {
+          userId: userDocId,
+          userName: userData.name || userData.fullName || "Unknown",
+          userPlan: userData.plan || "Free",
+          amount: amount,
+          type: withdrawType,
+          bank: bank,
+          accNumber: accNumber,
+          accName: accName,
+          status: "pending",
+          processDay: isFreePlan ? "Tuesday" : "Immediate",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
       });
     }
 
@@ -362,7 +393,6 @@ async function processWithdrawal() {
     btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Withdrawal';
 
     if (isFreePlan && withdrawType === "bonus") {
-      // Feedback popup for free plan users
       Swal.fire({
         icon: "info",
         title: "Withdrawal Submitted",
@@ -375,13 +405,12 @@ async function processWithdrawal() {
         window.location.href = "dashboard.html";
       });
     } else {
-      // Redirect balance withdrawal users to success.html
       window.location.href = "success.html";
     }
 
   } catch(err) {
     console.error("Withdrawal error:", err);
-    showToast("Failed to process withdrawal. Try again.");
+    showToast(err.message || "Failed to process withdrawal. Try again.");
     btn.disabled = false;
     btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Withdrawal';
   }
