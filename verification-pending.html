@@ -140,7 +140,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
     <div class="status-value green" id="statusValue"><i class="fa-solid fa-circle" style="font-size:8px;margin-right:6px;"></i>Pending</div>
   </div>
   <div class="status-row">
-    <div class="status-label">Transaction ID</div>
+    <div class="status-label">Transaction ID / Key</div>
     <div class="status-value mono" id="keyDisplay">---</div>
   </div>
   <div class="status-row">
@@ -150,6 +150,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   <div class="status-row">
     <div class="status-label">Amount Paid</div>
     <div class="status-value accent" id="amountDisplay">€0.00</div>
+  </div>
+  <div class="status-row">
+    <div class="status-label">Payment Method</div>
+    <div class="status-value">Pay by Transfer</div>
   </div>
   <div class="status-row">
     <div class="status-label">Transaction Date</div>
@@ -234,7 +238,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
     return symbol + rawAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  // ========== EXTRACT KEY DIRECTLY FROM URL PARAMETERS ==========
+  // ========== EXTRACT KEY FROM URL PARAMETERS ==========
   function getDepositKeyFromURL() {
     const params = new URLSearchParams(window.location.search);
     return params.get("id") || params.get("key") || params.get("ref") || params.get("tx_ref");
@@ -269,9 +273,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
 
   // ========== RENDER DATA INTO PAGE UI ==========
   function renderDepositUI(deposit, depositKey) {
-    // Transaction ID explicitly displays URL Key
-    const urlKey = getDepositKeyFromURL();
-    document.getElementById("keyDisplay").textContent = urlKey || depositKey || deposit.id || deposit.reference || "N/A";
+    // Show Transaction ID or Key
+    document.getElementById("keyDisplay").textContent = depositKey || deposit.id || deposit.reference || "N/A";
 
     // Display Plan/Type
     document.getElementById("planDisplay").textContent = deposit.plan || deposit.type || "Standard Payment";
@@ -280,7 +283,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
     document.getElementById("amountDisplay").textContent = formatDepositAmount(deposit);
     
     // Payment Method
-    const method = deposit.paymentMethod === "crypto" ? "Crypto Payment" : (deposit.paymentMethod || "Pay by Transfer");
+    const method = deposit.paymentMethod === "crypto" ? "Crypto Payment" : (deposit.paymentMethod || "Bank Transfer");
     document.getElementById("methodDisplay").textContent = method;
     
     // Date
@@ -307,11 +310,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc
   // ========== LOAD DEPOSIT DATA FROM FIREBASE OR LOCAL STORAGE ==========
   async function loadDepositData() {
     const depositKey = getDepositKeyFromURL();
-
-    // Set Transaction ID upfront from URL key
-    if (depositKey) {
-      document.getElementById("keyDisplay").textContent = depositKey;
-    }
 
     // 1. If key exists and Firebase is initialized, attempt fetching from Firestore
     if (depositKey && window._9jaCash && window._9jaCash.db) {
