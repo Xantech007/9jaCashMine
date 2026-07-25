@@ -31,7 +31,6 @@ body.dark-mode .success-ring i{color:#10b981;}
 body.dark-mode .title{color:#f8fafc;}
 body.dark-mode .subtitle{color:#94a3b8;}
 body.dark-mode .amount-text{color:#10b981;text-shadow:0 0 20px rgba(16,185,129,0.3);}
-body.dark-mode .local-amount-text{color:#94a3b8;}
 body.dark-mode .status-badge{background:rgba(16,185,129,0.15);color:#34d399;border-color:rgba(16,185,129,0.3);}
 body.dark-mode .btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 20px rgba(99,102,241,0.3);}
 body.dark-mode .btn-primary:hover{box-shadow:0 6px 24px rgba(99,102,241,0.4);}
@@ -44,6 +43,9 @@ body.dark-mode .footer-text{color:#64748b;}
 body.dark-mode .toast{background:#1e293b;border-color:#334155;}
 body.dark-mode .theme-toggle{background:#1e293b;border-color:#334155;color:#94a3b8;}
 body.dark-mode .theme-toggle:hover{background:#334155;color:#818cf8;}
+body.dark-mode .swal2-popup{background:#1e293b !important;border:1px solid #334155 !important;}
+body.dark-mode .swal2-title{color:#f8fafc !important;}
+body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
 
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(16,185,129,0.06),transparent 50%),#f8fafc;transition:all 0.3s ease;}
 
@@ -73,9 +75,9 @@ body.dark-mode .theme-toggle:hover{background:#334155;color:#818cf8;}
 
 .amount-text{font-size:42px;font-weight:900;color:#10b981;letter-spacing:-2px;margin-bottom:4px;line-height:1;transition:color 0.3s;}
 .amount-text span{font-size:24px;color:#6366f1;}
-.local-amount-text{font-size:16px;font-weight:700;color:#64748b;margin-bottom:16px;}
+.local-amount-text{font-size:15px;font-weight:700;color:#6366f1;margin-bottom:20px;}
 
-.status-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:50px;background:#ecfdf5;border:1px solid #10b981;color:#10b981;font-size:13px;font-weight:700;margin-bottom:20px;transition:all 0.3s ease;}
+.status-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:50px;background:#ecfdf5;border:1px solid #10b981;color:#10b981;font-size:13px;font-weight:700;margin-bottom:28px;transition:all 0.3s ease;}
 .status-badge i{font-size:12px;}
 
 .detail-card{background:#f8fafc;border:1px solid #f1f5f9;border-radius:16px;padding:16px;margin-bottom:10px;transition:all 0.3s ease;display:flex;align-items:center;justify-content:space-between;}
@@ -164,19 +166,19 @@ body.dark-mode .theme-toggle:hover{background:#334155;color:#818cf8;}
       <div class="detail-value green" id="detailAmount">€0.00</div>
     </div>
     <div class="detail-card">
-      <div class="detail-label">Amount (Local)</div>
+      <div class="detail-label">Local Amount</div>
       <div class="detail-value green" id="detailLocalAmount">₦0.00</div>
     </div>
     <div class="detail-card">
-      <div class="detail-label">Bank</div>
+      <div class="detail-label" id="lblBank">Bank</div>
       <div class="detail-value" id="detailBank"><i class="fa-solid fa-building-columns"></i> —</div>
     </div>
     <div class="detail-card">
-      <div class="detail-label">Account</div>
+      <div class="detail-label" id="lblAccount">Account</div>
       <div class="detail-value mono" id="detailAccount">—</div>
     </div>
     <div class="detail-card">
-      <div class="detail-label">Account Name</div>
+      <div class="detail-label" id="lblAccName">Account Name</div>
       <div class="detail-value" id="detailName">—</div>
     </div>
     <div class="detail-card">
@@ -216,9 +218,9 @@ try {
 let activeTxData = null;
 let adminSettings = null;
 
-// Currency exchange rate fallback (EUR to NGN or local currency rate)
-const DEFAULT_EXCHANGE_RATE = 1650; 
-const LOCAL_CURRENCY_SYMBOL = "₦";
+// Currency Rate Defaults (matching withdraw.html)
+const DEFAULT_EUR_RATE = 1650; // Exchange rate Euro to NGN/Local
+const CURRENCY_SYMBOL = "₦";
 
 // ========== THEME ==========
 function initTheme() {
@@ -238,7 +240,14 @@ function toggleTheme() {
 }
 
 // ========== FORMAT MONEY ==========
-function formatMoney(num, symbol = "€") {
+function formatMoney(num) {
+  if (!num && num !== 0) return "€0.00";
+  let n = parseFloat(num);
+  if (isNaN(n)) return "€0.00";
+  return "€" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatLocalMoney(num, symbol = CURRENCY_SYMBOL) {
   if (!num && num !== 0) return symbol + "0.00";
   let n = parseFloat(num);
   if (isNaN(n)) return symbol + "0.00";
@@ -258,9 +267,13 @@ async function getTxData() {
         return {
           txId: docSnap.id,
           amount: data.amount,
-          bankNameTitle: data.bankNameTitle || data.bank,
-          bank: data.bank || data.accNumber,
-          accNameTitle: data.accNameTitle || data.accName,
+          localAmount: data.localAmount || null,
+          bank: data.bank || data.bankNameTitle,
+          account: data.accNumber || data.bank,
+          name: data.accName || data.accNameTitle,
+          bankNameTitle: data.bankNameTitle || "Bank",
+          accNameTitle: data.accNameTitle || "Account Name",
+          bankTitle: data.bankTitle || "Account",
           status: data.status,
           date: data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleString() : new Date().toLocaleString()
         };
@@ -334,32 +347,34 @@ async function updateUI() {
     rawAmount = parseFloat(data.amount) || 0;
   }
 
-  const rate = (userData && userData.exchangeRate) ? parseFloat(userData.exchangeRate) : DEFAULT_EXCHANGE_RATE;
-  const localAmount = rawAmount * rate;
+  // Calculate local currency converted amount
+  let rate = (adminSettings && adminSettings.exchangeRate) ? parseFloat(adminSettings.exchangeRate) : DEFAULT_EUR_RATE;
+  let localValue = data.localAmount ? parseFloat(data.localAmount) : (rawAmount * rate);
 
-  const formattedEur = formatMoney(rawAmount, "€");
-  const formattedLocal = formatMoney(localAmount, LOCAL_CURRENCY_SYMBOL);
+  const formattedEUR = formatMoney(rawAmount);
+  const formattedLocal = formatLocalMoney(localValue);
 
   const amountDisplay = document.getElementById("amountDisplay");
-  if (formattedEur.includes(".")) {
-    const parts = formattedEur.split(".");
+  if (formattedEUR.includes(".")) {
+    const parts = formattedEUR.split(".");
     amountDisplay.innerHTML = parts[0] + '<span>.' + parts[1] + '</span>';
   } else {
-    amountDisplay.innerHTML = formattedEur + '<span>.00</span>';
+    amountDisplay.innerHTML = formattedEUR + '<span>.00</span>';
   }
 
   document.getElementById("localAmountDisplay").textContent = "≈ " + formattedLocal;
-  document.getElementById("detailAmount").textContent = formattedEur;
+  document.getElementById("detailAmount").textContent = formattedEUR;
   document.getElementById("detailLocalAmount").textContent = formattedLocal;
 
-  // Use dynamic fields: bankNameTitle, bank (account number), accNameTitle
-  const bankName = data.bankNameTitle || data.bank || "—";
-  const accNum = data.bank || data.accNumber || "—";
-  const accName = data.accNameTitle || data.accName || "—";
+  // Set field labels dynamically using bankNameTitle, accNameTitle, etc.
+  document.getElementById("lblBank").textContent = data.bankNameTitle || "Bank";
+  document.getElementById("lblAccount").textContent = data.bankTitle || "Account";
+  document.getElementById("lblAccName").textContent = data.accNameTitle || "Account Name";
 
-  document.getElementById("detailBank").innerHTML = '<i class="fa-solid fa-building-columns"></i> ' + bankName;
-  document.getElementById("detailAccount").textContent = accNum;
-  document.getElementById("detailName").textContent = accName;
+  document.getElementById("detailBank").innerHTML = '<i class="fa-solid fa-building-columns"></i> ' + (data.bank || "—");
+  document.getElementById("detailAccount").textContent = data.account || data.accNumber || "—";
+  document.getElementById("detailName").textContent = data.name || data.accName || "—";
+  
   document.getElementById("detailTxId").textContent = data.txId || 'TX-' + Date.now().toString(36).toUpperCase().slice(-8);
   document.getElementById("detailDate").textContent = data.date || new Date().toLocaleString('en-US', {
     day: 'numeric', month: 'short', year: 'numeric',
@@ -371,7 +386,7 @@ async function updateUI() {
   const statusCap = status.charAt(0).toUpperCase() + status.slice(1);
   document.getElementById("statusText").textContent = status.toLowerCase() === "pending" ? "Pending • Processing" : statusCap + " • Completed";
 
-  sendWithdrawalNotification(rawAmount, bankName, accName);
+  sendWithdrawalNotification(rawAmount, data.bank, data.name || data.accName);
   startCountdown();
 }
 
@@ -406,16 +421,11 @@ function shareReceipt() {
   const data = activeTxData;
   if (!data) return;
 
-  const rawAmount = parseFloat(String(data.amount).replace(/[^\d.]/g, "")) || 0;
-  const rate = (userData && userData.exchangeRate) ? parseFloat(userData.exchangeRate) : DEFAULT_EXCHANGE_RATE;
-  const localAmt = rawAmount * rate;
-
   const text = "FlutterW Euro Earn Withdrawal Receipt\n" +
-    "Amount (EUR): " + formatMoney(rawAmount, "€") + "\n" +
-    "Amount (Local): " + formatMoney(localAmt, LOCAL_CURRENCY_SYMBOL) + "\n" +
-    "Bank: " + (data.bankNameTitle || data.bank || "—") + "\n" +
-    "Account: " + (data.bank || data.accNumber || "—") + "\n" +
-    "Name: " + (data.accNameTitle || data.accName || "—") + "\n" +
+    "Amount: " + formatMoney(data.amount) + "\n" +
+    "Bank: " + (data.bank || "—") + "\n" +
+    "Account: " + (data.account || data.accNumber || "—") + "\n" +
+    "Name: " + (data.name || data.accName || "—") + "\n" +
     "Transaction ID: " + (data.txId || "—") + "\n" +
     "Status: " + (data.status || "Pending") + "\n" +
     "Date: " + (data.date || "—");
@@ -456,7 +466,8 @@ async function loadAdminSettings() {
   if (!adminSettings) {
     adminSettings = {
       successRedirect: "dashboard.html",
-      successDelay: 1500
+      successDelay: 1500,
+      exchangeRate: 1650
     };
   }
 }
