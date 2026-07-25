@@ -556,7 +556,7 @@ function loadReferralsList() {
   }
   
   db.collection("users").doc(userData.phone).collection("referrals").get()
-    .then(function(snapshot) {
+    .then(async function(snapshot) {
       if (snapshot.empty) {
         listBody.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px;">No referred members yet</div>';
         if (countEl) countEl.textContent = "0";
@@ -564,27 +564,42 @@ function loadReferralsList() {
       }
       
       let html = "";
-      let count = 0;
-      snapshot.forEach(function(doc) {
-        count++;
-        const data = doc.data();
-        const name = data.fullName || data.name || "User " + doc.id;
+      let count = snapshot.size;
+      if (countEl) countEl.textContent = count;
+      
+      for (const refDoc of snapshot.docs) {
+        const refData = refDoc.data();
+        const referredUserId = refDoc.id; // Document ID of the referred user under referrals collection
+        let name = refData.fullName || refData.name || "User " + referredUserId;
         let dateStr = "";
-        if (data.createdAt) {
+        
+        if (refData.createdAt) {
           try {
-            dateStr = new Date(data.createdAt).toLocaleDateString();
+            dateStr = new Date(refData.createdAt).toLocaleDateString();
           } catch(e) {
-            dateStr = data.createdAt;
+            dateStr = refData.createdAt;
           }
         }
         
-        // Determine referral plan status
-        let refPlan = (data.plan || "free").toString().toLowerCase().trim();
-        if (!refPlan.endsWith("plan")) {
-          refPlan += " plan";
-        }
+        let isActive = false;
         
-        let isActive = (refPlan !== "free plan" && PLANS_CONFIG[refPlan] !== undefined);
+        try {
+          // Fetch the plan under users/{referredUserId} document
+          const userDoc = await db.collection("users").doc(referredUserId).get();
+          if (userDoc.exists) {
+            const referredUserData = userDoc.data();
+            if (referredUserData.name || referredUserData.fullName) {
+              name = referredUserData.name || referredUserData.fullName;
+            }
+            let refPlan = (referredUserData.plan || "free").toString().toLowerCase().trim();
+            if (!refPlan.endsWith("plan")) {
+              refPlan += " plan";
+            }
+            isActive = (refPlan !== "free plan" && PLANS_CONFIG[refPlan] !== undefined);
+          }
+        } catch (err) {
+          console.error("Error fetching user plan for referral:", referredUserId, err);
+        }
         
         let statusBadge = isActive 
           ? '<div style="font-size:12px;font-weight:700;color:#10b981;">Active</div>' 
@@ -597,10 +612,9 @@ function loadReferralsList() {
           </div>
           <div>${statusBadge}</div>
         </div>`;
-      });
+      }
       
       listBody.innerHTML = html;
-      if (countEl) countEl.textContent = count;
     })
     .catch(function(err) {
       console.error("Error loading referrals:", err);
