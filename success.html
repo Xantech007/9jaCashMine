@@ -195,11 +195,16 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
 <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
 
 <script>
+// Authentication check: redirect to start.html if user is not logged in
 let userData = null;
 try {
   userData = JSON.parse(localStorage.getItem("9jaCashUser"));
 } catch(e) {
   userData = null;
+}
+
+if (!userData) {
+  window.location.href = "start.html";
 }
 
 let activeTxData = null;
