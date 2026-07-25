@@ -189,9 +189,9 @@ if (!userData) { window.location.href = "start.html"; }
 let regionalSettings = null;
 let defaultPaymentSettings = null;
 let registrationBonus = 0;
-let referralBonusAmount = 0;
-let totalReferralsBalance = 0;
-let availableReferralsBalance = 0;
+let referralBonusConfigAmount = 0;
+let availableReferralBalance = 0;
+let totalReferralBalance = 0;
 let withdrawType = "balance"; // "balance", "register", or "referral"
 let hasAlreadyWithdrawnBonus = false;
 
@@ -246,10 +246,10 @@ function switchWithdrawType(type) {
     document.getElementById("balanceLabelTitle").textContent = "Registration Bonus Balance";
     document.getElementById("balanceDisplayNum").textContent = "€" + (parseFloat(registrationBonus) || 0).toFixed(2);
   } else if (type === "referral") {
-    amountInput.value = "";
+    amountInput.value = availableReferralBalance;
     amountInput.disabled = false;
-    document.getElementById("balanceLabelTitle").textContent = "Ref. Bonus (Total: €" + totalReferralsBalance.toFixed(2) + ")";
-    document.getElementById("balanceDisplayNum").textContent = "€" + availableReferralsBalance.toFixed(2);
+    document.getElementById("balanceLabelTitle").textContent = "Available Referrals Balance";
+    document.getElementById("balanceDisplayNum").textContent = "€" + availableReferralBalance.toFixed(2) + " (Total: €" + totalReferralBalance.toFixed(2) + ")";
   } else {
     const mainBal = parseFloat(userData.balance || 0);
     amountInput.value = "";
@@ -319,53 +319,51 @@ async function loadConfig() {
     try {
       const regDoc = await db.collection("settings").doc("register").get();
       if (regDoc.exists) {
-        const regData = regDoc.data();
-        if (regData.bonus !== undefined) {
-          registrationBonus = parseFloat(regData.bonus) || 0;
+        if (regDoc.data().bonus !== undefined) {
+          registrationBonus = parseFloat(regDoc.data().bonus) || 0;
         }
-        if (regData.bonusReferral !== undefined) {
-          referralBonusAmount = parseFloat(regData.bonusReferral) || 0;
+        if (regDoc.data().bonusReferral !== undefined) {
+          referralBonusConfigAmount = parseFloat(regDoc.data().bonusReferral) || 0;
         }
       }
     } catch(e) { console.warn("Error reading settings/register:", e); }
 
-    // 4. Calculate referral balances dynamically using the referral list evaluation logic
+    // 4. Compute referral balances using the specified logic
     try {
-      const refSnapshot = await db.collection("referrals").where("referrerId", "==", userDocId).get();
-      const totalReferrals = refSnapshot.size;
-      totalReferralsBalance = totalReferrals * referralBonusAmount;
+      const rawTotalRefBal = parseFloat(userData.balanceReferral || userData.referralBalance || 0);
+      totalReferralBalance = rawTotalRefBal;
 
+      // Fetch referrals subcollection to count inactive referred users
+      const referralsSnap = await db.collection("users").doc(userDocId).collection("referrals").get();
       let inactiveCount = 0;
-      for (const docSnap of refSnapshot.docs) {
-        const refData = docSnap.data();
-        const referredId = refData.referredId || refData.userId || docSnap.id;
+
+      for (const refDoc of referralsSnap.docs) {
+        const referredUserId = refDoc.id;
+        const referredUserSnap = await db.collection("users").doc(referredUserId).get();
         
-        if (referredId) {
-          try {
-            const referredUserSnap = await db.collection("users").doc(referredId).get();
-            if (referredUserSnap.exists) {
-              const referredUserData = referredUserSnap.data();
-              const plan = referredUserData.plan || "";
-              const isFree = !plan || plan.toLowerCase().includes("free");
-              if (isFree) {
-                inactiveCount++;
-              }
-            } else {
-              inactiveCount++;
-            }
-          } catch(err) {
-            console.warn("Error checking referred user plan:", err);
-            inactiveCount++;
+        let isActive = false;
+        if (referredUserSnap.exists) {
+          const referredUserData = referredUserSnap.data();
+          let planName = (referredUserData.plan || "free").toLowerCase().trim();
+          if (!planName.endsWith("plan")) {
+            planName += " plan";
           }
+          if (planName !== "free plan" && window.PLANS_CONFIG && window.PLANS_CONFIG[planName]) {
+            isActive = true;
+          }
+        }
+
+        if (!isActive) {
+          inactiveCount++;
         }
       }
 
-      const unavailableReferralsBalance = inactiveCount * referralBonusAmount;
-      availableReferralsBalance = Math.max(0, totalReferralsBalance - unavailableReferralsBalance);
-    } catch(e) {
+      const unavailableReferralsBalance = inactiveCount * referralBonusConfigAmount;
+      availableReferralBalance = Math.max(0, totalReferralBalance - unavailableReferralsBalance);
+    } catch (e) {
       console.warn("Error calculating referral balances:", e);
-      totalReferralsBalance = parseFloat(userData.balanceReferral || userData.referralBalance || 0);
-      availableReferralsBalance = totalReferralsBalance;
+      availableReferralBalance = parseFloat(userData.balanceReferral || userData.referralBalance || 0);
+      totalReferralBalance = availableReferralBalance;
     }
 
     // 5. Fetch regional rate
@@ -437,12 +435,12 @@ async function processWithdrawal() {
     return;
   }
 
-  // Validate referral bonus withdrawal amount against available referral balance
-  if (withdrawType === "referral" && amount > availableReferralsBalance) {
+  // Referral Bonus Withdrawal Limit Rule
+  if (withdrawType === "referral" && amount > availableReferralBalance) {
     Swal.fire({
       icon: "error",
       title: "Exceeds Available Balance",
-      text: `You can only withdraw up to your available referrals balance (€${availableReferralsBalance.toFixed(2)}).`,
+      text: `Only available referrals balance (€${availableReferralBalance.toFixed(2)}) can be withdrawn.`,
       background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
       color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
     });
@@ -503,10 +501,7 @@ async function processWithdrawal() {
 
         const currentBalance = parseFloat(data.balance) || 0;
         const currentBalanceRegister = parseFloat(data.balanceRegister) || 0;
-        let currentBalanceReferral = parseFloat(data.balanceReferral || data.referralBalance || 0);
-        if (withdrawType === "referral") {
-          currentBalanceReferral = availableReferralsBalance;
-        }
+        const currentBalanceReferral = parseFloat(data.balanceReferral || data.referralBalance) || 0;
 
         // Verify balance based on withdrawType
         if (withdrawType === "balance" && currentBalance < amount) {
@@ -516,13 +511,12 @@ async function processWithdrawal() {
           throw new Error("Insufficient registration bonus balance.");
         }
         if (withdrawType === "referral" && currentBalanceReferral < amount) {
-          throw new Error("Insufficient available referral bonus balance.");
+          throw new Error("Insufficient referral bonus balance.");
         }
 
         const newBalance = Math.max(0, currentBalance - (withdrawType === "balance" ? amount : 0));
         const newBalanceRegister = Math.max(0, currentBalanceRegister - (withdrawType === "register" ? amount : 0));
-        const existingRefBal = parseFloat(data.balanceReferral || data.referralBalance || 0);
-        const newBalanceReferral = Math.max(0, existingRefBal - (withdrawType === "referral" ? amount : 0));
+        const newBalanceReferral = Math.max(0, currentBalanceReferral - (withdrawType === "referral" ? amount : 0));
 
         // Build updates object for user document
         const userUpdates = {
