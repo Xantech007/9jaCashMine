@@ -329,7 +329,7 @@ async function loadConfig() {
       }
     } catch(e) { console.warn("Error reading settings/register:", e); }
 
-    // 4. Calculate referral balances dynamically
+    // 4. Calculate referral balances dynamically using the referral list evaluation logic
     try {
       const refSnapshot = await db.collection("referrals").where("referrerId", "==", userDocId).get();
       const totalReferrals = refSnapshot.size;
