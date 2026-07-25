@@ -59,6 +59,13 @@ body.dark-mode .header-sub{color:#94a3b8;}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(99,102,241,0.4);}
 .btn-primary:active{transform:scale(0.97);}
 
+/* Secondary button style for Register match */
+.btn-secondary{width:100%;padding:18px;border-radius:18px;background:#f1f5f9;color:#6366f1;font-size:16px;font-weight:800;border:2px solid #e2e8f0;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;font-family:'Plus Jakarta Sans',sans-serif;}
+body.dark-mode .btn-secondary{background:#1e293b;border-color:#334155;color:#818cf8;}
+.btn-secondary:hover{background:#e2e8f0;transform:translateY(-2px);}
+body.dark-mode .btn-secondary:hover{background:#334155;}
+.btn-secondary:active{transform:scale(0.97);}
+
 /* Animations */
 @keyframes slideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
 .s1{animation:slideUp 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;}
@@ -144,8 +151,12 @@ body.dark-mode .toast{background:#1e293b;border-color:#334155;}
           </button>
         </div>
         
-        <div class="text-center mt-4">
-          <p class="text-sm text-[#64748b]">Don't have an account? <a href="index.html" class="text-[#6366f1] font-bold hover:underline">Create Account</a></p>
+        <!-- Register Button (Matched Style) -->
+        <div class="pt-1">
+          <a href="index.html" class="btn-secondary">
+            <span>Create Account</span>
+            <i class="fa-solid fa-user-plus"></i>
+          </a>
         </div>
         
       </form>
