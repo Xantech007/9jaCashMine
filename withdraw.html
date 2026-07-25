@@ -62,6 +62,12 @@ body.light-mode .input-field:focus{border-color:#6366f1;background:#fff;}
 .amount-num span{color:#10b981;}
 .amount-hint{font-size:13px;color:#64748b;margin-top:8px;font-weight:500;}
 
+.ref-breakdown{display:none;background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.15);border-radius:14px;padding:12px 16px;margin-top:12px;font-size:12px;color:#94a3b8;text-align:left;line-height:1.6;}
+.ref-breakdown div{display:flex;justify-content:space-between;}
+.ref-breakdown span{color:#f8fafc;font-weight:700;}
+body.light-mode .ref-breakdown{background:#f1f5f9;border-color:#e2e8f0;color:#64748b;}
+body.light-mode .ref-breakdown span{color:#1e293b;}
+
 .tab-bar{display:flex;gap:6px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px;}
 .tab-btn{flex:1;min-width:110px;padding:12px 8px;border-radius:16px;background:#1e293b;border:1px solid #334155;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.3s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:'Plus Jakarta Sans',sans-serif;text-align:center;}
 .tab-btn i{font-size:14px;}
@@ -121,6 +127,14 @@ body.light-mode .input-field:focus{border-color:#6366f1;background:#fff;}
 <div class="amount-header anim">
   <div class="amount-label" id="balanceLabelTitle">Available Balance</div>
   <div class="amount-num" id="balanceDisplayNum">€0.00</div>
+  
+  <!-- Referral Breakdown Box -->
+  <div class="ref-breakdown" id="refBreakdownBox">
+    <div>Total Ref. Balance: <span id="totalRefBalDisplay">€0.00</span></div>
+    <div>Unavailable (Inactive): <span id="unavailableRefBalDisplay">€0.00</span></div>
+    <div>Available for Withdrawal: <span id="availableRefBalDisplay">€0.00</span></div>
+  </div>
+
   <div class="amount-hint" id="convertedDisplay">Equivalent: 0.00 <span></span></div>
   <div class="amount-hint" id="rateHint" style="margin-top:4px;">Rate: Loading exchange rate...</div>
 </div>
@@ -189,7 +203,12 @@ if (!userData) { window.location.href = "start.html"; }
 let regionalSettings = null;
 let defaultPaymentSettings = null;
 let registrationBonus = 0;
-let bonusReferralSetting = 5; // Default reference bonus per user if not set in settings
+let refBonusAmount = 0; // fetched from settings/register bonusReferral
+let inactiveReferralsCount = 0;
+let availableReferralBalance = 0;
+let totalReferralBalance = 0;
+let unavailableReferralBalance = 0;
+
 let withdrawType = "balance"; // "balance", "register", or "referral"
 let hasAlreadyWithdrawnBonus = false;
 
@@ -237,23 +256,22 @@ function switchWithdrawType(type) {
   document.getElementById("tabReferral").classList.toggle("active", type === "referral");
 
   const amountInput = document.getElementById("withdrawAmount");
+  const refBreakdownEl = document.getElementById("refBreakdownBox");
   
   if (type === "register") {
+    refBreakdownEl.style.display = "none";
     amountInput.value = registrationBonus;
     amountInput.disabled = true;
     document.getElementById("balanceLabelTitle").textContent = "Registration Bonus Balance";
     document.getElementById("balanceDisplayNum").textContent = "€" + (parseFloat(registrationBonus) || 0).toFixed(2);
   } else if (type === "referral") {
-    const balanceReferral = parseFloat(userData.balanceReferral || userData.referralBalance || 0);
-    const inactiveCount = parseInt(userData.inactiveReferrals || userData.inactiveCount || 0);
-    const unavailableReferralsBalance = inactiveCount * bonusReferralSetting;
-    const availableReferralsBalance = Math.max(0, balanceReferral - unavailableReferralsBalance);
-
+    refBreakdownEl.style.display = "block";
     amountInput.value = "";
     amountInput.disabled = false;
-    document.getElementById("balanceLabelTitle").textContent = "Ref. Balance (Total / Available)";
-    document.getElementById("balanceDisplayNum").innerHTML = `€${balanceReferral.toFixed(2)} <span style="font-size:20px; color:#10b981;">(Avail: €${availableReferralsBalance.toFixed(2)})</span>`;
+    document.getElementById("balanceLabelTitle").textContent = "Available Referral Balance";
+    document.getElementById("balanceDisplayNum").textContent = "€" + availableReferralBalance.toFixed(2);
   } else {
+    refBreakdownEl.style.display = "none";
     const mainBal = parseFloat(userData.balance || 0);
     amountInput.value = "";
     amountInput.disabled = false;
@@ -318,23 +336,50 @@ async function loadConfig() {
       }
     } catch(e) { console.warn("Error reading settings/payment:", e); }
 
-    // 3. Fetch bonus amount from settings/register collection
+    // 3. Fetch bonus amounts from settings/register collection
     try {
       const regDoc = await db.collection("settings").doc("register").get();
-      if (regDoc.exists && regDoc.data().bonus !== undefined) {
-        registrationBonus = parseFloat(regDoc.data().bonus) || 0;
+      if (regDoc.exists) {
+        const regData = regDoc.data();
+        if (regData.bonus !== undefined) {
+          registrationBonus = parseFloat(regData.bonus) || 0;
+        }
+        if (regData.bonusReferral !== undefined) {
+          refBonusAmount = parseFloat(regData.bonusReferral) || 0;
+        }
       }
     } catch(e) { console.warn("Error reading settings/register:", e); }
 
-    // Fetch referral bonus settings if available
+    // 4. Calculate referral balances dynamically using referred users list / query
     try {
-      const refSettingDoc = await db.collection("settings").doc("referral").get();
-      if (refSettingDoc.exists && refSettingDoc.data().bonusReferral !== undefined) {
-        bonusReferralSetting = parseFloat(refSettingDoc.data().bonusReferral) || 5;
-      }
-    } catch(e) { console.warn("Error reading settings/referral:", e); }
+      totalReferralBalance = parseFloat(userData.balanceReferral || userData.referralBalance || 0);
+      
+      // Fetch referred users for this user to check active status
+      const referralsSnap = await db.collection("users").where("referredBy", "==", userDocId).get();
+      inactiveReferralsCount = 0;
+      
+      referralsSnap.forEach(doc => {
+        const refUser = doc.data();
+        const plan = (refUser.plan || "free").toLowerCase();
+        // Considered inactive if on free plan
+        if (plan.includes("free")) {
+          inactiveReferralsCount++;
+        }
+      });
 
-    // 4. Fetch regional rate
+      unavailableReferralBalance = inactiveReferralsCount * refBonusAmount;
+      availableReferralBalance = Math.max(0, totalReferralBalance - unavailableReferralBalance);
+
+      // Update UI breakdown fields
+      document.getElementById("totalRefBalDisplay").textContent = "€" + totalReferralBalance.toFixed(2);
+      document.getElementById("unavailableRefBalDisplay").textContent = "€" + unavailableReferralBalance.toFixed(2);
+      document.getElementById("availableRefBalDisplay").textContent = "€" + availableReferralBalance.toFixed(2);
+    } catch(e) {
+      console.warn("Error calculating referral breakdown:", e);
+      availableReferralBalance = parseFloat(userData.balanceReferral || userData.referralBalance || 0);
+    }
+
+    // 5. Fetch regional rate
     const userCountry = userData.country || "Ghana";
     const regionDoc = getRegionDocName(userCountry);
     try {
@@ -388,6 +433,18 @@ async function processWithdrawal() {
   }
   if (!bank || !accNumber || !accName) {
     showToast("Please fill in all bank details");
+    return;
+  }
+
+  // Validate referral bonus withdrawal limit against available referral balance
+  if (withdrawType === "referral" && amount > availableReferralBalance) {
+    Swal.fire({
+      icon: "error",
+      title: "Exceeds Available Balance",
+      text: `You can only withdraw up to your available referrals balance (€${availableReferralBalance.toFixed(2)}).`,
+      background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
+      color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
+    });
     return;
   }
 
@@ -458,11 +515,6 @@ async function processWithdrawal() {
         const currentBalance = parseFloat(data.balance) || 0;
         const currentBalanceRegister = parseFloat(data.balanceRegister) || 0;
         const currentBalanceReferral = parseFloat(data.balanceReferral || data.referralBalance) || 0;
-        
-        // Compute available referrals balance dynamically inside transaction
-        const inactiveCount = parseInt(data.inactiveReferrals || data.inactiveCount || 0);
-        const unavailableReferralsBalance = inactiveCount * bonusReferralSetting;
-        const availableReferralsBalance = Math.max(0, currentBalanceReferral - unavailableReferralsBalance);
 
         // Verify balance based on withdrawType
         if (withdrawType === "balance" && currentBalance < amount) {
@@ -471,8 +523,8 @@ async function processWithdrawal() {
         if (withdrawType === "register" && currentBalanceRegister < amount) {
           throw new Error("Insufficient registration bonus balance.");
         }
-        if (withdrawType === "referral" && availableReferralsBalance < amount) {
-          throw new Error("Insufficient available referral bonus balance. Some referrals are inactive.");
+        if (withdrawType === "referral" && (currentBalanceReferral < amount || amount > availableReferralBalance)) {
+          throw new Error("Insufficient available referral bonus balance.");
         }
 
         const newBalance = Math.max(0, currentBalance - (withdrawType === "balance" ? amount : 0));
