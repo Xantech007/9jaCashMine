@@ -37,6 +37,11 @@ body.light-mode .stat-label{color:#94a3b8;}
 body.light-mode .stat-value{color:#1e293b;}
 body.light-mode .swal2-popup{background:#fff !important;color:#1e293b !important;}
 
+/* Light Mode Modal Form Controls Fix */
+body.light-mode .swal-input-group label{color:#64748b;}
+body.light-mode .swal-input-group input, 
+body.light-mode .swal-input-group textarea{background:#f8fafc;border-color:#cbd5e1;color:#1e293b;}
+
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.12),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.08),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.06),transparent 50%),#0f172a;transition:all 0.3s ease;}
 
 .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 40px;}
@@ -94,7 +99,7 @@ body.light-mode .swal2-popup{background:#fff !important;color:#1e293b !important
 /* Form styles inside SweetAlert */
 .swal-input-group { text-align: left; margin-bottom: 12px; }
 .swal-input-group label { display: block; font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; }
-.swal-input-group input, .swal-input-group textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 13px; font-family: inherit; }
+.swal-input-group input, .swal-input-group textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 13px; font-family: inherit; transition: all 0.3s; }
 .swal-input-group input:focus, .swal-input-group textarea:focus { border-color: #6366f1; outline: none; }
 
 /* Animations */
@@ -330,6 +335,8 @@ function showDepositDetails(data, status, planTitle, formattedAmount, payMethod,
     reversalInfo = `
       <div style="margin-top:12px;padding:10px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:10px;">
         <p style="font-weight:700;color:#818cf8;margin-bottom:4px;"><i class="fa-solid fa-clock-rotate-left"></i> Reversal Requested</p>
+        <p><b>Wallet Holder:</b> ${data.reversalRequest.walletHolderName || data.reversalRequest.accountName || '—'}</p>
+        <p><b>Wallet Number:</b> ${data.reversalRequest.walletNumber || '—'}</p>
         <p><b>Sent:</b> ${data.currencySymbol || '€'}${data.reversalRequest.actualAmount}</p>
         <p><b>Reason:</b> ${data.reversalRequest.reason}</p>
       </div>`;
@@ -400,8 +407,12 @@ function openReversalModal(depositData) {
           <input type="number" step="any" id="revAmount" placeholder="e.g. 50.00" required />
         </div>
         <div class="swal-input-group">
-          <label>Name on Account Used</label>
-          <input type="text" id="revAccountName" placeholder="Account Holder Name" required />
+          <label>Wallet Holder Name</label>
+          <input type="text" id="revWalletHolder" placeholder="Enter Wallet Holder Name" required />
+        </div>
+        <div class="swal-input-group">
+          <label>Wallet Number Used</label>
+          <input type="text" id="revWalletNumber" placeholder="Enter Account/Wallet Number" required />
         </div>
         <div class="swal-input-group">
           <label>Transaction Date</label>
@@ -425,17 +436,18 @@ function openReversalModal(depositData) {
     color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc",
     preConfirm: () => {
       const actualAmount = document.getElementById("revAmount").value;
-      const accountName = document.getElementById("revAccountName").value;
+      const walletHolderName = document.getElementById("revWalletHolder").value;
+      const walletNumber = document.getElementById("revWalletNumber").value;
       const date = document.getElementById("revDate").value;
       const reason = document.getElementById("revReason").value;
       const proofFile = document.getElementById("revProof").files[0];
 
-      if (!actualAmount || !accountName || !date || !reason || !proofFile) {
+      if (!actualAmount || !walletHolderName || !walletNumber || !date || !reason || !proofFile) {
         Swal.showValidationMessage("Please fill in all fields and select a file.");
         return false;
       }
 
-      return { actualAmount, accountName, date, reason, proofFile };
+      return { actualAmount, walletHolderName, walletNumber, date, reason, proofFile };
     }
   }).then(async (result) => {
     if (result.isConfirmed && result.value) {
@@ -462,7 +474,9 @@ async function submitReversalRequest(docId, formData) {
     // 2. Prepare reversal object
     const reversalRequestData = {
       actualAmount: formData.actualAmount,
-      accountName: formData.accountName,
+      walletHolderName: formData.walletHolderName,
+      accountName: formData.walletHolderName, // Fallback compatibility
+      walletNumber: formData.walletNumber,
       date: formData.date,
       reason: formData.reason,
       proofPath: proofPath,
