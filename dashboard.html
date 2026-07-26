@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh;transition:all 0.3s ease;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh;transition:all 0.3s ease; display:flex; flex-direction:column; align-items:center;}
 body.dark-mode{background:#0f172a;color:#f8fafc;}
 body.dark-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.15),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.1),transparent 50%),#0f172a;}
 body.dark-mode .balance-card,body.dark-mode .linked-card,body.dark-mode .claim-card,body.dark-mode .stat-box,body.dark-mode .activity-list,body.dark-mode .checkin-day,body.dark-mode .referral-card{background:#1e293b;border-color:#334155;}
@@ -41,7 +41,7 @@ body.dark-mode .act-amount.bounce{color:#f59e0b;}
 body.dark-mode .act-icon.bounce{background:#fff7ed!important;color:#f59e0b!important;}
 body.dark-mode .referral-link-box{background:#0f172a;border-color:#334155;color:#94a3b8;}
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;transition:all 0.3s ease;}
-.app{position:relative;z-index:1;max-width:480px;margin:0 16px 100px;padding:24px 20px 100px;}
+.app{position:relative;z-index:1;width:100%;max-width:480px;margin:0 auto;padding:0 20px 100px;}
 .topbar{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between;}
 .avatar-wrap{display:flex;align-items:center;gap:12px;}
 .avatar{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;box-shadow:0 4px 20px rgba(99,102,241,0.25);}
@@ -292,127 +292,129 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
   </div>
 </div>
 
-<div class="topbar anim d1" id="headerArea">
-  <div class="avatar-wrap">
-    <div class="avatar" id="userAvatar">€</div>
-    <div>
-      <div class="greeting" id="greeting">Good morning[cite: 1]</div>
-      <div class="name" id="userName">FlutterW Euro Earn User[cite: 1]</div>
-      <div id="planBadge" class="plan-badge badge-free">Free Plan[cite: 1]</div>
+<div class="app">
+  <div class="topbar anim d1" id="headerArea">
+    <div class="avatar-wrap">
+      <div class="avatar" id="userAvatar">€</div>
+      <div>
+        <div class="greeting" id="greeting">Good morning[cite: 1]</div>
+        <div class="name" id="userName">FlutterW Euro Earn User[cite: 1]</div>
+        <div id="planBadge" class="plan-badge badge-free">Free Plan[cite: 1]</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn" style="width: auto; padding: 0 12px; gap: 6px; display: flex;">
+        <i class="fa-regular fa-bell"></i>
+      </button>
+      <button class="notify-btn" onclick="logoutUser()" id="logoutBtn" style="width: auto; padding: 0 12px; gap: 6px; display: flex;">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span style="font-size: 12px; font-weight: 600;">Logout</span>
+      </button>
     </div>
   </div>
-  <div style="display: flex; gap: 8px; align-items: center;">
-    <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn" style="width: auto; padding: 0 12px; gap: 6px; display: flex;">
-      <i class="fa-regular fa-bell"></i>
+  <button class="tour-pill anim d1" id="startTourBtn" onclick="startTutorial()">
+    <i class="fa-solid fa-route"></i> Start Tour
+  </button>
+  <div class="balance-card anim d2" id="balanceArea">
+    <div class="balance-top">
+      <div class="balance-label">Total Balance</div>
+      <button class="eye-btn" onclick="toggleBalance()" id="eyeBtn"><i class="fa-regular fa-eye" id="eyeIcon"></i></button>
+    </div>
+    <div class="balance-num" id="walletBalance">€0<span>.00</span></div>
+    <div class="balance-change"><i class="fa-solid fa-arrow-trend-up"></i> +12.5% this week</div>
+    <div class="bonus-chips" id="bonusChipsArea"></div>
+  </div>
+  <div class="actions anim d3" id="actionsArea">
+    <button class="action-pill pill-mine" onclick="startMining()" id="mineBtn">
+      <i class="fa-solid fa-hammer"></i><span>Mine</span>
     </button>
-    <button class="notify-btn" onclick="logoutUser()" id="logoutBtn" style="width: auto; padding: 0 12px; gap: 6px; display: flex;">
-      <i class="fa-solid fa-right-from-bracket"></i>
-      <span style="font-size: 12px; font-weight: 600;">Logout</span>
+    <button class="action-pill pill-withdraw" onclick="window.location.href='withdraw.html'" id="withdrawBtn">
+      <i class="fa-solid fa-paper-plane"></i><span>Withdraw</span>
+    </button>
+    <button class="action-pill pill-tasks" onclick="window.location.href='tasks.html'" id="tasksBtn">
+      <i class="fa-solid fa-list-check"></i><span>Tasks</span>
     </button>
   </div>
-</div>
-<button class="tour-pill anim d1" id="startTourBtn" onclick="startTutorial()">
-  <i class="fa-solid fa-route"></i> Start Tour
-</button>
-<div class="balance-card anim d2" id="balanceArea">
-  <div class="balance-top">
-    <div class="balance-label">Total Balance</div>
-    <button class="eye-btn" onclick="toggleBalance()" id="eyeBtn"><i class="fa-regular fa-eye" id="eyeIcon"></i></button>
-  </div>
-  <div class="balance-num" id="walletBalance">€0<span>.00</span></div>
-  <div class="balance-change"><i class="fa-solid fa-arrow-trend-up"></i> +12.5% this week</div>
-  <div class="bonus-chips" id="bonusChipsArea"></div>
-</div>
-<div class="actions anim d3" id="actionsArea">
-  <button class="action-pill pill-mine" onclick="startMining()" id="mineBtn">
-    <i class="fa-solid fa-hammer"></i><span>Mine</span>
-  </button>
-  <button class="action-pill pill-withdraw" onclick="window.location.href='withdraw.html'" id="withdrawBtn">
-    <i class="fa-solid fa-paper-plane"></i><span>Withdraw</span>
-  </button>
-  <button class="action-pill pill-tasks" onclick="window.location.href='tasks.html'" id="tasksBtn">
-    <i class="fa-solid fa-list-check"></i><span>Tasks</span>
-  </button>
-</div>
 
-<!-- Referral Program Section -->
-<div class="referral-card anim d3" id="referralCard">
-  <div class="referral-header">
-    <div class="referral-icon"><i class="fa-solid fa-user-plus"></i></div>
-    <div class="referral-info">
-      <div class="referral-title">Referral Program</div>
-      <div class="referral-sub">Invite friends and earn bonuses</div>
+  <!-- Referral Program Section -->
+  <div class="referral-card anim d3" id="referralCard">
+    <div class="referral-header">
+      <div class="referral-icon"><i class="fa-solid fa-user-plus"></i></div>
+      <div class="referral-info">
+        <div class="referral-title">Referral Program</div>
+        <div class="referral-sub">Invite friends and earn bonuses</div>
+      </div>
+    </div>
+    <div class="referral-link-box">
+      <span class="referral-link-text" id="referralLinkText">Loading link...</span>
+    </div>
+    <div class="referral-actions">
+      <button class="referral-btn btn-copy-ref" onclick="copyReferralLink()">
+        <i class="fa-regular fa-copy"></i> Copy Link
+      </button>
+      <button class="referral-btn btn-view-ref" onclick="openReferralsModal()">
+        <i class="fa-solid fa-users"></i> View Referred (<span id="referralCount">0</span>)
+      </button>
     </div>
   </div>
-  <div class="referral-link-box">
-    <span class="referral-link-text" id="referralLinkText">Loading link...</span>
+
+  <div class="claim-card anim d3" id="claimArea">
+    <div class="claim-icon"><i class="fa-solid fa-gift"></i></div>
+    <div class="claim-info">
+      <div class="claim-title" id="claimTitleText">Claim €2.00</div>
+      <div class="claim-sub">Next: <span id="claimNext">1:00</span> - <span id="claimProgress">0</span>/<span id="claimMaxText">50</span> today</div>
+    </div>
+    <div class="claim-timer" id="claimTimer" onclick="doClaim()">1:00</div>
   </div>
-  <div class="referral-actions">
-    <button class="referral-btn btn-copy-ref" onclick="copyReferralLink()">
-      <i class="fa-regular fa-copy"></i> Copy Link
-    </button>
-    <button class="referral-btn btn-view-ref" onclick="openReferralsModal()">
-      <i class="fa-solid fa-users"></i> View Referred (<span id="referralCount">0</span>)
-    </button>
+  <div class="sec-title anim d4" id="checkinTitle"><i class="fa-solid fa-fire"></i> Daily Check-In</div>
+  <div class="checkin-wrap anim d4" id="checkinWrap">
+    <div class="checkin-day active" id="day0">
+      <div class="day-num">1</div><div class="day-label">Today</div><div class="day-reward" id="rewardDay0">€5</div>
+    </div>
+    <div class="checkin-day locked" id="day1">
+      <div class="day-num">2</div><div class="day-label">Tomorrow</div><div class="day-reward" id="rewardDay1">€10</div>
+    </div>
+    <div class="checkin-day locked" id="day2">
+      <div class="day-num">3</div><div class="day-label">Day 3</div><div class="day-reward" id="rewardDay2">€15</div>
+    </div>
+    <div class="checkin-day locked" id="day3">
+      <div class="day-num">4</div><div class="day-label">Day 4</div><div class="day-reward" id="rewardDay3">€20</div>
+    </div>
+    <div class="checkin-day locked" id="day4">
+      <div class="day-num">5</div><div class="day-label">Day 5</div><div class="day-reward" id="rewardDay4">€30</div>
+    </div>
+    <div class="checkin-day locked" id="day5">
+      <div class="day-num">6</div><div class="day-label">Day 6</div><div class="day-reward" id="rewardDay5">€50</div>
+    </div>
+    <div class="checkin-day locked" id="day6">
+      <div class="day-num">7</div><div class="day-label">Day 7</div><div class="day-reward" id="rewardDay6">€100</div>
+    </div>
+  </div>
+  <button class="cta-btn anim d4" id="checkinBtn" onclick="doCheckin()">
+    <i class="fa-solid fa-calendar-check"></i> Check In Now
+  </button>
+  <div class="stats-grid anim d5">
+    <div class="stat-box">
+      <div class="stat-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa-solid fa-coins"></i></div>
+      <div class="stat-num" id="totalMined">€0</div><div class="stat-label">Total Mined</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon" style="background:#eef2ff;color:#6366f1;"><i class="fa-solid fa-bolt"></i></div>
+      <div class="stat-num" id="miningPower" style="color:#6366f1;">1x</div><div class="stat-label">Power</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon" style="background:#fff7ed;color:#f59e0b;"><i class="fa-solid fa-fire"></i></div>
+      <div class="stat-num" id="streakCount" style="color:#f59e0b;">0</div><div class="stat-label">Streak</div>
+    </div>
+  </div>
+  <div class="sec-title anim d5"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</div>
+  <div class="activity-list anim d5" id="activityList">
+    <div class="activity-item" style="justify-content:center;padding:20px 0;">
+      <p style="color:#94a3b8;font-size:13px;">No activity yet</p>
+    </div>
   </div>
 </div>
 
-<div class="claim-card anim d3" id="claimArea">
-  <div class="claim-icon"><i class="fa-solid fa-gift"></i></div>
-  <div class="claim-info">
-    <div class="claim-title" id="claimTitleText">Claim €2.00</div>
-    <div class="claim-sub">Next: <span id="claimNext">1:00</span> - <span id="claimProgress">0</span>/<span id="claimMaxText">50</span> today</div>
-  </div>
-  <div class="claim-timer" id="claimTimer" onclick="doClaim()">1:00</div>
-</div>
-<div class="sec-title anim d4" id="checkinTitle"><i class="fa-solid fa-fire"></i> Daily Check-In</div>
-<div class="checkin-wrap anim d4" id="checkinWrap">
-  <div class="checkin-day active" id="day0">
-    <div class="day-num">1</div><div class="day-label">Today</div><div class="day-reward" id="rewardDay0">€5</div>
-  </div>
-  <div class="checkin-day locked" id="day1">
-    <div class="day-num">2</div><div class="day-label">Tomorrow</div><div class="day-reward" id="rewardDay1">€10</div>
-  </div>
-  <div class="checkin-day locked" id="day2">
-    <div class="day-num">3</div><div class="day-label">Day 3</div><div class="day-reward" id="rewardDay2">€15</div>
-  </div>
-  <div class="checkin-day locked" id="day3">
-    <div class="day-num">4</div><div class="day-label">Day 4</div><div class="day-reward" id="rewardDay3">€20</div>
-  </div>
-  <div class="checkin-day locked" id="day4">
-    <div class="day-num">5</div><div class="day-label">Day 5</div><div class="day-reward" id="rewardDay4">€30</div>
-  </div>
-  <div class="checkin-day locked" id="day5">
-    <div class="day-num">6</div><div class="day-label">Day 6</div><div class="day-reward" id="rewardDay5">€50</div>
-  </div>
-  <div class="checkin-day locked" id="day6">
-    <div class="day-num">7</div><div class="day-label">Day 7</div><div class="day-reward" id="rewardDay6">€100</div>
-  </div>
-</div>
-<button class="cta-btn anim d4" id="checkinBtn" onclick="doCheckin()">
-  <i class="fa-solid fa-calendar-check"></i> Check In Now
-</button>
-<div class="stats-grid anim d5">
-  <div class="stat-box">
-    <div class="stat-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa-solid fa-coins"></i></div>
-    <div class="stat-num" id="totalMined">€0</div><div class="stat-label">Total Mined</div>
-  </div>
-  <div class="stat-box">
-    <div class="stat-icon" style="background:#eef2ff;color:#6366f1;"><i class="fa-solid fa-bolt"></i></div>
-    <div class="stat-num" id="miningPower" style="color:#6366f1;">1x</div><div class="stat-label">Power</div>
-  </div>
-  <div class="stat-box">
-    <div class="stat-icon" style="background:#fff7ed;color:#f59e0b;"><i class="fa-solid fa-fire"></i></div>
-    <div class="stat-num" id="streakCount" style="color:#f59e0b;">0</div><div class="stat-label">Streak</div>
-  </div>
-</div>
-<div class="sec-title anim d5"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</div>
-<div class="activity-list anim d5" id="activityList">
-  <div class="activity-item" style="justify-content:center;padding:20px 0;">
-    <p style="color:#94a3b8;font-size:13px;">No activity yet</p>
-  </div>
-</div>
-</div>
 <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
 <div class="bottom-nav">
   <button class="nav-item active" onclick="setNav(this)"><i class="fa-solid fa-house"></i><span>Home</span></button>
