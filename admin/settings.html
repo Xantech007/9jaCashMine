@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Admin Settings - FlutterW Euro Earn</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="../firebase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc;min-height:100vh;transition:all 0.3s ease;}
+
+body.light-mode{background:#f8fafc;color:#1e293b;}
+body.light-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;}
+body.light-mode .card{background:#fff;border-color:#e2e8f0;box-shadow:0 4px 24px rgba(0,0,0,0.06);}
+body.light-mode .back-btn{background:#fff;border-color:#e2e8f0;color:#64748b;}
+body.light-mode .back-btn:hover{background:#f1f5f9;color:#6366f1;}
+body.light-mode .header-title{color:#1e293b;}
+body.light-mode .input-field{background:#f8fafc;border-color:#e2e8f0;color:#1e293b;}
+body.light-mode .input-field:focus{border-color:#6366f1;background:#fff;}
+body.light-mode .footer-text{color:#94a3b8;}
+body.light-mode .theme-toggle{color:#64748b;}
+
+.soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.12),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.08),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.06),transparent 50%),#0f172a;transition:all 0.3s ease;}
+
+.app{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:0 20px 40px;}
+
+.topbar{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between;}
+.back-btn{width:44px;height:44px;border-radius:14px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:16px;cursor:pointer;transition:all 0.3s;}
+.back-btn:hover{background:#334155;color:#818cf8;}
+.header-title{font-size:18px;font-weight:800;color:#f8fafc;}
+.theme-toggle{width:44px;height:44px;border-radius:14px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:16px;cursor:pointer;transition:all 0.3s;}
+.theme-toggle:hover{background:#334155;color:#818cf8;}
+
+.card{background:#1e293b;border-radius:24px;padding:24px;border:1px solid #334155;box-shadow:0 4px 24px rgba(0,0,0,0.2);margin-bottom:20px;}
+.section-title{font-size:16px;font-weight:800;color:#f8fafc;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.section-title i{color:#6366f1;}
+
+.input-group{margin-bottom:16px;}
+.input-label{display:block;font-size:12px;font-weight:700;color:#94a3b8;margin-bottom:6px;}
+.input-field{width:100%;padding:14px 16px;border-radius:14px;background:#0f172a;border:1px solid #334155;color:#f8fafc;font-size:14px;font-weight:600;outline:none;transition:all 0.3s;}
+.input-field:focus{border-color:#6366f1;}
+
+.region-selector{display:flex;gap:8px;margin-bottom:16px;}
+.region-btn{flex:1;padding:10px;border-radius:10px;background:#0f172a;border:1px solid #334155;color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.3s;}
+.region-btn.active{background:#6366f1;color:#fff;border-color:#6366f1;}
+
+.submit-btn{width:100%;padding:16px;border-radius:16px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 20px rgba(99,102,241,0.3);margin-top:8px;}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(99,102,241,0.4);}
+
+.footer{text-align:center;margin-top:32px;}
+.footer-text{font-size:12px;color:#64748b;font-weight:500;}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.anim{animation:slideUp 0.6s ease both;}
+</style>
+</head>
+<body>
+
+<div class="soft-bg"></div>
+
+<div class="app">
+
+<div class="topbar anim">
+  <button class="back-btn" onclick="window.location.href='dashboard.html'">
+    <i class="fa-solid fa-arrow-left"></i>
+  </button>
+  <div class="header-title">Platform Settings</div>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <i class="fa-solid fa-sun" id="themeIcon"></i>
+  </button>
+</div>
+
+<!-- 1. SETTINGS / REGISTER -->
+<div class="card anim">
+  <div class="section-title"><i class="fa-solid fa-gift"></i> Bonus Settings</div>
+  
+  <div class="input-group">
+    <label class="input-label">Registration Bonus Amount (€)</label>
+    <input type="number" step="any" id="regBonusInput" class="input-field" placeholder="Enter registration bonus">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Referral Bonus Amount (€)</label>
+    <input type="number" step="any" id="refBonusInput" class="input-field" placeholder="Enter referral bonus">
+  </div>
+
+  <button class="submit-btn" onclick="saveRegisterSettings()">Save Bonus Settings</button>
+</div>
+
+<!-- 2. REGIONAL SETTINGS -->
+<div class="card anim">
+  <div class="section-title"><i class="fa-solid fa-globe"></i> Regional Settings</div>
+  
+  <div class="input-group">
+    <label class="input-label">Select Region / Country</label>
+    <div class="region-selector">
+      <button class="region-btn active" id="btnGhana" onclick="switchRegion('ghanaRegion', 'Ghana', this)">Ghana</button>
+      <button class="region-btn" id="btnNigeria" onclick="switchRegion('nigeriaRegion', 'Nigeria', this)">Nigeria</button>
+      <button class="region-btn" id="btnKenya" onclick="switchRegion('kenyaRegion', 'Kenya', this)">Kenya</button>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <label class="input-label" id="lblBankNameTitle">Network Title</label>
+    <input type="text" id="regBankNameTitle" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label" id="lblBank">Bank / Provider</label>
+    <input type="text" id="regBank" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label" id="lblAccNumTitle">Account Number Title</label>
+    <input type="text" id="regAccNumTitle" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label" id="lblAccNumber">Account Number</label>
+    <input type="text" id="regAccNumber" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label" id="lblAccNameTitle">Account Name Title</label>
+    <input type="text" id="regAccNameTitle" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label" id="lblAccName">Account Name</label>
+    <input type="text" id="regAccName" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Currency Symbol</label>
+    <input type="text" id="regCurrencySymbol" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Exchange Rate (1 EUR = ?)</label>
+    <input type="number" step="any" id="regRate" class="input-field">
+  </div>
+
+  <button class="submit-btn" onclick="saveRegionalSettings()">Save Regional Settings</button>
+</div>
+
+<!-- 3. SETTINGS / PAYMENT -->
+<div class="card anim">
+  <div class="section-title"><i class="fa-solid fa-credit-card"></i> Payment & Plans Settings</div>
+  
+  <div class="input-group">
+    <label class="input-label">Basic Plan Amount (€)</label>
+    <input type="number" step="any" id="payBasicAmt" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Silver Plan Amount (€)</label>
+    <input type="number" step="any" id="paySilverAmt" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Gold Plan Amount (€)</label>
+    <input type="number" step="any" id="payGoldAmt" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Diamond Plan Amount (€)</label>
+    <input type="number" step="any" id="payDiamondAmt" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Gateway Status</label>
+    <select id="payStatus" class="input-field">
+      <option value="allow">Allow</option>
+      <option value="block">Block</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">WhatsApp Support Number</label>
+    <input type="text" id="payWhatsapp" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Crypto Address</label>
+    <input type="text" id="payCryptoAddress" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Crypto Amount</label>
+    <input type="text" id="payCryptoAmount" class="input-field">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Crypto Network</label>
+    <input type="text" id="payCryptoNetwork" class="input-field">
+  </div>
+
+  <button class="submit-btn" onclick="savePaymentSettings()">Save Payment Settings</button>
+</div>
+
+<div class="footer anim">
+  <div class="footer-text">FlutterW Euro Earn Admin • 2026</div>
+</div>
+
+</div>
+
+<script>
+let currentRegionDoc = "ghanaRegion";
+let currentCountryName = "Ghana";
+
+function initTheme() {
+  const isLight = localStorage.getItem("9jaCashDark") !== "true";
+  if (isLight) {
+    document.body.classList.add("light-mode");
+    document.getElementById("themeIcon").className = "fa-solid fa-moon";
+  }
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.toggle("light-mode");
+  localStorage.setItem("9jaCashDark", !isLight);
+  document.getElementById("themeIcon").className = isLight ? "fa-solid fa-moon" : "fa-solid fa-sun";
+}
+
+async function loadAllSettings() {
+  if (window._9jaCash && window._9jaCash.db) {
+    const db = window._9jaCash.db;
+    
+    // 1. Load Register Settings
+    try {
+      const regDoc = await db.collection("settings").doc("register").get();
+      if (regDoc.exists) {
+        const data = regDoc.data();
+        document.getElementById("regBonusInput").value = data.bonus !== undefined ? data.bonus : "";
+        document.getElementById("refBonusInput").value = data.bonusReferral !== undefined ? data.bonusReferral : "";
+      }
+    } catch(e) { console.error("Error loading register settings:", e); }
+
+    // 2. Load Payment Settings
+    try {
+      const payDoc = await db.collection("settings").doc("payment").get();
+      if (payDoc.exists) {
+        const data = payDoc.data();
+        document.getElementById("payBasicAmt").value = data.basicAmt !== undefined ? data.basicAmt : "";
+        document.getElementById("paySilverAmt").value = data.silverAmt !== undefined ? data.silverAmt : "";
+        document.getElementById("payGoldAmt").value = data.goldAmt !== undefined ? data.goldAmt : "";
+        document.getElementById("payDiamondAmt").value = data.diamondAmt !== undefined ? data.diamondAmt : "";
+        document.getElementById("payStatus").value = data.status || "allow";
+        document.getElementById("payWhatsapp").value = data.whatsappNumber || "";
+        document.getElementById("payCryptoAddress").value = data.cryptoAddress || "";
+        document.getElementById("payCryptoAmount").value = data.cryptoAmount || "";
+        document.getElementById("payCryptoNetwork").value = data.cryptoNetwork || "";
+      }
+    } catch(e) { console.error("Error loading payment settings:", e); }
+
+    // 3. Load Regional Settings
+    loadRegionalDoc(currentRegionDoc);
+  }
+}
+
+async function loadRegionalDoc(docName) {
+  if (window._9jaCash && window._9jaCash.db) {
+    const db = window._9jaCash.db;
+    try {
+      const rDoc = await db.collection("settings").doc(docName).get();
+      if (rDoc.exists) {
+        const data = rDoc.data();
+        document.getElementById("regBankNameTitle").value = data.bankNameTitle || "";
+        document.getElementById("regBank").value = data.bank || "";
+        document.getElementById("regAccNumTitle").value = data.accNumTitle || "";
+        document.getElementById("regAccNumber").value = data.accNumber || "";
+        document.getElementById("regAccNameTitle").value = data.accNameTitle || "";
+        document.getElementById("regAccName").value = data.accName || "";
+        document.getElementById("regCurrencySymbol").value = data.currencySymbol || "";
+        document.getElementById("regRate").value = data.rate !== undefined ? data.rate : "";
+      } else {
+        // Clear or default values if doc doesn't exist yet
+        document.getElementById("regBankNameTitle").value = "Network";
+        document.getElementById("regBank").value = "";
+        document.getElementById("regAccNumTitle").value = "MoMo Number";
+        document.getElementById("regAccNumber").value = "";
+        document.getElementById("regAccNameTitle").value = "MoMo Name";
+        document.getElementById("regAccName").value = "";
+        document.getElementById("regCurrencySymbol").value = "GHS";
+        document.getElementById("regRate").value = "13.25";
+      }
+    } catch(e) { console.error("Error loading regional settings:", e); }
+  }
+}
+
+function switchRegion(docName, countryName, btn) {
+  currentRegionDoc = docName;
+  currentCountryName = countryName;
+  document.querySelectorAll(".region-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  loadRegionalDoc(docName);
+}
+
+async function saveRegisterSettings() {
+  const bonus = parseFloat(document.getElementById("regBonusInput").value) || 0;
+  const bonusReferral = parseFloat(document.getElementById("refBonusInput").value) || 0;
+
+  if (window._9jaCash && window._9jaCash.db) {
+    const db = window._9jaCash.db;
+    try {
+      await db.collection("settings").doc("register").set({
+        bonus: bonus,
+        bonusReferral: bonusReferral
+      }, { merge: true });
+      Swal.fire("Saved!", "Bonus settings updated successfully.", "success");
+    } catch(e) {
+      console.error(e);
+      Swal.fire("Error", "Failed to save bonus settings.", "error");
+    }
+  }
+}
+
+async function saveRegionalSettings() {
+  const payload = {
+    bankNameTitle: document.getElementById("regBankNameTitle").value.trim(),
+    bank: document.getElementById("regBank").value.trim(),
+    accNumTitle: document.getElementById("regAccNumTitle").value.trim(),
+    accNumber: document.getElementById("regAccNumber").value.trim(),
+    accNameTitle: document.getElementById("regAccNameTitle").value.trim(),
+    accName: document.getElementById("regAccName").value.trim(),
+    currencySymbol: document.getElementById("regCurrencySymbol").value.trim(),
+    rate: parseFloat(document.getElementById("regRate").value) || 0
+  };
+
+  if (window._9jaCash && window._9jaCash.db) {
+    const db = window._9jaCash.db;
+    try {
+      await db.collection("settings").doc(currentRegionDoc).set(payload, { merge: true });
+      Swal.fire("Saved!", `Regional settings for ${currentCountryName} updated successfully.`, "success");
+    } catch(e) {
+      console.error(e);
+      Swal.fire("Error", "Failed to save regional settings.", "error");
+    }
+  }
+}
+
+async function savePaymentSettings() {
+  const payload = {
+    basicAmt: parseFloat(document.getElementById("payBasicAmt").value) || 0,
+    silverAmt: parseFloat(document.getElementById("paySilverAmt").value) || 0,
+    goldAmt: parseFloat(document.getElementById("payGoldAmt").value) || 0,
+    diamondAmt: parseFloat(document.getElementById("payDiamondAmt").value) || 0,
+    status: document.getElementById("payStatus").value,
+    whatsappNumber: document.getElementById("payWhatsapp").value.trim(),
+    cryptoAddress: document.getElementById("payCryptoAddress").value.trim(),
+    cryptoAmount: document.getElementById("payCryptoAmount").value.trim(),
+    cryptoNetwork: document.getElementById("payCryptoNetwork").value.trim(),
+    accName: "",
+    accNumber: document.getElementById("payCryptoAddress").value.trim() ? document.getElementById("payCryptoAddress").value.trim() : "Not available",
+    bank: ""
+  };
+
+  if (window._9jaCash && window._9jaCash.db) {
+    const db = window._9jaCash.db;
+    try {
+      await db.collection("settings").doc("payment").set(payload, { merge: true });
+      Swal.fire("Saved!", "Payment settings updated successfully.", "success");
+    } catch(e) {
+      console.error(e);
+      Swal.fire("Error", "Failed to save payment settings.", "error");
+    }
+  }
+}
+
+window.addEventListener("DOMContentLoaded", function() {
+  initTheme();
+  loadAllSettings();
+});
+</script>
+
+</body>
+</html>
