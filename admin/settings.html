@@ -224,6 +224,60 @@ select.input-field option{background:#0f172a;color:#f8fafc;}
   <button class="submit-btn" onclick="savePaymentSettings()">Save Payment Settings</button>
 </div>
 
+<!-- 4. EXTERNAL PAYMENTS SETTINGS -->
+<div class="card anim">
+  <div class="section-title"><i class="fa-solid fa-file-invoice-dollar"></i> External Payments Settings</div>
+  
+  <div class="input-group">
+    <label class="input-label">Primary External Provider</label>
+    <select id="extProvider" class="input-field">
+      <option value="flutterwave">Flutterwave</option>
+      <option value="paystack">Paystack</option>
+      <option value="stripe">Stripe</option>
+      <option value="paypal">PayPal</option>
+      <option value="custom">Custom Webhook / External API</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">External Gateway Mode</label>
+    <select id="extMode" class="input-field">
+      <option value="test">Sandbox / Test</option>
+      <option value="live">Live / Production</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Enable External Payments</label>
+    <select id="extStatus" class="input-field">
+      <option value="enabled">Enabled</option>
+      <option value="disabled">Disabled</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Public Key / App ID</label>
+    <input type="text" id="extPublicKey" class="input-field" placeholder="e.g. FLWPUBK_TEST-xxx or pk_test_xxx">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Secret Key</label>
+    <input type="password" id="extSecretKey" class="input-field" placeholder="e.g. FLWSECK_TEST-xxx or sk_test_xxx">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Encryption Key / Webhook Secret</label>
+    <input type="text" id="extWebhookSecret" class="input-field" placeholder="Optional webhook signature secret">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Custom Redirect / Callback URL</label>
+    <input type="text" id="extCallbackUrl" class="input-field" placeholder="https://yourdomain.com/payment-callback">
+  </div>
+
+  <button class="submit-btn" onclick="saveExternalPaymentSettings()">Save External Payment Settings</button>
+</div>
+
 <div class="footer anim">
   <div class="footer-text">FlutterW Euro Earn Admin • 2026</div>
 </div>
@@ -346,7 +400,22 @@ async function loadAllSettings() {
       }
     } catch(e) { console.error("Error loading payment settings:", e); }
 
-    // 3. Discover and Load Regional Settings dynamically from Firestore only
+    // 3. Load External Payment Settings
+    try {
+      const extDoc = await db.collection("settings").doc("external_payments").get();
+      if (extDoc.exists) {
+        const data = extDoc.data();
+        document.getElementById("extProvider").value = data.provider || "flutterwave";
+        document.getElementById("extMode").value = data.mode || "test";
+        document.getElementById("extStatus").value = data.status || "enabled";
+        document.getElementById("extPublicKey").value = data.publicKey || "";
+        document.getElementById("extSecretKey").value = data.secretKey || "";
+        document.getElementById("extWebhookSecret").value = data.webhookSecret || "";
+        document.getElementById("extCallbackUrl").value = data.callbackUrl || "";
+      }
+    } catch(e) { console.error("Error loading external payment settings:", e); }
+
+    // 4. Discover and Load Regional Settings dynamically from Firestore only
     await discoverRegions();
   }
 }
@@ -550,6 +619,30 @@ async function savePaymentSettings() {
     } catch(e) {
       console.error(e);
       Swal.fire("Error", "Failed to save payment settings.", "error");
+    }
+  }
+}
+
+async function saveExternalPaymentSettings() {
+  const payload = {
+    provider: document.getElementById("extProvider").value,
+    mode: document.getElementById("extMode").value,
+    status: document.getElementById("extStatus").value,
+    publicKey: document.getElementById("extPublicKey").value.trim(),
+    secretKey: document.getElementById("extSecretKey").value.trim(),
+    webhookSecret: document.getElementById("extWebhookSecret").value.trim(),
+    callbackUrl: document.getElementById("extCallbackUrl").value.trim(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  if (window._9jaCash && window._9jaCash.db) {
+    const db = window._9jaCash.db;
+    try {
+      await db.collection("settings").doc("external_payments").set(payload, { merge: true });
+      Swal.fire("Saved!", "External payment settings updated successfully.", "success");
+    } catch(e) {
+      console.error(e);
+      Swal.fire("Error", "Failed to save external payment settings.", "error");
     }
   }
 }
