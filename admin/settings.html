@@ -33,8 +33,10 @@ body.light-mode select.input-field{color:#1e293b;background:#f8fafc;}
 body.light-mode select.input-field option{background:#fff;color:#1e293b;}
 body.light-mode .footer-text{color:#94a3b8;}
 body.light-mode .theme-toggle{color:#64748b;}
-body.light-mode .region-btn{background:#f8fafc;border-color:#e2e8f0;color:#64748b;}
-body.light-mode .region-btn.active{background:#6366f1;color:#fff;border-color:#6366f1;}
+body.light-mode .region-item{background:#f8fafc;border-color:#e2e8f0;color:#64748b;}
+body.light-mode .region-item.active{background:#6366f1;color:#fff;border-color:#6366f1;}
+body.light-mode .region-item.active .region-del{color:#fff;}
+body.light-mode .region-del{color:#94a3b8;}
 body.light-mode .add-region-btn{background:#f1f5f9;border-color:#cbd5e1;color:#475569;}
 body.light-mode .add-region-btn:hover{background:#e2e8f0;color:#1e293b;}
 
@@ -60,8 +62,13 @@ body.light-mode .add-region-btn:hover{background:#e2e8f0;color:#1e293b;}
 select.input-field option{background:#0f172a;color:#f8fafc;}
 
 .region-selector{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
-.region-btn{padding:10px 16px;border-radius:10px;background:#0f172a;border:1px solid #334155;color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.3s;}
-.region-btn.active{background:#6366f1;color:#fff;border-color:#6366f1;}
+.region-item{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;background:#0f172a;border:1px solid #334155;color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.3s;}
+.region-item.active{background:#6366f1;color:#fff;border-color:#6366f1;}
+.region-name{cursor:pointer;}
+.region-del{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:12px;transition:all 0.2s;}
+.region-item.active .region-del{color:#fff;}
+.region-del:hover{color:#ef4444 !important;}
+
 .add-region-btn{padding:10px 16px;border-radius:10px;background:#1e293b;border:1px dashed #6366f1;color:#818cf8;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;gap:6px;}
 .add-region-btn:hover{background:rgba(99,102,241,0.1);}
 
@@ -224,13 +231,9 @@ select.input-field option{background:#0f172a;color:#f8fafc;}
 </div>
 
 <script>
-let existingCountries = [
-  { docId: "ghanaRegion", name: "Ghana" },
-  { docId: "nigeriaRegion", name: "Nigeria" },
-  { docId: "kenyaRegion", name: "Kenya" }
-];
-let currentRegionDoc = "ghanaRegion";
-let currentCountryName = "Ghana";
+let existingCountries = [];
+let currentRegionDoc = "";
+let currentCountryName = "";
 
 function initTheme() {
   const isLight = localStorage.getItem("9jaCashDark") !== "true";
@@ -247,27 +250,40 @@ function toggleTheme() {
 }
 
 async function discoverRegions() {
+  existingCountries = [];
   if (window._9jaCash && window._9jaCash.db) {
     const db = window._9jaCash.db;
     try {
       const snapshot = await db.collection("settings").get();
-      const dynamicList = [];
       snapshot.forEach(doc => {
         if (doc.id.endsWith("Region")) {
-          const name = doc.id.replace("Region", "");
-          const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
-          // Avoid duplicates if default matches
-          if (!existingCountries.some(c => c.docId === doc.id)) {
-            dynamicList.push({ docId: doc.id, name: formattedName });
-          }
+          const namePart = doc.id.replace("Region", "");
+          const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+          existingCountries.push({ docId: doc.id, name: formattedName });
         }
       });
-      existingCountries = [...existingCountries, ...dynamicList];
     } catch(e) {
       console.error("Error discovering regions:", e);
     }
   }
+
+  // If no regions found, default to an empty state or keep current selection blank
+  if (existingCountries.length > 0) {
+    if (!existingCountries.some(c => c.docId === currentRegionDoc)) {
+      currentRegionDoc = existingCountries[0].docId;
+      currentCountryName = existingCountries[0].name;
+    }
+  } else {
+    currentRegionDoc = "";
+    currentCountryName = "";
+  }
+
   renderRegionButtons();
+  if (currentRegionDoc) {
+    loadRegionalDoc(currentRegionDoc);
+  } else {
+    clearRegionalFields();
+  }
 }
 
 function renderRegionButtons() {
@@ -275,10 +291,28 @@ function renderRegionButtons() {
   let html = "";
   existingCountries.forEach(c => {
     const isActive = c.docId === currentRegionDoc ? "active" : "";
-    html += `<button class="region-btn ${isActive}" onclick="switchRegion('${c.docId}', '${c.name}', this)">${c.name}</button>`;
+    html += `
+      <div class="region-item ${isActive}">
+        <span class="region-name" onclick="switchRegion('${c.docId}', '${c.name}')">${c.name}</span>
+        <button class="region-del" onclick="deleteCountry('${c.docId}', '${c.name}', event)" title="Delete Region">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    `;
   });
   html += `<button class="add-region-btn" onclick="openAddCountryModal()"><i class="fa-solid fa-plus"></i> Add Country</button>`;
   container.innerHTML = html;
+}
+
+function clearRegionalFields() {
+  document.getElementById("regBankNameTitle").value = "";
+  document.getElementById("regBank").value = "";
+  document.getElementById("regAccNumTitle").value = "";
+  document.getElementById("regAccNumber").value = "";
+  document.getElementById("regAccNameTitle").value = "";
+  document.getElementById("regAccName").value = "";
+  document.getElementById("regCurrencySymbol").value = "";
+  document.getElementById("regRate").value = "";
 }
 
 async function loadAllSettings() {
@@ -312,13 +346,13 @@ async function loadAllSettings() {
       }
     } catch(e) { console.error("Error loading payment settings:", e); }
 
-    // 3. Discover and Load Regional Settings
+    // 3. Discover and Load Regional Settings dynamically from Firestore only
     await discoverRegions();
-    loadRegionalDoc(currentRegionDoc);
   }
 }
 
 async function loadRegionalDoc(docName) {
+  if (!docName) return;
   if (window._9jaCash && window._9jaCash.db) {
     const db = window._9jaCash.db;
     try {
@@ -334,24 +368,16 @@ async function loadRegionalDoc(docName) {
         document.getElementById("regCurrencySymbol").value = data.currencySymbol || "";
         document.getElementById("regRate").value = data.rate !== undefined ? data.rate : "";
       } else {
-        document.getElementById("regBankNameTitle").value = "Network";
-        document.getElementById("regBank").value = "";
-        document.getElementById("regAccNumTitle").value = "Account Number";
-        document.getElementById("regAccNumber").value = "";
-        document.getElementById("regAccNameTitle").value = "Account Name";
-        document.getElementById("regAccName").value = "";
-        document.getElementById("regCurrencySymbol").value = "";
-        document.getElementById("regRate").value = "";
+        clearRegionalFields();
       }
     } catch(e) { console.error("Error loading regional settings:", e); }
   }
 }
 
-function switchRegion(docName, countryName, btn) {
+function switchRegion(docName, countryName) {
   currentRegionDoc = docName;
   currentCountryName = countryName;
-  document.querySelectorAll(".region-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
+  renderRegionButtons();
   loadRegionalDoc(docName);
 }
 
@@ -362,7 +388,7 @@ async function openAddCountryModal() {
     background: isLight ? "#fff" : "#1e293b",
     color: isLight ? "#1e293b" : "#f8fafc",
     input: 'text',
-    inputPlaceholder: 'Enter country name (e.g. Uganda)',
+    inputPlaceholder: 'Enter country name (e.g. Ghana)',
     showCancelButton: true,
     confirmButtonColor: '#6366f1',
     inputValidator: (value) => {
@@ -381,7 +407,6 @@ async function openAddCountryModal() {
       return;
     }
 
-    // Initialize default document
     if (window._9jaCash && window._9jaCash.db) {
       const db = window._9jaCash.db;
       try {
@@ -397,18 +422,57 @@ async function openAddCountryModal() {
         });
 
         existingCountries.push({ docId: docId, name: formatted });
-        renderRegionButtons();
-        
-        // Switch to the newly created region
-        const newBtn = Array.from(document.querySelectorAll(".region-btn")).find(b => b.textContent === formatted);
-        if (newBtn) {
-          switchRegion(docId, formatted, newBtn);
-        }
-
+        switchRegion(docId, formatted);
         Swal.fire('Success', `Region for ${formatted} added successfully.`, 'success');
       } catch (err) {
         console.error("Error creating country region:", err);
         Swal.fire('Error', 'Failed to create country region.', 'error');
+      }
+    }
+  }
+}
+
+async function deleteCountry(docId, countryName, event) {
+  event.stopPropagation();
+  const isLight = document.body.classList.contains("light-mode");
+  
+  const result = await Swal.fire({
+    title: `Delete ${countryName}?`,
+    text: "This will permanently remove this region's settings from the database.",
+    icon: 'warning',
+    background: isLight ? "#fff" : "#1e293b",
+    color: isLight ? "#1e293b" : "#f8fafc",
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Yes, delete it!'
+  });
+
+  if (result.isConfirmed) {
+    if (window._9jaCash && window._9jaCash.db) {
+      const db = window._9jaCash.db;
+      try {
+        await db.collection("settings").doc(docId).delete();
+        
+        existingCountries = existingCountries.filter(c => c.docId !== docId);
+        
+        if (currentRegionDoc === docId) {
+          if (existingCountries.length > 0) {
+            currentRegionDoc = existingCountries[0].docId;
+            currentCountryName = existingCountries[0].name;
+            loadRegionalDoc(currentRegionDoc);
+          } else {
+            currentRegionDoc = "";
+            currentCountryName = "";
+            clearRegionalFields();
+          }
+        }
+        
+        renderRegionButtons();
+        Swal.fire('Deleted!', `${countryName} region has been deleted.`, 'success');
+      } catch (err) {
+        console.error("Error deleting region:", err);
+        Swal.fire('Error', 'Failed to delete region.', 'error');
       }
     }
   }
@@ -434,6 +498,11 @@ async function saveRegisterSettings() {
 }
 
 async function saveRegionalSettings() {
+  if (!currentRegionDoc) {
+    Swal.fire("Error", "Please select or add a region first.", "error");
+    return;
+  }
+
   const payload = {
     bankNameTitle: document.getElementById("regBankNameTitle").value.trim(),
     bank: document.getElementById("regBank").value.trim(),
