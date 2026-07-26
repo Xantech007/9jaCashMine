@@ -220,13 +220,16 @@ async function editUser(phoneId) {
     background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
     color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc",
     html: `
-      <div style="text-align:left; display:flex; flex-direction:column; gap:10px;">
+      <div style="text-align:left; display:flex; flex-direction:column; gap:10px; max-height: 60vh; overflow-y: auto; padding-right: 5px;">
         <label style="font-size:12px; font-weight:700;">Full Name</label>
         <input id="swal-input-name" class="swal2-input" style="margin:0; width:100%;" value="${user.fullName || user.name || ''}">
         
         <label style="font-size:12px; font-weight:700;">Plan</label>
         <input id="swal-input-plan" class="swal2-input" style="margin:0; width:100%;" value="${user.plan || ''}">
         
+        <label style="font-size:12px; font-weight:700;">New Password (leave blank to keep current)</label>
+        <input id="swal-input-password" type="text" class="swal2-input" style="margin:0; width:100%;" placeholder="Enter new password">
+
         <label style="font-size:12px; font-weight:700;">Main Balance (€)</label>
         <input id="swal-input-balance" type="number" step="any" class="swal2-input" style="margin:0; width:100%;" value="${user.balance || 0}">
         
@@ -241,14 +244,19 @@ async function editUser(phoneId) {
     showCancelButton: true,
     confirmButtonColor: '#6366f1',
     preConfirm: () => {
-      return {
+      const newPassword = document.getElementById('swal-input-password').value.trim();
+      const payload = {
         fullName: document.getElementById('swal-input-name').value,
         name: document.getElementById('swal-input-name').value,
         plan: document.getElementById('swal-input-plan').value,
         balance: parseFloat(document.getElementById('swal-input-balance').value) || 0,
         balanceReferral: parseFloat(document.getElementById('swal-input-ref').value) || 0,
         country: document.getElementById('swal-input-country').value
+      };
+      if (newPassword) {
+        payload.password = newPassword;
       }
+      return payload;
     }
   });
 
