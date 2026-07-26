@@ -292,20 +292,24 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
   </div>
 </div>
 
-<div class="app">
 <div class="topbar anim d1" id="headerArea">
   <div class="avatar-wrap">
     <div class="avatar" id="userAvatar">€</div>
     <div>
-      <div class="greeting" id="greeting">Good morning</div>
-      <div class="name" id="userName">FlutterW Euro Earn User</div>
-      <div id="planBadge" class="plan-badge badge-free">Free Plan</div>
+      <div class="greeting" id="greeting">Good morning[cite: 1]</div>
+      <div class="name" id="userName">FlutterW Euro Earn User[cite: 1]</div>
+      <div id="planBadge" class="plan-badge badge-free">Free Plan[cite: 1]</div>
     </div>
   </div>
   <div style="display: flex; gap: 8px; align-items: center;">
-    <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
-    <!-- Added Logout Button -->
-    <button class="notify-btn" onclick="logoutUser()" id="logoutBtn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+    <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn" style="width: auto; padding: 0 12px; gap: 6px; display: flex;">
+      <i class="fa-regular fa-bell"></i>
+      <span style="font-size: 12px; font-weight: 600;">Notifications</span>
+    </button>
+    <button class="notify-btn" onclick="logoutUser()" id="logoutBtn" style="width: auto; padding: 0 12px; gap: 6px; display: flex;">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      <span style="font-size: 12px; font-weight: 600;">Logout</span>
+    </button>
   </div>
 </div>
 <button class="tour-pill anim d1" id="startTourBtn" onclick="startTutorial()">
@@ -1096,6 +1100,41 @@ window.addEventListener("focus", function() {
       .catch(function(err) {});
   }
 });
+
+function logoutUser() {
+  Swal.fire({
+    title: "Log out?",
+    text: "Are you sure you want to log out of your account?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Log Out",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#ef4444",
+    cancelButtonColor: "#6366f1",
+    background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
+    color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Clear user session data
+      localStorage.removeItem("9jaCashUser");
+      localStorage.removeItem("walletBalance");
+      
+      // Sign out from Firebase Auth if initialized
+      if (auth && typeof auth.signOut === "function") {
+        auth.signOut().catch((error) => {
+          console.error("Firebase signout error:", error);
+        });
+      }
+
+      showToast("Logged out successfully");
+      
+      // Redirect to start/login page
+      setTimeout(() => {
+        window.location.href = "start.html";
+      }, 1000);
+    }
+  });
+}
 </script>
 </body>
 </html>
