@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Admin Deposits - FlutterW Euro Earn</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="../firebase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc;min-height:100vh;transition:all 0.3s ease;}
+
+body.light-mode{background:#f8fafc;color:#1e293b;}
+body.light-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;}
+body.light-mode .card{background:#fff;border-color:#e2e8f0;box-shadow:0 4px 24px rgba(0,0,0,0.06);}
+body.light-mode .back-btn{background:#fff;border-color:#e2e8f0;color:#64748b;}
+body.light-mode .back-btn:hover{background:#f1f5f9;color:#6366f1;}
+body.light-mode .header-title{color:#1e293b;}
+body.light-mode .table-container{background:#fff;border-color:#e2e8f0;}
+body.light-mode th{background:#f1f5f9;color:#475569;border-bottom-color:#e2e8f0;}
+body.light-mode td{border-bottom-color:#f1f5f9;color:#1e293b;}
+body.light-mode .modal-content{background:#fff;color:#1e293b;border-color:#e2e8f0;}
+
+.soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.12),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.08),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.06),transparent 50%),#0f172a;transition:all 0.3s ease;}
+
+.app{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 20px 40px;}
+
+.topbar{padding:24px 0 20px;display:flex;align-items:center;justify-content:space-between;}
+.back-btn{width:44px;height:44px;border-radius:14px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:16px;cursor:pointer;transition:all 0.3s;}
+.back-btn:hover{background:#334155;color:#818cf8;}
+.header-title{font-size:20px;font-weight:800;color:#f8fafc;transition:color 0.3s;}
+
+.theme-toggle{width:44px;height:44px;border-radius:14px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:16px;cursor:pointer;transition:all 0.3s;}
+.theme-toggle:hover{background:#334155;color:#818cf8;}
+
+.card{background:#1e293b;border-radius:24px;padding:24px;border:1px solid #334155;box-shadow:0 4px 24px rgba(0,0,0,0.2);margin-bottom:24px;transition:all 0.3s ease;}
+
+.table-responsive{width:100%;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;text-align:left;font-size:14px;}
+th{padding:14px 16px;background:#0f172a;color:#94a3b8;font-weight:700;border-bottom:1px solid #334155;text-transform:uppercase;font-size:11px;letter-spacing:1px;}
+td{padding:16px;border-bottom:1px solid #334155;color:#f8fafc;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge.pending{background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.2);}
+.badge.approved{background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2);}
+.badge.rejected{background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);}
+
+.action-btn{padding:6px 12px;border-radius:10px;background:#6366f1;color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.3s;display:inline-flex;align-items:center;gap:6px;}
+.action-btn:hover{background:#4f46e5;transform:translateY(-1px);}
+
+/* Modal Viewer */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:all 0.3s;}
+.modal-overlay.active{opacity:1;pointer-events:auto;}
+.modal-content{background:#1e293b;border:1px solid #334155;border-radius:20px;width:100%;max-width:600px;padding:24px;position:relative;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:all 0.3s;}
+.modal-overlay.active .modal-content{transform:translateY(0);}
+.modal-close{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:50%;background:#334155;color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;}
+.modal-close:hover{background:#ef4444;}
+.proof-img{width:100%;border-radius:12px;margin-top:12px;border:1px solid #334155;max-height:400px;object-fit:contain;background:#0f172a;}
+</style>
+</head>
+<body>
+
+<div class="soft-bg"></div>
+
+<div class="app">
+
+  <div class="topbar">
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+    <div class="header-title">Deposit Management</div>
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <i class="fa-solid fa-sun" id="themeIcon"></i>
+    </button>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h3 style="font-size:18px;font-weight:700;">User Deposits & Proofs</h3>
+      <button onclick="loadDeposits()" class="action-btn"><i class="fa-solid fa-rotate">Refresh</i></button>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>User</th>
+            <th>Type / Plan</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Proof</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="depositsTableBody">
+          <tr>
+            <td colspan="7" style="text-align:center;color:#64748b;padding:30px;">Loading deposits...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- PROOF & DETAILS MODAL -->
+<div class="modal-overlay" id="depositModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    <h3 style="font-size:18px;font-weight:800;margin-bottom:16px;" id="modalTitle">Deposit Details</h3>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:13px;">
+      <div><span style="color:#64748b;">User Name:</span> <b id="mUserName">—</b></div>
+      <div><span style="color:#64748b;">User ID / Phone:</span> <b id="mUserId">—</b></div>
+      <div><span style="color:#64748b;">Flow Type:</span> <b id="mFlowType">—</b></div>
+      <div><span style="color:#64748b;">Amount:</span> <b id="mAmount" style="color:#10b981;">—</b></div>
+      <div><span style="color:#64748b;">Payment Method:</span> <b id="mMethod">—</b></div>
+      <div><span style="color:#64748b;">Country:</span> <b id="mCountry">—</b></div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;text-transform:uppercase;">Uploaded Payment Proof</div>
+      <div id="proofContainer">
+        <p style="color:#64748b;font-size:13px;">No preview available</p>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;display:flex;gap:10px;justify-content:flex-end;" id="modalActions">
+      <button class="action-btn" style="background:#10b981;" onclick="updateStatus('approved')"><i class="fa-solid fa-check"></i> Approve</button>
+      <button class="action-btn" style="background:#ef4444;" onclick="updateStatus('rejected')"><i class="fa-solid fa-ban"></i> Reject</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentDepositId = null;
+
+// Theme Toggle
+function initTheme() {
+  const isLight = localStorage.getItem("9jaCashDark") !== "true";
+  if (isLight) {
+    document.body.classList.add("light-mode");
+    document.getElementById("themeIcon").className = "fa-solid fa-moon";
+  }
+}
+function toggleTheme() {
+  const isLight = document.body.classList.toggle("light-mode");
+  localStorage.setItem("9jaCashDark", !isLight);
+  document.getElementById("themeIcon").className = isLight ? "fa-solid fa-moon" : "fa-solid fa-sun";
+}
+
+// Load Deposits from Firestore collection
+function loadDeposits() {
+  const tbody = document.getElementById("depositsTableBody");
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b;padding:30px;">Loading deposits...</td></tr>`;
+
+  if (window._9jaCash && window._9jaCash.db) {
+    window._9jaCash.db.collection("deposits").orderBy("createdAt", "desc").get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b;padding:30px;">No deposit records found.</td></tr>`;
+          return;
+        }
+
+        let html = "";
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          const id = doc.id;
+          const dateStr = d.date || (d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleString() : "Recent");
+          const statusClass = d.status || "pending";
+          const amountFormatted = (d.currencySymbol || "€") + (d.amount || 0);
+
+          html += `
+            <tr>
+              <td>${dateStr}</td>
+              <td><b>${d.userName || "Unknown"}</b><br><span style="font-size:11px;color:#64748b;">${d.userId || ""}</span></td>
+              <td>${d.plan || d.flowType || "Payment"}</td>
+              <td style="font-weight:700;color:#10b981;">${amountFormatted}</td>
+              <td><span class="badge ${statusClass}">${statusClass.toUpperCase()}</span></td>
+              <td>
+                ${d.receiptPath ? `<a href="../${d.receiptPath}" target="_blank" style="color:#6366f1;text-decoration:underline;font-size:12px;"><i class="fa-solid fa-file-image"></i> View File</a>` : '<span style="color:#64748b;font-size:12px;">No File</span>'}
+              </td>
+              <td>
+                <button class="action-btn" onclick='openDepositModal("${id}", ${JSON.stringify(d).replace(/'/g, "&apos;")})'>
+                  <i class="fa-solid fa-eye"></i> Review
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      })
+      .catch(err => {
+        console.error("Error loading deposits:", err);
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ef4444;padding:30px;">Failed to load deposits from database.</td></tr>`;
+      });
+  } else {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ef4444;padding:30px;">Firebase connection error.</td></tr>`;
+  }
+}
+
+function openDepositModal(id, data) {
+  currentDepositId = id;
+  document.getElementById("mUserName").textContent = data.userName || "—";
+  document.getElementById("mUserId").textContent = data.userId || "—";
+  document.getElementById("mFlowType").textContent = data.flowType || data.type || "—";
+  document.getElementById("mAmount").textContent = (data.currencySymbol || "€") + (data.amount || 0);
+  document.getElementById("mMethod").textContent = data.paymentMethod || "—";
+  document.getElementById("mCountry").textContent = data.userCountry || "—";
+
+  const proofContainer = document.getElementById("proofContainer");
+  if (data.receiptPath) {
+    const fileUrl = `../${data.receiptPath}`;
+    if (data.receiptPath.endsWith(".pdf")) {
+      proofContainer.innerHTML = `<a href="${fileUrl}" target="_blank" class="action-btn" style="margin-top:8px;"><i class="fa-solid fa-file-pdf"></i> Open PDF Proof</a>`;
+    } else {
+      proofContainer.innerHTML = `<img src="${fileUrl}" alt="Payment Proof" class="proof-img">`;
+    }
+  } else {
+    proofContainer.innerHTML = `<p style="color:#64748b;font-size:13px;">No receipt uploaded.</p>`;
+  }
+
+  document.getElementById("depositModal").classList.add("active");
+}
+
+function closeModal() {
+  document.getElementById("depositModal").classList.remove("active");
+  currentDepositId = null;
+}
+
+function updateStatus(newStatus) {
+  if (!currentDepositId) return;
+
+  Swal.fire({
+    title: `Are you sure you want to ${newStatus} this deposit?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: newStatus === 'approved' ? '#10b981' : '#ef4444',
+    confirmButtonText: `Yes, ${newStatus}`
+  }).then((result) => {
+    if (result.isConfirmed && window._9jaCash && window._9jaCash.db) {
+      window._9jaCash.db.collection("deposits").doc(currentDepositId).update({
+        status: newStatus
+      }).then(() => {
+        Swal.fire('Updated!', `Deposit has been marked as ${newStatus}.`, 'success');
+        closeModal();
+        loadDeposits();
+      }).catch(err => {
+        Swal.fire('Error', err.message, 'error');
+      });
+    }
+  });
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+  loadDeposits();
+});
+</script>
+
+</body>
+</html>
