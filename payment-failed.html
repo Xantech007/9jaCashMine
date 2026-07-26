@@ -246,10 +246,48 @@ function formatMoney(amount, isLocalCurrency, currencySymbol) {
   return symbol + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// ========== EXTRACT KEY FROM URL PARAMETERS ==========
-function getDocIdFromURL() {
+// ========== EXTRACT KEY OR TRIGGER FROM URL PARAMETERS ==========
+function getUrlParams() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("docId") || params.get("id") || params.get("doc") || params.get("key") || params.get("ref") || params.get("tx_ref");
+  return {
+    depositid: params.get("depositid") || params.get("depositId") || params.get("status"),
+    docId: params.get("docId") || params.get("id") || params.get("doc") || params.get("key") || params.get("ref") || params.get("tx_ref")
+  };
+}
+
+// ========== FETCH LAST DEPOSIT FOR LOGGED-IN USER ==========
+async function fetchLastUserDeposit() {
+  const userId = userData.phone || userData.uid;
+  if (userId && window._9jaCash && window._9jaCash.db) {
+    try {
+      const snap = await window._9jaCash.db.collection("deposits")
+        .where("userId", "==", userId)
+        .orderBy("createdAt", "desc")
+        .limit(1)
+        .get();
+
+      if (!snap.empty) {
+        const docSnap = snap.docs[0];
+        const data = docSnap.data();
+        data.docId = docSnap.id;
+        return data;
+      }
+    } catch (err) {
+      console.warn("Could not fetch last deposit query from Firestore:", err);
+    }
+  }
+
+  // Local storage fallback
+  const stored = localStorage.getItem("latestDepositData");
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch(e) {
+      console.error("LocalStorage deposit parse error:", e);
+    }
+  }
+
+  return null;
 }
 
 // ========== FETCH DEPOSIT FROM FIRESTORE OR LOCALSTORAGE ==========
@@ -298,8 +336,17 @@ async function detectFlow() {
   flowData = null;
   flowType = "unknown";
 
-  const docId = getDocIdFromURL();
-  const fetchedDeposit = await fetchDepositData(docId);
+  const { depositid, docId } = getUrlParams();
+  let fetchedDeposit = null;
+
+  // IF URL HAS ?depositid=externalfailed, FETCH LAST DEPOSIT
+  if (depositid && depositid.toLowerCase().includes("externalfailed")) {
+    fetchedDeposit = await fetchLastUserDeposit();
+  } else if (docId) {
+    fetchedDeposit = await fetchDepositData(docId);
+  } else {
+    fetchedDeposit = await fetchLastUserDeposit();
+  }
 
   if (fetchedDeposit) {
     flowData = fetchedDeposit;
@@ -371,7 +418,7 @@ async function loadAdminSettings() {
 async function updateUI() {
   await detectFlow();
 
-  const docId = getDocIdFromURL();
+  const { docId } = getUrlParams();
   let amount = 0;
   let itemName = "Payment";
   let txId = docId || "TX-" + Math.random().toString(36).substring(2, 10).toUpperCase();
