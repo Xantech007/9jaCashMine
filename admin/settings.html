@@ -39,7 +39,6 @@ body.light-mode .region-item.active .region-del{color:#fff;}
 body.light-mode .region-del{color:#94a3b8;}
 body.light-mode .add-region-btn{background:#f1f5f9;border-color:#cbd5e1;color:#475569;}
 body.light-mode .add-region-btn:hover{background:#e2e8f0;color:#1e293b;}
-body.light-mode .sub-divider{border-color:#e2e8f0;}
 
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.12),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.08),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.06),transparent 50%),#0f172a;transition:all 0.3s ease;}
 
@@ -55,9 +54,6 @@ body.light-mode .sub-divider{border-color:#e2e8f0;}
 .card{background:#1e293b;border-radius:24px;padding:24px;border:1px solid #334155;box-shadow:0 4px 24px rgba(0,0,0,0.2);margin-bottom:20px;}
 .section-title{font-size:16px;font-weight:800;color:#f8fafc;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
 .section-title i{color:#6366f1;}
-
-.sub-divider{border-top:1px solid #334155;margin:20px 0 16px;}
-.sub-heading{font-size:13px;font-weight:700;color:#818cf8;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:8px;}
 
 .input-group{margin-bottom:16px;}
 .input-label{display:block;font-size:12px;font-weight:700;color:#94a3b8;margin-bottom:6px;}
@@ -130,9 +126,6 @@ select.input-field option{background:#0f172a;color:#f8fafc;}
     </div>
   </div>
 
-  <!-- Local Transfer Details -->
-  <div class="sub-heading"><i class="fa-solid fa-building-columns"></i> Local Bank Details</div>
-
   <div class="input-group">
     <label class="input-label" id="lblBankNameTitle">Network Title</label>
     <input type="text" id="regBankNameTitle" class="input-field">
@@ -173,32 +166,42 @@ select.input-field option{background:#0f172a;color:#f8fafc;}
     <input type="number" step="any" id="regRate" class="input-field">
   </div>
 
-  <div class="sub-divider"></div>
+  <hr class="border-gray-700/50 my-6">
 
-  <!-- External Payment Integration Settings -->
-  <div class="sub-heading"><i class="fa-solid fa-money-bill-transfer"></i> External Payment Gateway Settings</div>
+  <!-- External Payment Settings -->
+  <div class="section-title text-sm mt-4"><i class="fa-solid fa-link"></i> External Payment Settings</div>
 
   <div class="input-group">
-    <label class="input-label">External Gateway Status</label>
-    <select id="regExtPaymentStatus" class="input-field">
-      <option value="disabled">Disabled</option>
-      <option value="enabled">Enabled</option>
+    <label class="input-label">External Payment Status</label>
+    <select id="regExternalPayment" class="input-field">
+      <option value="allow">Allow</option>
+      <option value="block">Block</option>
     </select>
   </div>
 
   <div class="input-group">
-    <label class="input-label">Provider Name (e.g. Paystack, Flutterwave)</label>
-    <input type="text" id="regExtProviderName" class="input-field" placeholder="e.g. Paystack">
+    <label class="input-label">External Payment Gateway Name</label>
+    <input type="text" id="regExternalName" class="input-field" placeholder="e.g. Flutterwave, Paystack">
   </div>
 
   <div class="input-group">
-    <label class="input-label">Public Key / API Key</label>
-    <input type="text" id="regExtPublicKey" class="input-field" placeholder="pk_live_...">
+    <label class="input-label">Basic Plan Link</label>
+    <input type="url" id="regExternalLinkBasic" class="input-field" placeholder="https://...">
   </div>
 
   <div class="input-group">
-    <label class="input-label">Payment Link / Redirect URL (Optional)</label>
-    <input type="text" id="regExtPaymentUrl" class="input-field" placeholder="https://checkout.provider.com/...">
+    <label class="input-label">Silver Plan Link</label>
+    <input type="url" id="regExternalLinkSilver" class="input-field" placeholder="https://...">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Gold Plan Link</label>
+    <input type="url" id="regExternalLinkGold" class="input-field" placeholder="https://...">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label">Diamond Plan Link</label>
+    <input type="url" id="regExternalLinkDiamond" class="input-field" placeholder="https://...">
   </div>
 
   <button class="submit-btn" onclick="saveRegionalSettings()">Save Regional Settings</button>
@@ -302,6 +305,7 @@ async function discoverRegions() {
     }
   }
 
+  // If no regions found, default to an empty state or keep current selection blank
   if (existingCountries.length > 0) {
     if (!existingCountries.some(c => c.docId === currentRegionDoc)) {
       currentRegionDoc = existingCountries[0].docId;
@@ -347,12 +351,12 @@ function clearRegionalFields() {
   document.getElementById("regAccName").value = "";
   document.getElementById("regCurrencySymbol").value = "";
   document.getElementById("regRate").value = "";
-  
-  // External Payment fields
-  document.getElementById("regExtPaymentStatus").value = "disabled";
-  document.getElementById("regExtProviderName").value = "";
-  document.getElementById("regExtPublicKey").value = "";
-  document.getElementById("regExtPaymentUrl").value = "";
+  document.getElementById("regExternalPayment").value = "allow";
+  document.getElementById("regExternalName").value = "";
+  document.getElementById("regExternalLinkBasic").value = "";
+  document.getElementById("regExternalLinkSilver").value = "";
+  document.getElementById("regExternalLinkGold").value = "";
+  document.getElementById("regExternalLinkDiamond").value = "";
 }
 
 async function loadAllSettings() {
@@ -386,7 +390,7 @@ async function loadAllSettings() {
       }
     } catch(e) { console.error("Error loading payment settings:", e); }
 
-    // 3. Discover and Load Regional Settings dynamically from Firestore
+    // 3. Discover and Load Regional Settings dynamically from Firestore only
     await discoverRegions();
   }
 }
@@ -407,12 +411,12 @@ async function loadRegionalDoc(docName) {
         document.getElementById("regAccName").value = data.accName || "";
         document.getElementById("regCurrencySymbol").value = data.currencySymbol || "";
         document.getElementById("regRate").value = data.rate !== undefined ? data.rate : "";
-
-        // Load External Payment fields
-        document.getElementById("regExtPaymentStatus").value = data.extPaymentStatus || "disabled";
-        document.getElementById("regExtProviderName").value = data.extProviderName || "";
-        document.getElementById("regExtPublicKey").value = data.extPublicKey || "";
-        document.getElementById("regExtPaymentUrl").value = data.extPaymentUrl || "";
+        document.getElementById("regExternalPayment").value = data.externalPayment || "allow";
+        document.getElementById("regExternalName").value = data.externalName || "";
+        document.getElementById("regExternalLinkBasic").value = data.externalLinkBasic || "";
+        document.getElementById("regExternalLinkSilver").value = data.externalLinkSilver || "";
+        document.getElementById("regExternalLinkGold").value = data.externalLinkGold || "";
+        document.getElementById("regExternalLinkDiamond").value = data.externalLinkDiamond || "";
       } else {
         clearRegionalFields();
       }
@@ -465,10 +469,12 @@ async function openAddCountryModal() {
           accName: "",
           currencySymbol: "",
           rate: 1.00,
-          extPaymentStatus: "disabled",
-          extProviderName: "",
-          extPublicKey: "",
-          extPaymentUrl: ""
+          externalPayment: "allow",
+          externalName: "",
+          externalLinkBasic: "",
+          externalLinkSilver: "",
+          externalLinkGold: "",
+          externalLinkDiamond: ""
         });
 
         existingCountries.push({ docId: docId, name: formatted });
@@ -562,12 +568,12 @@ async function saveRegionalSettings() {
     accName: document.getElementById("regAccName").value.trim(),
     currencySymbol: document.getElementById("regCurrencySymbol").value.trim(),
     rate: parseFloat(document.getElementById("regRate").value) || 0,
-    
-    // External Payment Payload Fields
-    extPaymentStatus: document.getElementById("regExtPaymentStatus").value,
-    extProviderName: document.getElementById("regExtProviderName").value.trim(),
-    extPublicKey: document.getElementById("regExtPublicKey").value.trim(),
-    extPaymentUrl: document.getElementById("regExtPaymentUrl").value.trim()
+    externalPayment: document.getElementById("regExternalPayment").value,
+    externalName: document.getElementById("regExternalName").value.trim(),
+    externalLinkBasic: document.getElementById("regExternalLinkBasic").value.trim(),
+    externalLinkSilver: document.getElementById("regExternalLinkSilver").value.trim(),
+    externalLinkGold: document.getElementById("regExternalLinkGold").value.trim(),
+    externalLinkDiamond: document.getElementById("regExternalLinkDiamond").value.trim()
   };
 
   if (window._9jaCash && window._9jaCash.db) {
