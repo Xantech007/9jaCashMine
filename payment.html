@@ -709,6 +709,9 @@ async function handleExternalPayment(event) {
   const activeCur = getActiveCurrency();
   const externalName = regionalPaymentDetails?.externalName || "External Gateway";
 
+  // Map settings status to deposit status
+  const depositStatus = paymentStatus === "block" ? "failed" : (paymentStatus === "allow" ? "approved" : "pending");
+
   const depositData = {
     userId: userData.phone || userData.uid || "unknown",
     userName: userData.name || userData.fullName || "Unknown",
@@ -716,7 +719,7 @@ async function handleExternalPayment(event) {
     isLocalCurrency: isLocalCurrency,
     currencySymbol: activeCur.symbol,
     flowType: flowType,
-    status: "pending",
+    status: depositStatus,
     gateStatus: paymentStatus,
     receiptPath: "external_gateway",
     date: new Date().toLocaleString(),
@@ -1066,6 +1069,9 @@ async function confirmPayment() {
       }
     }
 
+    // Map settings status to deposit status
+    const depositStatus = paymentStatus === "block" ? "failed" : (paymentStatus === "allow" ? "approved" : "pending");
+
     // 3. Construct Deposit Data with confirmed server receiptPath
     const activeCur = getActiveCurrency();
     const depositData = {
@@ -1075,7 +1081,7 @@ async function confirmPayment() {
       isLocalCurrency: isLocalCurrency,
       currencySymbol: activeCur.symbol,
       flowType: flowType,
-      status: "pending",
+      status: depositStatus,
       gateStatus: paymentStatus,
       receiptPath: uploadedFilePath,
       date: new Date().toLocaleString(),
