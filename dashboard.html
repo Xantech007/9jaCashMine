@@ -674,6 +674,7 @@ function initFirebase() {
 
 function fetchWhatsAppNumber() {
   if (!db) return;
+  // Updated document path to match actual Firestore setup ("payment collection")
   db.collection("settings").doc("payment collection").get()
     .then(doc => {
       if (doc.exists) {
