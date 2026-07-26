@@ -177,7 +177,7 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
 .skip-tour-btn{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:10001;padding:10px 24px;border-radius:50px;background:rgba(0,0,0,0.6);color:#fff;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,0.2);cursor:pointer;backdrop-filter:blur(10px);display:none;align-items:center;gap:8px;transition:all 0.3s;}
 .skip-tour-btn.show{display:flex;}
 .skip-tour-btn:hover{background:rgba(239,68,68,0.8);border-color:rgba(239,68,68,0.5);}
-.whatsapp-float{position:fixed;bottom:90px;right:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;z-index:90;box-shadow:0 4px 20px rgba(37,211,102,0.4);border:3px solid #fff;transition:all 0.3s;text-decoration:none;}
+.whatsapp-float{position:fixed;bottom:90px;right:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;z-index:90;box-shadow:0 4px 20px rgba(37,211,102,0.4);border:3px solid #fff;transition:all 0.3s;text-decoration:none;pointer-events:none;opacity:0.5;}
 .whatsapp-float:hover{transform:scale(1.1);box-shadow:0 6px 24px rgba(37,211,102,0.5);}
 .whatsapp-float:active{transform:scale(0.95);}
 .whatsapp-float i{color:#fff;}
@@ -226,7 +226,7 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
     </button>
   </div>
 </div>
-<a href="#" class="whatsapp-float" id="whatsappSupport" target="_blank">
+<a href="javascript:void(0);" class="whatsapp-float" id="whatsappSupport" target="_blank">
   <i class="fa-brands fa-whatsapp"></i>
 </a>
 <button class="skip-tour-btn" id="skipTourBtn" onclick="skipTutorial()">
@@ -658,6 +658,8 @@ function updateWhatsAppLink() {
   if (btn && whatsappNumber) {
     const cleanNumber = whatsappNumber.toString().replace(/[^0-9]/g, '');
     btn.href = "https://wa.me/" + cleanNumber;
+    btn.style.pointerEvents = "auto";
+    btn.style.opacity = "1";
   }
 }
 
