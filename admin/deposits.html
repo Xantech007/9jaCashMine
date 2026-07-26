@@ -3,16 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Deposits - FlutterW Euro Earn</title>
+<title>Admin - Manage Deposits - FlutterW Euro Earn</title>
 
 <!-- Firebase SDKs (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-<!-- Point to your root firebase.js configuration file -->
+<!-- Make sure firebase.js is correctly linked relative to the admin folder (e.g., ../firebase.js) -->
 <script src="../firebase.js"></script>
 
-<!-- SweetAlert2 & Tailwind CSS & FontAwesome -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -31,51 +30,58 @@
 <body class="min-h-screen p-4 md:p-8">
 
 <div class="max-w-7xl mx-auto">
-  <!-- Top Navigation Bar -->
-  <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+  <!-- Top Bar -->
+  <div class="flex items-center justify-between mb-8">
     <div>
-      <div class="flex items-center gap-3">
-        <a href="dashboard.html" class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-indigo-400 transition">
-          <i class="fa-solid fa-arrow-left"></i>
-        </a>
-        <h1 class="text-2xl font-extrabold text-white tracking-tight">Manage Deposits</h1>
-      </div>
-      <p class="text-sm text-slate-400 mt-1">Review user payment submissions and update transaction statuses.</p>
+      <h1 class="text-2xl font-extrabold text-white">Deposit Management</h1>
+      <p class="text-sm text-slate-400 mt-1">Review user deposits, check uploaded server payment proofs, and update statuses.</p>
     </div>
-    
-    <div class="flex items-center gap-3 w-full md:w-auto">
-      <div class="relative flex-1 md:w-64">
-        <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-        <input type="text" id="searchInput" placeholder="Search user or ID..." onkeyup="filterDeposits()" class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition">
-      </div>
-      <button onclick="loadDeposits()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 transition flex items-center gap-2">
-        <i class="fa-solid fa-rotate"></i> <span class="hidden md:inline">Refresh</span>
-      </button>
+    <a href="dashboard.html" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition text-sm font-semibold">
+      <i class="fa-solid fa-arrow-left mr-2"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <!-- Filters / Stats Summary -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="card p-5">
+      <div class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Deposits</div>
+      <div id="statTotal" class="text-2xl font-extrabold text-white mt-1">0</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-slate-400 text-xs font-bold uppercase tracking-wider">Pending Deposits</div>
+      <div id="statPending" class="text-2xl font-extrabold text-amber-400 mt-1">0</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-slate-400 text-xs font-bold uppercase tracking-wider">Approved Deposits</div>
+      <div id="statApproved" class="text-2xl font-extrabold text-emerald-400 mt-1">0</div>
     </div>
   </div>
 
-  <!-- Deposits Table Card -->
-  <div class="card overflow-hidden shadow-2xl">
+  <!-- Deposits Table Container -->
+  <div class="card overflow-hidden">
+    <div class="p-5 border-b border-slate-700 flex justify-between items-center">
+      <h3 class="font-bold text-white text-lg"><i class="fa-solid fa-money-bill-transfer mr-2 text-indigo-500"></i> All Deposits</h3>
+      <button onclick="loadDeposits()" class="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition">
+        <i class="fa-solid fa-rotate mr-1"></i> Refresh
+      </button>
+    </div>
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="bg-slate-800/80 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
-            <th class="p-4 font-bold">User / ID</th>
-            <th class="p-4 font-bold">Type / Plan</th>
-            <th class="p-4 font-bold">Amount</th>
-            <th class="p-4 font-bold">Method</th>
-            <th class="p-4 font-bold">Proof / Receipt</th>
-            <th class="p-4 font-bold">Status</th>
-            <th class="p-4 font-bold">Date</th>
-            <th class="p-4 font-bold text-right">Actions</th>
+          <tr class="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+            <th class="p-4">User</th>
+            <th class="p-4">Type / Plan</th>
+            <th class="p-4">Amount</th>
+            <th class="p-4">Method</th>
+            <th class="p-4">Date</th>
+            <th class="p-4">Status</th>
+            <th class="p-4 text-center">Proof</th>
+            <th class="p-4 text-right">Actions</th>
           </tr>
         </thead>
-        <tbody id="depositsTableBody" class="text-sm text-slate-300">
+        <tbody id="depositsTableBody" class="text-sm">
           <tr>
-            <td colspan="8" class="text-center py-12 text-slate-500">
-              <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i>
-              <p>Loading deposits collection...</p>
-            </td>
+            <td colspan="8" class="p-8 text-center text-slate-400">Loading deposits...</td>
           </tr>
         </tbody>
       </table>
@@ -83,20 +89,15 @@
   </div>
 </div>
 
-<!-- Proof Preview Modal -->
-<div id="proofModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-  <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
-    <div class="flex items-center justify-between p-4 border-b border-slate-800">
-      <h3 class="font-bold text-white text-base">Payment Proof Preview</h3>
-      <button onclick="closeModal()" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-    <div class="p-6 text-center max-h-[70vh] overflow-y-auto" id="modalBodyContent">
-      <!-- Dynamic Preview Content -->
-    </div>
-    <div class="p-4 bg-slate-800/50 border-t border-slate-800 flex justify-end">
-      <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold transition">Close</button>
+<!-- Receipt Modal Preview -->
+<div id="receiptModal" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 hidden">
+  <div class="card max-w-lg w-full p-6 relative bg-slate-900">
+    <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <h3 class="text-lg font-bold text-white mb-4">Payment Proof Preview</h3>
+    <div id="modalContent" class="flex flex-col items-center justify-center">
+      <!-- Injected preview image or PDF link -->
     </div>
   </div>
 </div>
@@ -104,96 +105,81 @@
 <script>
 let allDeposits = [];
 
-// Fetch deposits from Firestore on load
+// Load Deposits from Firestore
 function loadDeposits() {
   const tbody = document.getElementById("depositsTableBody");
-  tbody.innerHTML = `
-    <tr>
-      <td colspan="8" class="text-center py-12 text-slate-500">
-        <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i>
-        <p>Loading deposits collection...</p>
-      </td>
-    </tr>
-  `;
+  tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Loading deposits...</td></tr>`;
 
-  if (window._9jaCash && window._9jaCash.db) {
-    window._9jaCash.db.collection("deposits")
-      .orderBy("createdAt", "desc")
-      .get()
-      .then(snapshot => {
-        allDeposits = [];
-        snapshot.forEach(doc => {
-          allDeposits.push({ id: doc.id, ...doc.data() });
-        });
-        renderTable(allDeposits);
-      })
-      .catch(err => {
-        console.error("Error loading deposits:", err);
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-red-400">Failed to load deposits. Check console or permissions.</td></tr>`;
-      });
-  } else {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-red-400">Firebase database reference not found.</td></tr>`;
+  if (!window._9jaCash || !window._9jaCash.db) {
+    tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-red-400">Firebase database reference not found.</td></tr>`;
+    return;
   }
+
+  window._9jaCash.db.collection("deposits")
+    .orderBy("createdAt", "desc")
+    .get()
+    .then((snapshot) => {
+      allDeposits = [];
+      let pendingCount = 0;
+      let approvedCount = 0;
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        allDeposits.push({ id: doc.id, ...data });
+
+        if (data.status === "pending") pendingCount++;
+        if (data.status === "approved") approvedCount++;
+      });
+
+      document.getElementById("statTotal").textContent = allDeposits.length;
+      document.getElementById("statPending").textContent = pendingCount;
+      document.getElementById("statApproved").textContent = approvedCount;
+
+      renderTable(allDeposits);
+    })
+    .catch((error) => {
+      console.error("Error fetching deposits:", error);
+      tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-red-400">Error loading deposits: ${error.message}</td></tr>`;
+    });
 }
 
-// Render Table Rows
 function renderTable(deposits) {
   const tbody = document.getElementById("depositsTableBody");
   if (deposits.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-slate-500">No deposit records found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">No deposits found.</td></tr>`;
     return;
   }
 
   let html = "";
-  deposits.forEach(item => {
+  deposits.forEach((item) => {
     const statusClass = item.status === "approved" ? "badge-approved" : item.status === "rejected" ? "badge-rejected" : "badge-pending";
-    const statusText = item.status ? item.status.toUpperCase() : "PENDING";
-    
-    // Format receipt preview button/link
-    let proofHtml = `<span class="text-slate-500 text-xs">No Proof</span>`;
-    if (item.receiptPath) {
-      // Check if path is full URL or relative path
-      const proofUrl = item.receiptPath.startsWith("http") ? item.receiptPath : `../${item.receiptPath}`;
-      proofHtml = `
-        <button onclick="openProofModal('${proofUrl}', '${item.receiptPath}')" class="px-3 py-1.5 rounded-lg bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 text-xs font-bold transition flex items-center gap-1.5">
-          <i class="fa-solid fa-eye"></i> View Proof
-        </button>
-      `;
-    }
+    const amountStr = (item.currencySymbol || "€") + (parseFloat(item.amount || 0)).toLocaleString();
+    const dateStr = item.date || "—";
+    const userName = item.userName || "Unknown User";
+    const userId = item.userId || item.userPhone || "—";
+    const planOrType = item.plan || item.flowType || "Standard Deposit";
+    const method = (item.paymentMethod || "bank").toUpperCase();
 
     html += `
       <tr class="table-row">
         <td class="p-4">
-          <div class="font-bold text-white">${item.userName || "Unknown User"}</div>
-          <div class="text-xs text-slate-500">${item.userId || "—"}</div>
+          <div class="font-bold text-white">${userName}</div>
+          <div class="text-xs text-slate-400">${userId}</div>
         </td>
-        <td class="p-4">
-          <div class="font-semibold text-slate-200">${item.plan || item.type || "Deposit"}</div>
-          <div class="text-xs text-slate-500 uppercase">${item.flowType || item.paymentMethod || "standard"}</div>
-        </td>
-        <td class="p-4 font-extrabold text-emerald-400">
-          ${item.currencySymbol || "€"}${parseFloat(item.amount || 0).toLocaleString()}
-        </td>
-        <td class="p-4 uppercase text-xs font-bold text-slate-400">
-          ${item.paymentMethod || "bank"}
-        </td>
-        <td class="p-4">
-          ${proofHtml}
-        </td>
-        <td class="p-4">
-          <span class="px-2.5 py-1 rounded-full text-xs font-bold ${statusClass}">
-            ${statusText}
-          </span>
-        </td>
-        <td class="p-4 text-xs text-slate-400">
-          ${item.date || "—"}
+        <td class="p-4 font-semibold text-indigo-300">${planOrType}</td>
+        <td class="p-4 font-bold text-white">${amountStr}</td>
+        <td class="p-4"><span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">${method}</span></td>
+        <td class="p-4 text-xs text-slate-400">${dateStr}</td>
+        <td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${statusClass}">${item.status || "pending"}</span></td>
+        <td class="p-4 text-center">
+          ${item.receiptPath ? `<button onclick="viewReceipt('${item.receiptPath}')" class="px-3 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-600/30 text-xs font-bold transition"><i class="fa-solid fa-eye mr-1"></i> View</button>` : '<span class="text-slate-500 text-xs">No Proof</span>'}
         </td>
         <td class="p-4 text-right">
-          <select onchange="updateDepositStatus('${item.id}', this.value)" class="bg-slate-800 border border-slate-700 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer">
+          <select onchange="updateDepositStatus('${item.id}', this.value)" class="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none">
             <option value="" disabled selected>Change Status</option>
-            <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>Pending</option>
-            <option value="approved" ${item.status === 'approved' ? 'selected' : ''}>Approve</option>
-            <option value="rejected" ${item.status === 'rejected' ? 'selected' : ''}>Reject</option>
+            <option value="pending" ${item.status === "pending" ? "selected" : ""}>Pending</option>
+            <option value="approved" ${item.status === "approved" ? "selected" : ""}>Approve</option>
+            <option value="rejected" ${item.status === "rejected" ? "selected" : ""}>Reject</option>
           </select>
         </td>
       </tr>
@@ -203,40 +189,23 @@ function renderTable(deposits) {
   tbody.innerHTML = html;
 }
 
-// Filter deposits by search input
-function filterDeposits() {
-  const query = document.getElementById("searchInput").value.toLowerCase();
-  const filtered = allDeposits.filter(item => 
-    (item.userName && item.userName.toLowerCase().includes(query)) ||
-    (item.userId && item.userId.toLowerCase().includes(query)) ||
-    (item.plan && item.plan.toLowerCase().includes(query))
-  );
-  renderTable(filtered);
-}
-
-// Open Proof Modal
-function openProofModal(url, rawPath) {
-  const modal = document.getElementById("proofModal");
-  const content = document.getElementById("modalBodyContent");
+// Preview Uploaded Proof
+function viewReceipt(path) {
+  const modal = document.getElementById("receiptModal");
+  const content = document.getElementById("modalContent");
   
-  const isPdf = rawPath.toLowerCase().endsWith(".pdf");
+  // Construct full file URL (assuming receipts are stored relative to root server path)
+  const fullUrl = path.startsWith("http") ? path : `../${path}`;
 
-  if (isPdf) {
+  if (path.endsWith(".pdf") || path.toLowerCase().includes("pdf")) {
     content.innerHTML = `
-      <div class="p-6">
-        <i class="fa-solid fa-file-pdf text-5xl text-rose-500 mb-3"></i>
-        <p class="text-sm text-slate-300 mb-4">Uploaded proof is a PDF document.</p>
-        <a href="${url}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition">
-          <i class="fa-solid fa-external-link"></i> Open PDF in New Tab
-        </a>
-      </div>
+      <iframe src="${fullUrl}" class="w-full h-96 rounded-xl border border-slate-700 mb-4"></iframe>
+      <a href="${fullUrl}" target="_blank" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-500">Open PDF in New Tab</a>
     `;
   } else {
     content.innerHTML = `
-      <img src="${url}" alt="Payment Proof" class="max-w-full h-auto rounded-xl mx-auto border border-slate-700 shadow-lg">
-      <div class="mt-4">
-        <a href="${url}" target="_blank" class="text-xs text-indigo-400 hover:underline">Open full image in new tab</a>
-      </div>
+      <img src="${fullUrl}" alt="Payment Proof" class="max-h-[70vh] rounded-xl border border-slate-700 object-contain mb-4">
+      <a href="${fullUrl}" target="_blank" class="px-4 py-2 bg-slate-800 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-700">Open Image Full Size</a>
     `;
   }
 
@@ -244,62 +213,58 @@ function openProofModal(url, rawPath) {
 }
 
 function closeModal() {
-  document.getElementById("proofModal").classList.add("hidden");
+  document.getElementById("receiptModal").classList.add("hidden");
 }
 
-// Update Status function
-async function updateDepositStatus(docId, newStatus) {
-  if (!window._9jaCash || !window._9jaCash.db) return;
+// Update Status Function
+function updateDepositStatus(docId, newStatus) {
+  if (!docId || !newStatus) return;
 
-  try {
-    Swal.fire({
-      title: "Updating Status...",
-      allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); },
-      background: "#1e293b",
-      color: "#f8fafc"
-    });
-
-    // 1. Update deposit document status in Firestore
-    await window._9jaCash.db.collection("deposits").doc(docId).update({
-      status: newStatus,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    // Optional: If approved, you can also automatically upgrade user plan if plan name is present
-    const depositObj = allDeposits.find(d => d.id === docId);
-    if (newStatus === "approved" && depositObj && depositObj.userId && depositObj.plan) {
-      await window._9jaCash.db.collection("users").doc(depositObj.userId).set({
-        plan: depositObj.plan
-      }, { merge: true });
+  Swal.fire({
+    title: "Update Status?",
+    text: `Are you sure you want to mark this deposit as ${newStatus}?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#6366f1",
+    cancelButtonColor: "#334155",
+    confirmButtonText: "Yes, Update",
+    background: "#1e293b",
+    color: "#f8fafc"
+  }).then((result) => {
+    if (result.isConfirmed) {
+      window._9jaCash.db.collection("deposits").doc(docId).update({
+        status: newStatus,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(() => {
+        Swal.fire({
+          toast: true,
+          position: "top",
+          icon: "success",
+          title: `Deposit status updated to ${newStatus}!`,
+          showConfirmButton: false,
+          timer: 1500,
+          background: "#1e293b",
+          color: "#f8fafc"
+        });
+        loadDeposits();
+      })
+      .catch((error) => {
+        console.error("Error updating status:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Update Failed",
+          text: error.message,
+          background: "#1e293b",
+          color: "#f8fafc"
+        });
+      });
+    } else {
+      loadDeposits(); // Reset dropdown view
     }
-
-    Swal.fire({
-      icon: "success",
-      title: "Status Updated!",
-      text: `Deposit status changed to ${newStatus}.`,
-      timer: 1500,
-      showConfirmButton: false,
-      background: "#1e293b",
-      color: "#f8fafc"
-    });
-
-    // Refresh list locally and from server
-    loadDeposits();
-
-  } catch (err) {
-    console.error("Error updating status:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Update Failed",
-      text: err.message || "Could not update status.",
-      background: "#1e293b",
-      color: "#f8fafc"
-    });
-  }
+  });
 }
 
-// Initialize on load
 window.addEventListener("DOMContentLoaded", () => {
   loadDeposits();
 });
