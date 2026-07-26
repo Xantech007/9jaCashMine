@@ -681,7 +681,7 @@ function loadExternalPaymentDetails(data) {
   const externalPayment = String(data.externalPayment || "").trim().toLowerCase();
   const externalName = data.externalName || "Paystack";
 
-  if (externalPayment === "yes") {
+  if (externalPayment === "allow") {
     // Create tab if it doesn't exist
     let tabExt = document.getElementById("tabExternal");
     if (!tabExt) {
