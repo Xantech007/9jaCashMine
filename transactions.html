@@ -551,8 +551,8 @@ async function submitReversalRequest(docId, formData) {
     setTimeout(() => {
       Swal.fire({
         icon: "error",
-        title: "Payment Failed",
-        text: "Payment was failed. Please make a fresh payment.",
+        title: "Payment not Received",
+        text: "Payment was not received. Please check if transaction was successful.",
         confirmButtonColor: "#ef4444",
         confirmButtonText: "OK",
         background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
