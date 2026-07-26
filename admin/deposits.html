@@ -21,24 +21,29 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc;min-height:100vh;transition:all 0.3s ease;}
 
+/* Light Mode Overrides & Variables */
 body.light-mode{background:#f8fafc;color:#1e293b;}
 body.light-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;}
-body.light-mode .card{background:#fff;border-color:#e2e8f0;box-shadow:0 4px 24px rgba(0,0,0,0.06);}
 body.light-mode .back-btn{background:#fff;border-color:#e2e8f0;color:#64748b;}
 body.light-mode .back-btn:hover{background:#f1f5f9;color:#6366f1;}
 body.light-mode .header-title{color:#1e293b;}
 body.light-mode .theme-toggle{background:#fff;border-color:#e2e8f0;color:#64748b;}
 body.light-mode .theme-toggle:hover{background:#f1f5f9;color:#6366f1;}
 body.light-mode .deposit-card{background:#fff;border-color:#e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,0.04);}
-body.light-mode .deposit-label{color:#94a3b8;}
+body.light-mode .deposit-header{border-bottom-color:#e2e8f0;}
+body.light-mode .deposit-user{color:#1e293b;}
+body.light-mode .deposit-sub{color:#64748b;}
+body.light-mode .deposit-item{background:#f8fafc;border-color:#e2e8f0;}
+body.light-mode .deposit-label{color:#64748b;}
 body.light-mode .deposit-value{color:#1e293b;}
-body.light-mode .footer-text{color:#94a3b8;}
+body.light-mode .proof-preview-box{background:#f8fafc;border-color:#e2e8f0;}
+body.light-mode .footer-text{color:#64748b;}
 body.light-mode .filter-btn{background:#fff;color:#64748b;border-color:#e2e8f0;}
 body.light-mode .filter-btn.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:#6366f1;}
 
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.12),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.08),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.06),transparent 50%),#0f172a;transition:all 0.3s ease;}
 
-.app{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:0 20px 40px;}
+.app{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:0 20px 40px;}
 
 .topbar{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between;}
 .back-btn{width:44px;height:44px;border-radius:14px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:16px;cursor:pointer;transition:all 0.3s;}
@@ -52,8 +57,9 @@ body.light-mode .filter-btn.active{background:linear-gradient(135deg,#6366f1,#8b
 .filter-btn:hover{border-color:#6366f1;color:#818cf8;}
 .filter-btn.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:#6366f1;box-shadow:0 4px 16px rgba(99,102,241,0.3);}
 
-.deposit-card{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:20px;margin-bottom:16px;transition:all 0.3s;}
-.deposit-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #334155;}
+/* Tabulated / Structured Card Layout */
+.deposit-card{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:18px;margin-bottom:16px;transition:all 0.3s;}
+.deposit-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #334155;}
 .deposit-user{font-size:15px;font-weight:800;color:#f8fafc;}
 .deposit-sub{font-size:12px;color:#64748b;margin-top:2px;}
 
@@ -62,17 +68,24 @@ body.light-mode .filter-btn.active{background:linear-gradient(135deg,#6366f1,#8b
 .badge.approved{background:rgba(16,185,129,0.1);color:#10b981;border-color:rgba(16,185,129,0.2);}
 .badge.rejected{background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.2);}
 
-.deposit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.deposit-item{background:#0f172a;border:1px solid #334155;border-radius:12px;padding:10px 12px;}
-.deposit-label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
-.deposit-value{font-size:13px;font-weight:700;color:#f8fafc;word-break:break-all;}
+/* Tabulated Grid Structure */
+.deposit-table-grid{display:grid;grid-template-columns:repeat(2, 1fr);gap:8px;margin-bottom:12px;}
+@media(min-width: 500px){
+  .deposit-table-grid{grid-template-columns:repeat(4, 1fr);}
+}
+.deposit-item{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:8px 10px;}
+.deposit-label{font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
+.deposit-value{font-size:12px;font-weight:700;color:#f8fafc;word-break:break-all;}
 
-.proof-preview-box{margin-top:12px;border-radius:12px;overflow:hidden;border:1px solid #334155;background:#0f172a;max-height:180px;display:flex;align-items:center;justify-content:center;position:relative;}
-.proof-preview-box img{width:100%;height:100%;object-fit:cover;cursor:pointer;}
-.proof-preview-box .pdf-badge{padding:20px;text-align:center;color:#818cf8;font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px;}
+/* Smaller Compact Preview Box */
+.proof-preview-container{display:flex;align-items:center;justify-content:space-between;background:rgba(15,23,42,0.4);border:1px solid #334155;border-radius:10px;padding:8px 12px;margin-top:10px;gap:10px;}
+.proof-info{display:flex;align-items:center;gap:8px;font-size:12px;color:#818cf8;font-weight:600;}
+.proof-preview-box{width:48px;height:48px;border-radius:8px;overflow:hidden;border:1px solid #334155;background:#0f172a;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.proof-preview-box img{width:100%;height:100%;object-fit:cover;}
+.proof-preview-box i{font-size:18px;color:#818cf8;}
 
-.action-row{display:flex;gap:8px;margin-top:16px;}
-.action-btn{flex:1;padding:10px;border-radius:12px;font-size:12px;font-weight:700;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Plus Jakarta Sans',sans-serif;}
+.action-row{display:flex;gap:8px;margin-top:14px;}
+.action-btn{flex:1;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Plus Jakarta Sans',sans-serif;}
 .action-btn.approve{background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3);}
 .action-btn.approve:hover{background:#10b981;color:#fff;}
 .action-btn.reject{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);}
@@ -201,16 +214,20 @@ function renderDeposits() {
     if (receiptUrl) {
       if (receiptUrl.endsWith('.pdf')) {
         proofHtml = `
-          <div class="proof-preview-box">
-            <a href="${receiptUrl}" target="_blank" class="pdf-badge">
-              <i class="fa-solid fa-file-pdf fa-2x"></i> View PDF Receipt
-            </a>
+          <div class="proof-preview-container">
+            <div class="proof-info"><i class="fa-solid fa-file-pdf"></i> PDF Receipt Attached</div>
+            <div class="proof-preview-box" onclick="window.open('${receiptUrl}', '_blank')" title="View PDF">
+              <i class="fa-solid fa-file-lines"></i>
+            </div>
           </div>
         `;
       } else {
         proofHtml = `
-          <div class="proof-preview-box">
-            <img src="${receiptUrl}" alt="Proof of Payment" onclick="window.open('${receiptUrl}', '_blank')">
+          <div class="proof-preview-container">
+            <div class="proof-info"><i class="fa-solid fa-image"></i> Payment Proof</div>
+            <div class="proof-preview-box" onclick="window.open('${receiptUrl}', '_blank')" title="View Image">
+              <img src="${receiptUrl}" alt="Proof">
+            </div>
           </div>
         `;
       }
@@ -227,7 +244,7 @@ function renderDeposits() {
           </div>
           <span class="badge ${badgeClass}">${status.toUpperCase()}</span>
         </div>
-        <div class="deposit-grid">
+        <div class="deposit-table-grid">
           <div class="deposit-item">
             <div class="deposit-label">Amount</div>
             <div class="deposit-value" style="color:#10b981;">${amountStr}</div>
@@ -283,7 +300,6 @@ async function updateDepositStatus(docId, newStatus) {
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      // If approved, optionally grant user plan if flow is upgrade
       if (newStatus === 'approved') {
         const depositObj = allDeposits.find(d => d.id === docId);
         if (depositObj && depositObj.userId && depositObj.plan && depositObj.flowType === 'upgrade') {
