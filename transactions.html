@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deposit History</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #16a34a;
+            --pending-color: #d97706;
+            --failed-color: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .amount {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .badge-completed {
+            background-color: #dcfce7;
+            color: var(--success-color);
+        }
+
+        .badge-pending {
+            background-color: #fef3c7;
+            color: var(--pending-color);
+        }
+
+        .badge-failed {
+            background-color: #fee2e2;
+            color: var(--failed-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 600px) {
+            th, td {
+                padding: 10px 12px;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Deposit History</h1>
+            <p>View all your past wallet funding transactions and top-ups.</p>
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Date</th>
+                            <th>Payment Method</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deposit-table-body">
+                        <!-- Example Row 1 -->
+                        <tr>
+                            <td><code>#DEP-89210</code></td>
+                            <td>Jul 26, 2026</td>
+                            <td>Bank Transfer</td>
+                            <td class="amount">€50.00</td>
+                            <td><span class="badge badge-completed">Completed</span></td>
+                        </tr>
+                        <!-- Example Row 2 -->
+                        <tr>
+                            <td><code>#DEP-89145</code></td>
+                            <td>Jul 20, 2026</td>
+                            <td>Card Payment</td>
+                            <td class="amount">€25.00</td>
+                            <td><span class="badge badge-completed">Completed</span></td>
+                        </tr>
+                        <!-- Example Row 3 -->
+                        <tr>
+                            <td><code>#DEP-88902</code></td>
+                            <td>Jul 15, 2026</td>
+                            <td>Bank Transfer</td>
+                            <td class="amount">€100.00</td>
+                            <td><span class="badge badge-pending">Pending</span></td>
+                        </tr>
+                        <!-- Example Row 4 -->
+                        <tr>
+                            <td><code>#DEP-87301</code></td>
+                            <td>Jul 02, 2026</td>
+                            <td>Card Payment</td>
+                            <td class="amount">€10.00</td>
+                            <td><span class="badge badge-failed">Failed</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State Display (hidden by default) -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <p>No deposit transactions found.</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
