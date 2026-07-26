@@ -78,7 +78,7 @@ body.light-mode .swal-input-group textarea{background:#f8fafc;border-color:#cbd5
 .tx-icon.reversed{background:rgba(168,85,247,0.12);color:#c084fc;border:1px solid rgba(168,85,247,0.2);}
 
 .tx-details{display:flex;flex-direction:column;gap:2px;overflow:hidden;}
-.tx-title{font-size:14px;font-weight:800;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px;}
+.tx-title{font-size:14px;font-weight:800;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tx-sub{font-size:12px;color:#64748b;font-weight:600;}
 .tx-date{font-size:11px;color:#475569;font-weight:500;}
 
@@ -88,16 +88,16 @@ body.light-mode .swal-input-group textarea{background:#f8fafc;border-color:#cbd5
 .tx-amount.withdrawal{color:#f87171;}
 .tx-amount.reversed-amt{color:#94a3b8;text-decoration:line-through;}
 
-.tx-status{display:inline-block;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;text-transform:uppercase;margin-top:4px;}
+.tx-tags-wrapper{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:4px;}
+.type-tag{font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;text-transform:uppercase;}
+.type-tag.deposit{background:rgba(16,185,129,0.15);color:#10b981;}
+.type-tag.withdrawal{background:rgba(239,68,68,0.15);color:#f87171;}
+
+.tx-status{display:inline-block;font-size:9px;font-weight:800;padding:2px 6px;border-radius:20px;text-transform:uppercase;}
 .tx-status.completed{background:rgba(16,185,129,0.15);color:#10b981;}
 .tx-status.pending{background:rgba(245,158,11,0.15);color:#fbbf24;}
 .tx-status.failed{background:rgba(239,68,68,0.15);color:#f87171;}
 .tx-status.reversed{background:rgba(168,85,247,0.15);color:#c084fc;}
-
-/* Transaction Tags */
-.tx-tag{font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;text-transform:uppercase;letter-spacing:0.5px;}
-.tx-tag.deposit{background:rgba(16,185,129,0.2);color:#10b981;}
-.tx-tag.withdrawal{background:rgba(239,68,68,0.2);color:#f87171;}
 
 /* Empty / Loading State */
 .state-box{background:#1e293b;border:1px dashed #334155;border-radius:20px;padding:40px 20px;text-align:center;color:#64748b;}
@@ -139,18 +139,18 @@ body.light-mode .swal-input-group textarea{background:#f8fafc;border-color:#cbd5
   <div class="stats-grid anim d2">
     <div class="stat-card">
       <div class="stat-label">Total Deposited</div>
-      <div class="stat-value" id="statTotalDeposits" style="color:#10b981;">€0.00</div>
+      <div class="stat-value" id="statTotalDeposited" style="color:#10b981;">€0.00</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Total Withdrawn</div>
-      <div class="stat-value" id="statTotalWithdrawals" style="color:#f87171;">€0.00</div>
+      <div class="stat-value" id="statTotalWithdrawn" style="color:#f87171;">€0.00</div>
     </div>
   </div>
 
   <!-- Section Header -->
   <div class="section-header anim d2">
     <div class="section-title">All Transactions</div>
-    <button onclick="fetchAllTransactions()" style="color:#6366f1;font-size:12px;font-weight:700;background:none;border:none;cursor:pointer;">
+    <button onclick="fetchTransactionHistory()" style="color:#6366f1;font-size:12px;font-weight:700;background:none;border:none;cursor:pointer;">
       <i class="fa-solid fa-rotate-right"></i> Refresh
     </button>
   </div>
@@ -202,19 +202,8 @@ function formatMoney(num, symbol = "€") {
   return symbol + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// ========== HELPER TO GET PARSED TIMESTAMP ==========
-function getTimeFromTx(item) {
-  if (item.createdAt?.toDate) {
-    return item.createdAt.toDate().getTime();
-  }
-  if (item.date) {
-    return new Date(item.date).getTime();
-  }
-  return 0;
-}
-
-// ========== FETCH DEPOSITS & WITHDRAWALS FROM FIRESTORE ==========
-async function fetchAllTransactions() {
+// ========== FETCH TRANSACTIONS (DEPOSITS & WITHDRAWALS) ==========
+async function fetchTransactionHistory() {
   const container = document.getElementById("txContainer");
   const userId = userData.phone || userData.uid;
 
@@ -230,7 +219,7 @@ async function fetchAllTransactions() {
   container.innerHTML = `
     <div class="state-box">
       <i class="fa-solid fa-circle-notch fa-spin"></i>
-      <p>Loading transactions...</p>
+      <p>Loading transaction history...</p>
     </div>`;
 
   try {
@@ -240,62 +229,70 @@ async function fetchAllTransactions() {
 
     const db = window._9jaCash.db;
 
-    // Fetch deposits and withdrawals simultaneously
+    // Fetch Deposits and Withdrawals concurrently
     const [depositsSnap, withdrawalsSnap] = await Promise.all([
       db.collection("deposits").where("userId", "==", userId).get(),
       db.collection("withdrawals").where("userId", "==", userId).get()
     ]);
 
-    let combined = [];
+    let transactions = [];
     let totalDeposited = 0;
     let totalWithdrawn = 0;
 
-    // 1. Process Deposits
+    // Process Deposits
     depositsSnap.forEach(doc => {
       const data = doc.data();
-      const item = { id: doc.id, txCategory: "deposit", ...data };
-      combined.push(item);
-
-      if (data.status === "completed" || data.status === "allow" || data.gateStatus === "allow") {
+      const isApproved = (data.status === "completed" || data.status === "allow" || data.gateStatus === "allow" || data.status === "approved");
+      if (isApproved) {
         totalDeposited += parseFloat(data.amount || 0);
       }
+      transactions.push({
+        id: doc.id,
+        txType: "deposit",
+        timestamp: data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.date || 0).getTime(),
+        ...data
+      });
     });
 
-    // 2. Process Withdrawals
+    // Process Withdrawals
     withdrawalsSnap.forEach(doc => {
       const data = doc.data();
-      const item = { id: doc.id, txCategory: "withdrawal", ...data };
-      combined.push(item);
-
-      if (data.status === "completed" || data.status === "approved" || data.status === "allow") {
+      const isApproved = (data.status === "completed" || data.status === "allow" || data.status === "approved" || data.status === "successful");
+      if (isApproved) {
         totalWithdrawn += parseFloat(data.amount || 0);
       }
+      transactions.push({
+        id: doc.id,
+        txType: "withdrawal",
+        timestamp: data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.date || 0).getTime(),
+        ...data
+      });
     });
 
-    if (combined.length === 0) {
+    if (transactions.length === 0) {
       container.innerHTML = `
         <div class="state-box">
           <i class="fa-solid fa-receipt"></i>
           <p>No transaction history found.</p>
         </div>`;
-      document.getElementById("statTotalDeposits").textContent = "€0.00";
-      document.getElementById("statTotalWithdrawals").textContent = "€0.00";
+      document.getElementById("statTotalDeposited").textContent = "€0.00";
+      document.getElementById("statTotalWithdrawn").textContent = "€0.00";
       return;
     }
 
-    // Sort by timestamp descending (most recent first)
-    combined.sort((a, b) => getTimeFromTx(b) - getTimeFromTx(a));
+    // Sort all mixed transactions by timestamp descending
+    transactions.sort((a, b) => b.timestamp - a.timestamp);
 
-    document.getElementById("statTotalDeposits").textContent = formatMoney(totalDeposited);
-    document.getElementById("statTotalWithdrawals").textContent = formatMoney(totalWithdrawn);
+    document.getElementById("statTotalDeposited").textContent = formatMoney(totalDeposited);
+    document.getElementById("statTotalWithdrawn").textContent = formatMoney(totalWithdrawn);
 
     container.innerHTML = "";
-    combined.forEach(item => {
-      container.appendChild(createTxCard(item));
+    transactions.forEach(item => {
+      container.appendChild(createTransactionCard(item));
     });
 
   } catch (err) {
-    console.error("Error fetching transactions:", err);
+    console.error("Error fetching transaction history:", err);
     container.innerHTML = `
       <div class="state-box">
         <i class="fa-solid fa-circle-xmark" style="color:#ef4444;"></i>
@@ -305,11 +302,11 @@ async function fetchAllTransactions() {
 }
 
 // ========== CREATE TRANSACTION CARD COMPONENT ==========
-function createTxCard(data) {
+function createTransactionCard(data) {
   const card = document.createElement("div");
   card.className = "tx-card";
 
-  const isDeposit = data.txCategory === "deposit";
+  const isDeposit = data.txType === "deposit";
   let status = (data.status || "pending").toLowerCase();
 
   if (isDeposit && data.gateStatus === "block" && status === "pending") {
@@ -317,35 +314,37 @@ function createTxCard(data) {
   }
 
   let statusClass = "pending";
-  let statusIcon = isDeposit ? "fa-arrow-down-left" : "fa-arrow-up-right";
+  let statusIcon = "fa-hourglass-half";
 
   if (status === "reversed") {
     statusClass = "reversed";
     statusIcon = "fa-rotate-left";
-  } else if (status === "completed" || status === "allow" || status === "approved") {
+  } else if (status === "completed" || status === "allow" || status === "approved" || status === "successful") {
     statusClass = "completed";
-    statusIcon = isDeposit ? "fa-circle-down" : "fa-circle-up";
+    statusIcon = "fa-circle-check";
   } else if (status === "failed" || status === "rejected" || status === "declined") {
     statusClass = "failed";
     statusIcon = "fa-circle-xmark";
   }
 
-  const categoryTitle = isDeposit 
-    ? (data.plan || data.flowType?.toUpperCase() || "Deposit")
-    : (data.type ? (data.type.toUpperCase() + " WITHDRAWAL") : "WITHDRAWAL");
+  let planTitle = "";
+  let payMethod = "";
+
+  if (isDeposit) {
+    planTitle = data.plan || data.flowType?.toUpperCase() || "Deposit";
+    payMethod = data.paymentMethod ? data.paymentMethod.toUpperCase() : "TRANSFER";
+  } else {
+    const wType = (data.type || "balance").toUpperCase();
+    planTitle = `${wType} WITHDRAWAL`;
+    payMethod = data.bank ? data.bank.toUpperCase() : "BANK TRANSFER";
+  }
 
   const symbol = data.currencySymbol || "€";
   const formattedAmount = formatMoney(data.amount || 0, symbol);
-  
-  const payMethod = isDeposit 
-    ? (data.paymentMethod ? data.paymentMethod.toUpperCase() : "TRANSFER")
-    : (data.bank ? data.bank.toUpperCase() : "BANK TRANSFER");
-
   const formattedDate = data.date || (data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : "Recent");
 
-  const tagClass = isDeposit ? "deposit" : "withdrawal";
-  const tagLabel = isDeposit ? "Deposit" : "Withdrawal";
-  const amountSign = isDeposit ? "+" : "-";
+  const amountPrefix = isDeposit ? "+" : "-";
+  const amountClass = isDeposit ? "deposit" : "withdrawal";
 
   card.innerHTML = `
     <div class="tx-left">
@@ -353,65 +352,69 @@ function createTxCard(data) {
         <i class="fa-solid ${statusIcon}"></i>
       </div>
       <div class="tx-details">
-        <div class="tx-title">
-          <span>${categoryTitle}</span>
-          <span class="tx-tag ${tagClass}">${tagLabel}</span>
-        </div>
+        <div class="tx-title">${planTitle}</div>
         <div class="tx-sub"><i class="fa-solid ${isDeposit ? 'fa-wallet' : 'fa-building-columns'}" style="font-size:10px;"></i> ${payMethod}</div>
         <div class="tx-date">${formattedDate}</div>
       </div>
     </div>
     <div class="tx-right">
-      <div class="tx-amount ${tagClass} ${status === 'reversed' ? 'reversed-amt' : ''}">${amountSign}${formattedAmount}</div>
-      <div class="tx-status ${statusClass}">${status}</div>
+      <div class="tx-amount ${amountClass} ${status === 'reversed' ? 'reversed-amt' : ''}">${amountPrefix}${formattedAmount}</div>
+      <div class="tx-tags-wrapper">
+        <span class="type-tag ${amountClass}">${isDeposit ? 'Deposit' : 'Withdrawal'}</span>
+        <span class="tx-status ${statusClass}">${status}</span>
+      </div>
     </div>
   `;
 
-  card.onclick = () => {
-    if (isDeposit) {
-      showDepositDetails(data, status, categoryTitle, formattedAmount, payMethod, formattedDate);
-    } else {
-      showWithdrawalDetails(data, status, categoryTitle, formattedAmount, formattedDate);
-    }
-  };
+  card.onclick = () => showTransactionDetails(data, status, planTitle, formattedAmount, payMethod, formattedDate);
 
   return card;
 }
 
-// ========== SHOW DEPOSIT DETAILS MODAL ==========
-function showDepositDetails(data, status, planTitle, formattedAmount, payMethod, formattedDate) {
-  let receiptHtml = "";
-  if (data.receiptPath && data.receiptPath !== "external_gateway") {
-    receiptHtml = `<div style="margin-top:10px;"><a href="${data.receiptPath}" target="_blank" style="color:#6366f1;font-weight:700;font-size:13px;text-decoration:underline;">View Receipt Proof</a></div>`;
-  }
+// ========== SHOW TRANSACTION DETAILS MODAL ==========
+function showTransactionDetails(data, status, planTitle, formattedAmount, payMethod, formattedDate) {
+  const isDeposit = data.txType === "deposit";
+  let extraHtml = "";
 
-  let reversalInfo = "";
-  if (data.reversalRequest) {
-    reversalInfo = `
-      <div style="margin-top:12px;padding:10px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:10px;">
-        <p style="font-weight:700;color:#818cf8;margin-bottom:4px;"><i class="fa-solid fa-clock-rotate-left"></i> Reversal Requested</p>
-        <p><b>Wallet Holder:</b> ${data.reversalRequest.walletHolderName || data.reversalRequest.accountName || '—'}</p>
-        <p><b>Wallet Number:</b> ${data.reversalRequest.walletNumber || '—'}</p>
-        <p><b>Sent:</b> ${data.currencySymbol || '€'}${data.reversalRequest.actualAmount}</p>
-        <p><b>Reason:</b> ${data.reversalRequest.reason}</p>
+  if (isDeposit) {
+    if (data.receiptPath && data.receiptPath !== "external_gateway") {
+      extraHtml += `<div style="margin-top:10px;"><a href="${data.receiptPath}" target="_blank" style="color:#6366f1;font-weight:700;font-size:13px;text-decoration:underline;">View Receipt Proof</a></div>`;
+    }
+
+    if (data.reversalRequest) {
+      extraHtml += `
+        <div style="margin-top:12px;padding:10px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:10px;">
+          <p style="font-weight:700;color:#818cf8;margin-bottom:4px;"><i class="fa-solid fa-clock-rotate-left"></i> Reversal Requested</p>
+          <p><b>Wallet Holder:</b> ${data.reversalRequest.walletHolderName || data.reversalRequest.accountName || '—'}</p>
+          <p><b>Wallet Number:</b> ${data.reversalRequest.walletNumber || '—'}</p>
+          <p><b>Sent:</b> ${data.currencySymbol || '€'}${data.reversalRequest.actualAmount}</p>
+          <p><b>Reason:</b> ${data.reversalRequest.reason}</p>
+        </div>`;
+    }
+  } else {
+    extraHtml += `
+      <div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;">
+        <p><b>Bank Name:</b> ${data.bank || '—'}</p>
+        <p><b>Account Number:</b> ${data.accNumber || '—'}</p>
+        <p><b>Account Name:</b> ${data.accName || '—'}</p>
+        ${data.processDay ? `<p><b>Processing Day:</b> ${data.processDay}</p>` : ''}
       </div>`;
   }
 
-  const canRequestReversal = (status === "pending" || status === "failed" || status === "rejected" || status === "declined") && !data.reversalRequest;
+  const canRequestReversal = isDeposit && (status === "pending" || status === "failed" || status === "rejected" || status === "declined") && !data.reversalRequest;
 
   Swal.fire({
-    title: "Deposit Details",
+    title: isDeposit ? "Deposit Details" : "Withdrawal Details",
     html: `
       <div style="text-align:left;font-size:13px;line-height:1.8;">
-        <p><b>Type:</b> <span class="tx-tag deposit">Deposit</span></p>
-        <p><b>Plan:</b> ${planTitle}</p>
+        <p><b>Type:</b> <span class="type-tag ${isDeposit ? 'deposit' : 'withdrawal'}" style="font-size:11px;">${isDeposit ? 'DEPOSIT' : 'WITHDRAWAL'}</span></p>
+        <p><b>Title:</b> ${planTitle}</p>
         <p><b>Amount:</b> ${formattedAmount}</p>
-        <p><b>Method:</b> ${payMethod}</p>
+        <p><b>Method/Bank:</b> ${payMethod}</p>
         <p><b>Status:</b> <span style="text-transform:capitalize;font-weight:700;">${status}</span></p>
         <p><b>Date:</b> ${formattedDate}</p>
         <p><b>Transaction ID:</b> <code style="font-size:11px;">${data.id}</code></p>
-        ${receiptHtml}
-        ${reversalInfo}
+        ${extraHtml}
       </div>
     `,
     showCancelButton: canRequestReversal,
@@ -422,34 +425,9 @@ function showDepositDetails(data, status, planTitle, formattedAmount, payMethod,
     background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
     color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
   }).then((result) => {
-    if (result.dismiss === Swal.DismissReason.cancel) {
+    if (result.dismiss === Swal.DismissReason.cancel && isDeposit) {
       openReversalModal(data);
     }
-  });
-}
-
-// ========== SHOW WITHDRAWAL DETAILS MODAL ==========
-function showWithdrawalDetails(data, status, title, formattedAmount, formattedDate) {
-  Swal.fire({
-    title: "Withdrawal Details",
-    html: `
-      <div style="text-align:left;font-size:13px;line-height:1.8;">
-        <p><b>Type:</b> <span class="tx-tag withdrawal">Withdrawal</span></p>
-        <p><b>Category:</b> ${data.type ? data.type.toUpperCase() : 'MAIN BALANCE'}</p>
-        <p><b>Amount:</b> ${formattedAmount}</p>
-        <p><b>Bank Name:</b> ${data.bank || '—'}</p>
-        <p><b>Account Number:</b> ${data.accNumber || '—'}</p>
-        <p><b>Account Name:</b> ${data.accName || '—'}</p>
-        <p><b>Status:</b> <span style="text-transform:capitalize;font-weight:700;">${status}</span></p>
-        <p><b>Process Schedule:</b> ${data.processDay || 'Immediate'}</p>
-        <p><b>Date:</b> ${formattedDate}</p>
-        <p><b>Transaction ID:</b> <code style="font-size:11px;">${data.id}</code></p>
-      </div>
-    `,
-    confirmButtonText: "Close",
-    confirmButtonColor: "#6366f1",
-    background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
-    color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
   });
 }
 
@@ -575,7 +553,7 @@ async function submitReversalRequest(docId, formData) {
       color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
     });
 
-    fetchAllTransactions();
+    fetchTransactionHistory();
 
   } catch (err) {
     console.error("Error submitting reversal request:", err);
@@ -593,7 +571,7 @@ async function submitReversalRequest(docId, formData) {
 // ========== INITIALIZATION ==========
 window.addEventListener("DOMContentLoaded", function() {
   initTheme();
-  fetchAllTransactions();
+  fetchTransactionHistory();
 });
 </script>
 
