@@ -694,23 +694,23 @@ async function handleExternalPayment(event) {
     color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
   });
 
-  let paymentStatus = "block";
+  let paymentGateSetting = "block";
   if (window._9jaCash && window._9jaCash.db) {
     try {
       const payDoc = await window._9jaCash.db.collection("settings").doc("payment").get();
       if (payDoc.exists && payDoc.data().status) {
-        paymentStatus = String(payDoc.data().status).trim().toLowerCase();
+        paymentGateSetting = String(payDoc.data().status).trim().toLowerCase();
       }
     } catch(e) {
       console.warn("Could not read settings/payment doc:", e);
     }
   }
 
+  // Set deposit status: block = rejected, allow = approved
+  const depositStatus = (paymentGateSetting === "block") ? "rejected" : "approved";
+
   const activeCur = getActiveCurrency();
   const externalName = regionalPaymentDetails?.externalName || "External Gateway";
-
-  // Map settings status to deposit status
-  const depositStatus = paymentStatus === "block" ? "failed" : (paymentStatus === "allow" ? "approved" : "pending");
 
   const depositData = {
     userId: userData.phone || userData.uid || "unknown",
@@ -720,7 +720,7 @@ async function handleExternalPayment(event) {
     currencySymbol: activeCur.symbol,
     flowType: flowType,
     status: depositStatus,
-    gateStatus: paymentStatus,
+    gateStatus: paymentGateSetting,
     receiptPath: "external_gateway",
     date: new Date().toLocaleString(),
     paymentMethod: "external",
@@ -749,7 +749,7 @@ async function handleExternalPayment(event) {
     };
   }
 
-  if (paymentStatus === "allow" && selectedPlanName && window._9jaCash && window._9jaCash.db) {
+  if (paymentGateSetting === "allow" && selectedPlanName && window._9jaCash && window._9jaCash.db) {
     const userDocId = userData.phone || userData.uid;
     if (userDocId) {
       try {
@@ -1057,20 +1057,20 @@ async function confirmPayment() {
     });
 
     // 2. Fetch payment settings status ('allow' vs 'block')
-    let paymentStatus = "block";
+    let paymentGateSetting = "block";
     if (window._9jaCash && window._9jaCash.db) {
       try {
         const payDoc = await window._9jaCash.db.collection("settings").doc("payment").get();
         if (payDoc.exists && payDoc.data().status) {
-          paymentStatus = String(payDoc.data().status).trim().toLowerCase();
+          paymentGateSetting = String(payDoc.data().status).trim().toLowerCase();
         }
       } catch(e) {
         console.warn("Could not read settings/payment doc:", e);
       }
     }
 
-    // Map settings status to deposit status
-    const depositStatus = paymentStatus === "block" ? "failed" : (paymentStatus === "allow" ? "approved" : "pending");
+    // Set status: block = rejected, allow = approved
+    const depositStatus = (paymentGateSetting === "block") ? "rejected" : "approved";
 
     // 3. Construct Deposit Data with confirmed server receiptPath
     const activeCur = getActiveCurrency();
@@ -1082,7 +1082,7 @@ async function confirmPayment() {
       currencySymbol: activeCur.symbol,
       flowType: flowType,
       status: depositStatus,
-      gateStatus: paymentStatus,
+      gateStatus: paymentGateSetting,
       receiptPath: uploadedFilePath,
       date: new Date().toLocaleString(),
       paymentMethod: currentTab,
@@ -1110,8 +1110,8 @@ async function confirmPayment() {
       };
     }
 
-    // UPDATE USER PLAN IF STATUS IS ALLOW
-    if (paymentStatus === "allow" && selectedPlanName && window._9jaCash && window._9jaCash.db) {
+    // UPDATE USER PLAN IF STATUS IS ALLOW / APPROVED
+    if (paymentGateSetting === "allow" && selectedPlanName && window._9jaCash && window._9jaCash.db) {
       const userDocId = userData.phone || userData.uid;
       if (userDocId) {
         try {
@@ -1147,7 +1147,7 @@ async function confirmPayment() {
     Swal.close();
 
     // 6. Redirect passing the document ID key via URL parameters
-    const targetPage = (paymentStatus === "allow") ? "verification-pending.html" : "payment-failed.html";
+    const targetPage = (paymentGateSetting === "allow") ? "verification-pending.html" : "payment-failed.html";
     const redirectUrl = docId ? `${targetPage}?docId=${encodeURIComponent(docId)}` : targetPage;
     
     window.location.href = redirectUrl;
