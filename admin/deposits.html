@@ -256,6 +256,8 @@ function renderDeposits() {
       const rev = d.reversalRequest;
       const revProofUrl = rev.proofPath ? (rev.proofPath.startsWith('http') ? rev.proofPath : '../' + rev.proofPath) : '';
       const revIsPdf = revProofUrl.endsWith('.pdf');
+      const walletName = rev.walletHolderName || rev.accountName || '—';
+      const walletNum = rev.walletNumber || '—';
 
       reversalBoxHtml = `
         <div class="reversal-box">
@@ -264,7 +266,8 @@ function renderDeposits() {
             <span style="font-size:10px;color:#94a3b8;">${rev.date || 'Recent'}</span>
           </div>
           <div class="reversal-grid">
-            <div><span style="color:#64748b;">Account:</span> <b>${rev.accountName || '—'}</b></div>
+            <div><span style="color:#64748b;">Wallet Name:</span> <b>${walletName}</b></div>
+            <div><span style="color:#64748b;">Wallet Number:</span> <b>${walletNum}</b></div>
             <div><span style="color:#64748b;">Sent Amount:</span> <b style="color:#10b981;">${d.currencySymbol || '€'}${rev.actualAmount || '0'}</b></div>
           </div>
           <div style="font-size:11px;margin-top:6px;color:#94a3b8;">
