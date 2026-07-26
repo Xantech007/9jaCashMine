@@ -302,7 +302,11 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
       <div id="planBadge" class="plan-badge badge-free">Free Plan</div>
     </div>
   </div>
-  <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
+    <!-- Added Logout Button -->
+    <button class="notify-btn" onclick="logoutUser()" id="logoutBtn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+  </div>
 </div>
 <button class="tour-pill anim d1" id="startTourBtn" onclick="startTutorial()">
   <i class="fa-solid fa-route"></i> Start Tour
