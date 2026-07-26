@@ -674,16 +674,15 @@ function initFirebase() {
 
 function fetchWhatsAppNumber() {
   if (!db) return;
-  // Updated document path to match actual Firestore setup ("payment collection")
-  db.collection("settings").doc("payment collection").get()
+  db.collection("settings").doc("whatsapp").get()
     .then(doc => {
       if (doc.exists) {
         const data = doc.data();
-        const whatsappNumber = data.whatsappNumber;
-        if (whatsappNumber) {
+        const number = data.number;
+        if (number) {
           const waBtn = document.getElementById("whatsappFloatBtn");
           if (waBtn) {
-            waBtn.href = `https://wa.me/${whatsappNumber}`;
+            waBtn.href = `https://wa.me/${number}`;
           }
         }
       }
