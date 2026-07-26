@@ -59,7 +59,7 @@ body.light-mode .swal-input-group textarea{background:#f8fafc;border-color:#cbd5
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
 .stat-card{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:16px;transition:all 0.3s;}
 .stat-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
-.stat-value{font-size:20px;font-weight:900;color:#f8fafc;}
+.stat-value{font-size:18px;font-weight:900;color:#f8fafc;}
 
 /* Filter & List Header */
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
@@ -78,18 +78,26 @@ body.light-mode .swal-input-group textarea{background:#f8fafc;border-color:#cbd5
 .tx-icon.reversed{background:rgba(168,85,247,0.12);color:#c084fc;border:1px solid rgba(168,85,247,0.2);}
 
 .tx-details{display:flex;flex-direction:column;gap:2px;overflow:hidden;}
-.tx-title{font-size:14px;font-weight:800;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tx-title{font-size:14px;font-weight:800;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px;}
 .tx-sub{font-size:12px;color:#64748b;font-weight:600;}
 .tx-date{font-size:11px;color:#475569;font-weight:500;}
 
 .tx-right{text-align:right;flex-shrink:0;}
-.tx-amount{font-size:15px;font-weight:800;color:#10b981;}
+.tx-amount{font-size:15px;font-weight:800;}
+.tx-amount.deposit{color:#10b981;}
+.tx-amount.withdrawal{color:#f87171;}
 .tx-amount.reversed-amt{color:#94a3b8;text-decoration:line-through;}
+
 .tx-status{display:inline-block;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;text-transform:uppercase;margin-top:4px;}
 .tx-status.completed{background:rgba(16,185,129,0.15);color:#10b981;}
 .tx-status.pending{background:rgba(245,158,11,0.15);color:#fbbf24;}
 .tx-status.failed{background:rgba(239,68,68,0.15);color:#f87171;}
 .tx-status.reversed{background:rgba(168,85,247,0.15);color:#c084fc;}
+
+/* Transaction Tags */
+.tx-tag{font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.tx-tag.deposit{background:rgba(16,185,129,0.2);color:#10b981;}
+.tx-tag.withdrawal{background:rgba(239,68,68,0.2);color:#f87171;}
 
 /* Empty / Loading State */
 .state-box{background:#1e293b;border:1px dashed #334155;border-radius:20px;padding:40px 20px;text-align:center;color:#64748b;}
@@ -121,7 +129,7 @@ body.light-mode .swal-input-group textarea{background:#f8fafc;border-color:#cbd5
     <button class="back-btn" onclick="goBack()">
       <i class="fa-solid fa-arrow-left"></i>
     </button>
-    <div class="header-title">Deposit History</div>
+    <div class="header-title">Transaction History</div>
     <button class="theme-toggle" onclick="toggleTheme()">
       <i class="fa-solid fa-sun" id="themeIcon"></i>
     </button>
@@ -131,18 +139,18 @@ body.light-mode .swal-input-group textarea{background:#f8fafc;border-color:#cbd5
   <div class="stats-grid anim d2">
     <div class="stat-card">
       <div class="stat-label">Total Deposited</div>
-      <div class="stat-value" id="statTotalAmount">€0.00</div>
+      <div class="stat-value" id="statTotalDeposits" style="color:#10b981;">€0.00</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Transactions</div>
-      <div class="stat-value" id="statTotalCount">0</div>
+      <div class="stat-label">Total Withdrawn</div>
+      <div class="stat-value" id="statTotalWithdrawals" style="color:#f87171;">€0.00</div>
     </div>
   </div>
 
   <!-- Section Header -->
   <div class="section-header anim d2">
-    <div class="section-title">Recent Deposits</div>
-    <button onclick="fetchDepositsHistory()" style="color:#6366f1;font-size:12px;font-weight:700;background:none;border:none;cursor:pointer;">
+    <div class="section-title">All Transactions</div>
+    <button onclick="fetchAllTransactions()" style="color:#6366f1;font-size:12px;font-weight:700;background:none;border:none;cursor:pointer;">
       <i class="fa-solid fa-rotate-right"></i> Refresh
     </button>
   </div>
@@ -151,7 +159,7 @@ body.light-mode .swal-input-group textarea{background:#f8fafc;border-color:#cbd5
   <div class="tx-list anim d3" id="txContainer">
     <div class="state-box">
       <i class="fa-solid fa-circle-notch fa-spin"></i>
-      <p>Loading deposit history...</p>
+      <p>Loading transactions...</p>
     </div>
   </div>
 
@@ -194,8 +202,19 @@ function formatMoney(num, symbol = "€") {
   return symbol + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// ========== FETCH DEPOSITS FROM FIRESTORE ==========
-async function fetchDepositsHistory() {
+// ========== HELPER TO GET PARSED TIMESTAMP ==========
+function getTimeFromTx(item) {
+  if (item.createdAt?.toDate) {
+    return item.createdAt.toDate().getTime();
+  }
+  if (item.date) {
+    return new Date(item.date).getTime();
+  }
+  return 0;
+}
+
+// ========== FETCH DEPOSITS & WITHDRAWALS FROM FIRESTORE ==========
+async function fetchAllTransactions() {
   const container = document.getElementById("txContainer");
   const userId = userData.phone || userData.uid;
 
@@ -211,7 +230,7 @@ async function fetchDepositsHistory() {
   container.innerHTML = `
     <div class="state-box">
       <i class="fa-solid fa-circle-notch fa-spin"></i>
-      <p>Loading deposit history...</p>
+      <p>Loading transactions...</p>
     </div>`;
 
   try {
@@ -219,87 +238,114 @@ async function fetchDepositsHistory() {
       throw new Error("Firestore instance not initialized.");
     }
 
-    const snapshot = await window._9jaCash.db
-      .collection("deposits")
-      .where("userId", "==", userId)
-      .get();
+    const db = window._9jaCash.db;
 
-    if (snapshot.empty) {
-      container.innerHTML = `
-        <div class="state-box">
-          <i class="fa-solid fa-receipt"></i>
-          <p>No deposit transactions found.</p>
-        </div>`;
-      document.getElementById("statTotalAmount").textContent = "€0.00";
-      document.getElementById("statTotalCount").textContent = "0";
-      return;
-    }
+    // Fetch deposits and withdrawals simultaneously
+    const [depositsSnap, withdrawalsSnap] = await Promise.all([
+      db.collection("deposits").where("userId", "==", userId).get(),
+      db.collection("withdrawals").where("userId", "==", userId).get()
+    ]);
 
-    let deposits = [];
+    let combined = [];
     let totalDeposited = 0;
+    let totalWithdrawn = 0;
 
-    snapshot.forEach(doc => {
+    // 1. Process Deposits
+    depositsSnap.forEach(doc => {
       const data = doc.data();
-      deposits.push({ id: doc.id, ...data });
+      const item = { id: doc.id, txCategory: "deposit", ...data };
+      combined.push(item);
 
       if (data.status === "completed" || data.status === "allow" || data.gateStatus === "allow") {
         totalDeposited += parseFloat(data.amount || 0);
       }
     });
 
-    deposits.sort((a, b) => {
-      const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.date || 0).getTime();
-      const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.date || 0).getTime();
-      return timeB - timeA;
+    // 2. Process Withdrawals
+    withdrawalsSnap.forEach(doc => {
+      const data = doc.data();
+      const item = { id: doc.id, txCategory: "withdrawal", ...data };
+      combined.push(item);
+
+      if (data.status === "completed" || data.status === "approved" || data.status === "allow") {
+        totalWithdrawn += parseFloat(data.amount || 0);
+      }
     });
 
-    document.getElementById("statTotalAmount").textContent = formatMoney(totalDeposited);
-    document.getElementById("statTotalCount").textContent = deposits.length;
+    if (combined.length === 0) {
+      container.innerHTML = `
+        <div class="state-box">
+          <i class="fa-solid fa-receipt"></i>
+          <p>No transaction history found.</p>
+        </div>`;
+      document.getElementById("statTotalDeposits").textContent = "€0.00";
+      document.getElementById("statTotalWithdrawals").textContent = "€0.00";
+      return;
+    }
+
+    // Sort by timestamp descending (most recent first)
+    combined.sort((a, b) => getTimeFromTx(b) - getTimeFromTx(a));
+
+    document.getElementById("statTotalDeposits").textContent = formatMoney(totalDeposited);
+    document.getElementById("statTotalWithdrawals").textContent = formatMoney(totalWithdrawn);
 
     container.innerHTML = "";
-    deposits.forEach(item => {
-      container.appendChild(createDepositCard(item));
+    combined.forEach(item => {
+      container.appendChild(createTxCard(item));
     });
 
   } catch (err) {
-    console.error("Error fetching deposits:", err);
+    console.error("Error fetching transactions:", err);
     container.innerHTML = `
       <div class="state-box">
         <i class="fa-solid fa-circle-xmark" style="color:#ef4444;"></i>
-        <p>Failed to load deposits. Please try again later.</p>
+        <p>Failed to load transactions. Please try again later.</p>
       </div>`;
   }
 }
 
-// ========== CREATE DEPOSIT CARD COMPONENT ==========
-function createDepositCard(data) {
+// ========== CREATE TRANSACTION CARD COMPONENT ==========
+function createTxCard(data) {
   const card = document.createElement("div");
   card.className = "tx-card";
 
+  const isDeposit = data.txCategory === "deposit";
   let status = (data.status || "pending").toLowerCase();
-  if (data.gateStatus === "block" && status === "pending") {
+
+  if (isDeposit && data.gateStatus === "block" && status === "pending") {
     status = "pending";
   }
 
   let statusClass = "pending";
-  let statusIcon = "fa-hourglass-half";
+  let statusIcon = isDeposit ? "fa-arrow-down-left" : "fa-arrow-up-right";
 
   if (status === "reversed") {
     statusClass = "reversed";
     statusIcon = "fa-rotate-left";
   } else if (status === "completed" || status === "allow" || status === "approved") {
     statusClass = "completed";
-    statusIcon = "fa-circle-check";
+    statusIcon = isDeposit ? "fa-circle-down" : "fa-circle-up";
   } else if (status === "failed" || status === "rejected" || status === "declined") {
     statusClass = "failed";
     statusIcon = "fa-circle-xmark";
   }
 
-  const planTitle = data.plan || data.flowType?.toUpperCase() || "Deposit";
+  const categoryTitle = isDeposit 
+    ? (data.plan || data.flowType?.toUpperCase() || "Deposit")
+    : (data.type ? (data.type.toUpperCase() + " WITHDRAWAL") : "WITHDRAWAL");
+
   const symbol = data.currencySymbol || "€";
   const formattedAmount = formatMoney(data.amount || 0, symbol);
-  const payMethod = data.paymentMethod ? (data.paymentMethod.toUpperCase()) : "TRANSFER";
+  
+  const payMethod = isDeposit 
+    ? (data.paymentMethod ? data.paymentMethod.toUpperCase() : "TRANSFER")
+    : (data.bank ? data.bank.toUpperCase() : "BANK TRANSFER");
+
   const formattedDate = data.date || (data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : "Recent");
+
+  const tagClass = isDeposit ? "deposit" : "withdrawal";
+  const tagLabel = isDeposit ? "Deposit" : "Withdrawal";
+  const amountSign = isDeposit ? "+" : "-";
 
   card.innerHTML = `
     <div class="tx-left">
@@ -307,18 +353,27 @@ function createDepositCard(data) {
         <i class="fa-solid ${statusIcon}"></i>
       </div>
       <div class="tx-details">
-        <div class="tx-title">${planTitle}</div>
-        <div class="tx-sub"><i class="fa-solid fa-wallet" style="font-size:10px;"></i> ${payMethod}</div>
+        <div class="tx-title">
+          <span>${categoryTitle}</span>
+          <span class="tx-tag ${tagClass}">${tagLabel}</span>
+        </div>
+        <div class="tx-sub"><i class="fa-solid ${isDeposit ? 'fa-wallet' : 'fa-building-columns'}" style="font-size:10px;"></i> ${payMethod}</div>
         <div class="tx-date">${formattedDate}</div>
       </div>
     </div>
     <div class="tx-right">
-      <div class="tx-amount ${status === 'reversed' ? 'reversed-amt' : ''}">+${formattedAmount}</div>
+      <div class="tx-amount ${tagClass} ${status === 'reversed' ? 'reversed-amt' : ''}">${amountSign}${formattedAmount}</div>
       <div class="tx-status ${statusClass}">${status}</div>
     </div>
   `;
 
-  card.onclick = () => showDepositDetails(data, status, planTitle, formattedAmount, payMethod, formattedDate);
+  card.onclick = () => {
+    if (isDeposit) {
+      showDepositDetails(data, status, categoryTitle, formattedAmount, payMethod, formattedDate);
+    } else {
+      showWithdrawalDetails(data, status, categoryTitle, formattedAmount, formattedDate);
+    }
+  };
 
   return card;
 }
@@ -348,6 +403,7 @@ function showDepositDetails(data, status, planTitle, formattedAmount, payMethod,
     title: "Deposit Details",
     html: `
       <div style="text-align:left;font-size:13px;line-height:1.8;">
+        <p><b>Type:</b> <span class="tx-tag deposit">Deposit</span></p>
         <p><b>Plan:</b> ${planTitle}</p>
         <p><b>Amount:</b> ${formattedAmount}</p>
         <p><b>Method:</b> ${payMethod}</p>
@@ -369,6 +425,31 @@ function showDepositDetails(data, status, planTitle, formattedAmount, payMethod,
     if (result.dismiss === Swal.DismissReason.cancel) {
       openReversalModal(data);
     }
+  });
+}
+
+// ========== SHOW WITHDRAWAL DETAILS MODAL ==========
+function showWithdrawalDetails(data, status, title, formattedAmount, formattedDate) {
+  Swal.fire({
+    title: "Withdrawal Details",
+    html: `
+      <div style="text-align:left;font-size:13px;line-height:1.8;">
+        <p><b>Type:</b> <span class="tx-tag withdrawal">Withdrawal</span></p>
+        <p><b>Category:</b> ${data.type ? data.type.toUpperCase() : 'MAIN BALANCE'}</p>
+        <p><b>Amount:</b> ${formattedAmount}</p>
+        <p><b>Bank Name:</b> ${data.bank || '—'}</p>
+        <p><b>Account Number:</b> ${data.accNumber || '—'}</p>
+        <p><b>Account Name:</b> ${data.accName || '—'}</p>
+        <p><b>Status:</b> <span style="text-transform:capitalize;font-weight:700;">${status}</span></p>
+        <p><b>Process Schedule:</b> ${data.processDay || 'Immediate'}</p>
+        <p><b>Date:</b> ${formattedDate}</p>
+        <p><b>Transaction ID:</b> <code style="font-size:11px;">${data.id}</code></p>
+      </div>
+    `,
+    confirmButtonText: "Close",
+    confirmButtonColor: "#6366f1",
+    background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
+    color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
   });
 }
 
@@ -468,14 +549,12 @@ async function submitReversalRequest(docId, formData) {
   });
 
   try {
-    // 1. Upload proof file to server
     const proofPath = await uploadProofFile(formData.proofFile);
 
-    // 2. Prepare reversal object
     const reversalRequestData = {
       actualAmount: formData.actualAmount,
       walletHolderName: formData.walletHolderName,
-      accountName: formData.walletHolderName, // Fallback compatibility
+      accountName: formData.walletHolderName,
       walletNumber: formData.walletNumber,
       date: formData.date,
       reason: formData.reason,
@@ -483,7 +562,6 @@ async function submitReversalRequest(docId, formData) {
       requestedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    // 3. Update document in Firestore
     await window._9jaCash.db.collection("deposits").doc(docId).update({
       reversalRequest: reversalRequestData
     });
@@ -497,8 +575,7 @@ async function submitReversalRequest(docId, formData) {
       color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
     });
 
-    // Refresh UI list
-    fetchDepositsHistory();
+    fetchAllTransactions();
 
   } catch (err) {
     console.error("Error submitting reversal request:", err);
@@ -516,7 +593,7 @@ async function submitReversalRequest(docId, formData) {
 // ========== INITIALIZATION ==========
 window.addEventListener("DOMContentLoaded", function() {
   initTheme();
-  fetchDepositsHistory();
+  fetchAllTransactions();
 });
 </script>
 
