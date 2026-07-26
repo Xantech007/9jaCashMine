@@ -153,11 +153,11 @@ body.light-mode .currency-toggle-btn:hover{background:#e2e8f0;}
 .preview-remove{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;border:none;transition:all 0.3s;}
 .preview-remove:hover{background:rgba(239,68,68,0.9);}
 
-.submit-btn{width:100%;padding:18px;border-radius:18px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:16px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(99,102,241,0.3);position:relative;overflow:hidden;margin-top:8px;}
-.submit-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transition:0.5s;}
-.submit-btn:hover::before{left:100%;}
-.submit-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(99,102,241,0.4);}
-.submit-btn:active{transform:scale(0.97);}
+.submit-btn, .ext-pay-btn{width:100%;padding:18px;border-radius:18px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:16px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(99,102,241,0.3);position:relative;overflow:hidden;margin-top:8px;text-decoration:none;}
+.submit-btn::before, .ext-pay-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transition:0.5s;}
+.submit-btn:hover::before, .ext-pay-btn:hover::before{left:100%;}
+.submit-btn:hover, .ext-pay-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(99,102,241,0.4);}
+.submit-btn:active, .ext-pay-btn:active{transform:scale(0.97);}
 .submit-btn:disabled{background:#1e293b;color:#64748b;box-shadow:none;cursor:not-allowed;border:1px solid #334155;}
 .submit-btn:disabled::before{display:none;}
 
@@ -257,13 +257,27 @@ body.light-mode .currency-toggle-btn:hover{background:#e2e8f0;}
   </div>
 </div>
 
-<div class="tab-bar anim d3">
-  <button class="tab-btn active" id="tabBank" onclick="switchTab('bank')">
+<div class="tab-bar anim d3" id="tabContainer">
+  <button class="tab-btn" id="tabBank" onclick="switchTab('bank')">
     <i class="fa-solid fa-building-columns"></i> Pay by Transfer
   </button>
   <button class="tab-btn" id="tabCrypto" onclick="switchTab('crypto')">
     <i class="fa-brands fa-bitcoin"></i> Crypto
   </button>
+  <!-- EXTERNAL TAB WILL BE DYNAMICALLY INJECTED HERE IF ENABLED -->
+</div>
+
+<!-- EXTERNAL PAYMENT PANEL -->
+<div class="card anim d4" id="panelExternal" style="display:none;">
+  <div class="notice-box" style="margin-bottom: 16px;">
+    <div class="notice-icon"><i class="fa-solid fa-circle-info"></i></div>
+    <div class="notice-text" id="extInstructionText">
+      Please click the button below to process your payment securely.
+    </div>
+  </div>
+  <a id="extPayBtnLink" href="#" target="_blank" class="ext-pay-btn">
+    <i class="fa-solid fa-credit-card"></i> <span id="extPayBtnText">Pay Now</span>
+  </a>
 </div>
 
 <div class="card anim d4" id="panelBank">
@@ -310,7 +324,7 @@ body.light-mode .currency-toggle-btn:hover{background:#e2e8f0;}
   </div>
 </div>
 
-<div class="card anim d5">
+<div class="card anim d5" id="receiptUploadCard">
   <div class="upload-zone" id="uploadZone" onclick="document.getElementById('receiptUpload').click()">
     <i class="fa-solid fa-cloud-arrow-up" id="uploadIcon"></i>
     <div class="upload-zone-title" id="uploadTitle">Upload Payment Receipt</div>
@@ -576,10 +590,29 @@ function updateAmountDisplay() {
 // ========== TAB SWITCHING ==========
 function switchTab(tab) {
   currentTab = tab;
+  
+  const tabExt = document.getElementById("tabExternal");
+  if (tabExt) tabExt.classList.toggle("active", tab === "external");
+  
   document.getElementById("tabBank").classList.toggle("active", tab === "bank");
   document.getElementById("tabCrypto").classList.toggle("active", tab === "crypto");
+  
+  const panelExt = document.getElementById("panelExternal");
+  if (panelExt) panelExt.style.display = tab === "external" ? "block" : "none";
+  
   document.getElementById("panelBank").style.display = tab === "bank" ? "block" : "none";
   document.getElementById("panelCrypto").style.display = tab === "crypto" ? "block" : "none";
+
+  // Hide upload section & confirm button if using external gateway
+  const receiptCard = document.getElementById("receiptUploadCard");
+  const paidBtn = document.getElementById("paidBtn");
+  if (tab === "external") {
+    receiptCard.style.display = "none";
+    paidBtn.style.display = "none";
+  } else {
+    receiptCard.style.display = "block";
+    paidBtn.style.display = "flex";
+  }
 }
 
 // ========== MAP USER COUNTRY TO REGION DOCUMENT NAME ==========
@@ -641,6 +674,65 @@ function renderPaymentDetails() {
   updateAmountDisplay();
 }
 
+// ========== LOAD EXTERNAL PAYMENT DETAILS ==========
+function loadExternalPaymentDetails(data) {
+  if (!data) return;
+
+  const externalPayment = String(data.externalPayment || "").trim().toLowerCase();
+  const externalName = data.externalName || "Paystack";
+
+  if (externalPayment === "yes") {
+    // Create tab if it doesn't exist
+    let tabExt = document.getElementById("tabExternal");
+    if (!tabExt) {
+      tabExt = document.createElement("button");
+      tabExt.className = "tab-btn active";
+      tabExt.id = "tabExternal";
+      tabExt.onclick = function() { switchTab('external'); };
+      tabExt.innerHTML = `<i class="fa-solid fa-credit-card"></i> Pay by ${externalName}`;
+      
+      const container = document.getElementById("tabContainer");
+      container.insertBefore(tabExt, container.firstChild);
+    } else {
+      tabExt.innerHTML = `<i class="fa-solid fa-credit-card"></i> Pay by ${externalName}`;
+    }
+
+    // Determine current plan
+    let currentPlan = "Basic";
+    if (flowType === "upgrade" && upgradeData) {
+      currentPlan = upgradeData.name || "Basic";
+    } else if (flowType === "payout_key" && paymentData) {
+      currentPlan = paymentData.plan || "Basic";
+    }
+
+    // Clean plan name to match Firestore link field
+    let cleanPlan = "Basic";
+    const pLower = currentPlan.toLowerCase();
+    if (pLower.includes("silver")) cleanPlan = "Silver";
+    else if (pLower.includes("gold")) cleanPlan = "Gold";
+    else if (pLower.includes("diamond")) cleanPlan = "Diamond";
+
+    // Obtain the corresponding payment link
+    const linkField = "externalLink" + cleanPlan;
+    const targetLink = data[linkField] || "#";
+
+    // Setup Instructions & Link
+    document.getElementById("extInstructionText").innerHTML = `Make your payment via <b>${externalName}</b> for the <b>${currentPlan}</b> plan. Click below to continue.`;
+    
+    const payBtn = document.getElementById("extPayBtnLink");
+    payBtn.href = targetLink;
+    document.getElementById("extPayBtnText").textContent = `Pay with ${externalName}`;
+
+    // Show tab as default
+    switchTab('external');
+  } else {
+    // If external payment is set to "no", hide or remove external elements
+    const tabExt = document.getElementById("tabExternal");
+    if (tabExt) tabExt.remove();
+    switchTab('bank');
+  }
+}
+
 // ========== LOAD PAYMENT DETAILS FROM FIREBASE ==========
 function loadPaymentDetails() {
   if (window._9jaCash && window._9jaCash.db) {
@@ -665,18 +757,22 @@ function loadPaymentDetails() {
       .then(function(doc) {
         if (doc.exists) {
           regionalPaymentDetails = doc.data();
+          loadExternalPaymentDetails(regionalPaymentDetails);
         } else {
           console.warn("Region document does not exist:", regionDoc);
           regionalPaymentDetails = null;
+          switchTab('bank');
         }
       })
       .catch(function(err) {
         console.error("Error fetching regional details:", err);
         regionalPaymentDetails = null;
+        switchTab('bank');
       });
 
   } else {
     setFallbackDetails();
+    switchTab('bank');
   }
 }
 
@@ -815,7 +911,7 @@ async function uploadFileToServer(file) {
     throw new Error(data.message || "File upload failed on server.");
   }
 
-  return data.filePath; // Path returned by PHP, e.g. "receipts/1721820000_receipt.png"
+  return data.filePath; // Path returned by PHP
 }
 
 // ========== CONFIRM PAYMENT & DEPOSIT LOGIC ==========
