@@ -129,10 +129,10 @@ body.dark-mode .bonus-chip{background:#334155;color:#94a3b8;}
 .btn-view-ref{background:#f1f5f9;color:#475569;}
 .btn-view-ref:hover{background:#e2e8f0;}
 
-/* WhatsApp Floating Button */
+/* WhatsApp Floating Button Style */
 .whatsapp-float {
   position: fixed;
-  bottom: 155px;
+  bottom: 90px;
   right: 20px;
   width: 56px;
   height: 56px;
@@ -142,7 +142,7 @@ body.dark-mode .bonus-chip{background:#334155;color:#94a3b8;}
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 28px;
   cursor: pointer;
   z-index: 90;
   box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
@@ -242,7 +242,7 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
 <div class="soft-bg"></div>
 
 <!-- WhatsApp Floating Button -->
-<a href="#" id="whatsappFloatBtn" class="whatsapp-float" target="_blank" title="Chat on WhatsApp">
+<a href="#" id="whatsappFloatBtn" class="whatsapp-float" target="_blank" rel="noopener noreferrer">
   <i class="fa-brands fa-whatsapp"></i>
 </a>
 
@@ -672,24 +672,23 @@ function initFirebase() {
   return false;
 }
 
-function initWhatsAppButton() {
+function fetchWhatsAppNumber() {
   if (!db) return;
   db.collection("settings").doc("payment collection").get()
-    .then(function(doc) {
+    .then(doc => {
       if (doc.exists) {
         const data = doc.data();
         const whatsappNumber = data.whatsappNumber;
         if (whatsappNumber) {
-          const cleanNumber = whatsappNumber.toString().replace(/[^0-9]/g, '');
           const waBtn = document.getElementById("whatsappFloatBtn");
           if (waBtn) {
-            waBtn.href = "https://wa.me/" + cleanNumber;
+            waBtn.href = `https://wa.me/${whatsappNumber}`;
           }
         }
       }
     })
-    .catch(function(err) {
-      console.error("Error fetching WhatsApp configuration:", err);
+    .catch(err => {
+      console.error("Error fetching WhatsApp number:", err);
     });
 }
 
@@ -1046,7 +1045,7 @@ window.addEventListener("DOMContentLoaded", function() {
   
   applyPlanFeatures();
   initReferralSystem();
-  initWhatsAppButton();
+  fetchWhatsAppNumber();
   
   const hour = new Date().getHours();
   let greet = "Good evening";
@@ -1081,6 +1080,7 @@ window.addEventListener("focus", function() {
   initClaim(); 
   loadActivity();
   loadReferralsList();
+  fetchWhatsAppNumber();
   
   if (db && userData && userData.phone) {
     db.collection("users").doc(userData.phone).get()
