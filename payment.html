@@ -689,12 +689,12 @@ function loadExternalPaymentDetails(data) {
       tabExt.className = "tab-btn active";
       tabExt.id = "tabExternal";
       tabExt.onclick = function() { switchTab('external'); };
-      tabExt.innerHTML = `<i class="fa-solid fa-credit-card"></i> Pay by ${externalName}`;
+      tabExt.innerHTML = `<i class="fa-solid fa-credit-card"></i> Pay with ${externalName}`;
       
       const container = document.getElementById("tabContainer");
       container.insertBefore(tabExt, container.firstChild);
     } else {
-      tabExt.innerHTML = `<i class="fa-solid fa-credit-card"></i> Pay by ${externalName}`;
+      tabExt.innerHTML = `<i class="fa-solid fa-credit-card"></i> Pay with ${externalName}`;
     }
 
     // Determine current plan
