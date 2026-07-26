@@ -246,44 +246,50 @@ function formatMoney(amount, isLocalCurrency, currencySymbol) {
   return symbol + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// ========== EXTRACT KEY OR TRIGGER FROM URL PARAMETERS ==========
-function getUrlParams() {
+// ========== EXTRACT KEY FROM URL PARAMETERS ==========
+function getDocIdFromURL() {
   const params = new URLSearchParams(window.location.search);
-  return {
-    depositid: params.get("depositid") || params.get("depositId") || params.get("status"),
-    docId: params.get("docId") || params.get("id") || params.get("doc") || params.get("key") || params.get("ref") || params.get("tx_ref")
-  };
+  return params.get("depositId") || params.get("docId") || params.get("id") || params.get("doc") || params.get("key") || params.get("ref") || params.get("tx_ref");
 }
 
-// ========== FETCH LAST DEPOSIT FOR LOGGED-IN USER ==========
-async function fetchLastUserDeposit() {
-  const userId = userData.phone || userData.uid;
-  if (userId && window._9jaCash && window._9jaCash.db) {
+// ========== FETCH LAST DEPOSIT FOR CURRENT USER FROM FIRESTORE ==========
+async function fetchLatestUserDeposit() {
+  const userId = userData ? (userData.phone || userData.uid) : null;
+  if (!userId || !window._9jaCash || !window._9jaCash.db) return null;
+
+  try {
+    const snapshot = await window._9jaCash.db.collection("deposits")
+      .where("userId", "==", userId)
+      .orderBy("createdAt", "desc")
+      .limit(1)
+      .get();
+
+    if (!snapshot.empty) {
+      const docSnap = snapshot.docs[0];
+      const data = docSnap.data();
+      data.docId = docSnap.id;
+      return data;
+    }
+  } catch(err) {
+    console.warn("Could not fetch latest user deposit by createdAt index, trying fallback...", err);
+    // Fallback without orderBy in case composite index is not built
     try {
-      const snap = await window._9jaCash.db.collection("deposits")
+      const snapshot = await window._9jaCash.db.collection("deposits")
         .where("userId", "==", userId)
-        .orderBy("createdAt", "desc")
-        .limit(1)
+        .limit(10)
         .get();
 
-      if (!snap.empty) {
-        const docSnap = snap.docs[0];
-        const data = docSnap.data();
-        data.docId = docSnap.id;
-        return data;
+      if (!snapshot.empty) {
+        let docs = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
+        docs.sort((a, b) => {
+          let timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.date || a.createdAt || 0).getTime();
+          let timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.date || b.createdAt || 0).getTime();
+          return timeB - timeA;
+        });
+        return docs[0];
       }
-    } catch (err) {
-      console.warn("Could not fetch last deposit query from Firestore:", err);
-    }
-  }
-
-  // Local storage fallback
-  const stored = localStorage.getItem("latestDepositData");
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch(e) {
-      console.error("LocalStorage deposit parse error:", e);
+    } catch(fallbackErr) {
+      console.error("Fallback query failed:", fallbackErr);
     }
   }
 
@@ -292,7 +298,14 @@ async function fetchLastUserDeposit() {
 
 // ========== FETCH DEPOSIT FROM FIRESTORE OR LOCALSTORAGE ==========
 async function fetchDepositData(docId) {
-  if (docId && window._9jaCash && window._9jaCash.db) {
+  // Check if URL passed ?depositId=externalFailed
+  if (docId === "externalFailed") {
+    const lastUserDeposit = await fetchLatestUserDeposit();
+    if (lastUserDeposit) return lastUserDeposit;
+  }
+
+  // Fetch specific document by ID if provided and valid
+  if (docId && docId !== "externalFailed" && window._9jaCash && window._9jaCash.db) {
     try {
       const docSnap = await window._9jaCash.db.collection("deposits").doc(docId).get();
       if (docSnap.exists) {
@@ -305,6 +318,7 @@ async function fetchDepositData(docId) {
     }
   }
 
+  // Fallback to latest local deposit
   const stored = localStorage.getItem("latestDepositData");
   if (stored) {
     try {
@@ -336,23 +350,14 @@ async function detectFlow() {
   flowData = null;
   flowType = "unknown";
 
-  const { depositid, docId } = getUrlParams();
-  let fetchedDeposit = null;
-
-  // IF URL HAS ?depositid=externalfailed, FETCH LAST DEPOSIT
-  if (depositid && depositid.toLowerCase().includes("externalfailed")) {
-    fetchedDeposit = await fetchLastUserDeposit();
-  } else if (docId) {
-    fetchedDeposit = await fetchDepositData(docId);
-  } else {
-    fetchedDeposit = await fetchLastUserDeposit();
-  }
+  const docId = getDocIdFromURL();
+  const fetchedDeposit = await fetchDepositData(docId);
 
   if (fetchedDeposit) {
     flowData = fetchedDeposit;
-    if (fetchedDeposit.type === "payout_key" || fetchedDeposit.type === "payout_key_purchase") {
+    if (fetchedDeposit.type === "payout_key" || fetchedDeposit.type === "payout_key_purchase" || fetchedDeposit.flowType === "payout_key") {
       flowType = "payout_key";
-    } else if (fetchedDeposit.type === "upgrade" || fetchedDeposit.plan) {
+    } else if (fetchedDeposit.type === "upgrade" || fetchedDeposit.plan || fetchedDeposit.flowType === "upgrade") {
       flowType = "upgrade";
     } else {
       flowType = "deposit";
@@ -418,10 +423,10 @@ async function loadAdminSettings() {
 async function updateUI() {
   await detectFlow();
 
-  const { docId } = getUrlParams();
+  const docId = getDocIdFromURL();
   let amount = 0;
   let itemName = "Payment";
-  let txId = docId || "TX-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+  let txId = (docId && docId !== "externalFailed") ? docId : ("TX-" + Math.random().toString(36).substring(2, 10).toUpperCase());
   let dateText = new Date().toLocaleString("en-NG", {
     day: "numeric", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit"
