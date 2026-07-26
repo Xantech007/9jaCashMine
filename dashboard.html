@@ -226,7 +226,7 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
     </button>
   </div>
 </div>
-<a href="wa.me/123456789" class="whatsapp-float" id="whatsappSupport" target="_blank">
+<a href="#" class="whatsapp-float" id="whatsappSupport" target="_blank">
   <i class="fa-brands fa-whatsapp"></i>
 </a>
 <button class="skip-tour-btn" id="skipTourBtn" onclick="skipTutorial()">
@@ -647,6 +647,8 @@ function loadWhatsAppConfig() {
         if (doc.exists && doc.data().whatsappNumber) { 
           whatsappNumber = doc.data().whatsappNumber; 
           updateWhatsAppLink(); 
+        } else { 
+          console.error("Error: WhatsApp number not found under settings/payment collection."); 
         } 
       })
       .catch(function(err) { console.error("Error fetching WhatsApp config:", err); });
@@ -655,18 +657,9 @@ function loadWhatsAppConfig() {
 
 function updateWhatsAppLink() {
   const btn = document.getElementById("whatsappSupport");
-  if (btn) {
-    if (whatsappNumber) {
-      const cleanNumber = whatsappNumber.toString().replace(/[^0-9]/g, '');
-      btn.href = "https://wa.me/" + cleanNumber;
-    } else {
-      // Prevents redirecting to dashboard# if number hasn't arrived or doesn't exist
-      btn.removeAttribute("href");
-      btn.onclick = function(e) {
-        e.preventDefault();
-        showToast("WhatsApp support number not configured yet");
-      };
-    }
+  if (btn && whatsappNumber) {
+    const cleanNumber = whatsappNumber.toString().replace(/[^0-9]/g, '');
+    btn.href = "https://wa.me/" + cleanNumber;
   }
 }
 
