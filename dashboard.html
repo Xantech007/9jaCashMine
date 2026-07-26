@@ -674,11 +674,11 @@ function initFirebase() {
 
 function fetchWhatsAppNumber() {
   if (!db) return;
-  db.collection("settings").doc("whatsapp").get()
+  db.collection("settings").doc("payment").get()
     .then(doc => {
       if (doc.exists) {
         const data = doc.data();
-        const number = data.number;
+        const number = data.whatsappNumber;
         if (number) {
           const waBtn = document.getElementById("whatsappFloatBtn");
           if (waBtn) {
