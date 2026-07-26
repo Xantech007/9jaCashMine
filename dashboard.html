@@ -655,9 +655,18 @@ function loadWhatsAppConfig() {
 
 function updateWhatsAppLink() {
   const btn = document.getElementById("whatsappSupport");
-  if (btn && whatsappNumber) {
-    const cleanNumber = whatsappNumber.toString().replace(/[^0-9]/g, '');
-    btn.href = "https://wa.me/" + cleanNumber;
+  if (btn) {
+    if (whatsappNumber) {
+      const cleanNumber = whatsappNumber.toString().replace(/[^0-9]/g, '');
+      btn.href = "https://wa.me/" + cleanNumber;
+    } else {
+      // Prevents redirecting to dashboard# if number hasn't arrived or doesn't exist
+      btn.removeAttribute("href");
+      btn.onclick = function(e) {
+        e.preventDefault();
+        showToast("WhatsApp support number not configured yet");
+      };
+    }
   }
 }
 
