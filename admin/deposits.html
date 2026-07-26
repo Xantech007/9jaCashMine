@@ -2,269 +2,305 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Deposits - FlutterW Euro Earn</title>
 
+<!-- Firebase SDKs (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<!-- Point to your root firebase.js configuration file -->
 <script src="../firebase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- SweetAlert2 & Tailwind CSS & FontAwesome -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc;min-height:100vh;transition:all 0.3s ease;}
-
-body.light-mode{background:#f8fafc;color:#1e293b;}
-body.light-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;}
-body.light-mode .card{background:#fff;border-color:#e2e8f0;box-shadow:0 4px 24px rgba(0,0,0,0.06);}
-body.light-mode .back-btn{background:#fff;border-color:#e2e8f0;color:#64748b;}
-body.light-mode .back-btn:hover{background:#f1f5f9;color:#6366f1;}
-body.light-mode .header-title{color:#1e293b;}
-body.light-mode .table-container{background:#fff;border-color:#e2e8f0;}
-body.light-mode th{background:#f1f5f9;color:#475569;border-bottom-color:#e2e8f0;}
-body.light-mode td{border-bottom-color:#f1f5f9;color:#1e293b;}
-body.light-mode .modal-content{background:#fff;color:#1e293b;border-color:#e2e8f0;}
-
-.soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.12),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.08),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.06),transparent 50%),#0f172a;transition:all 0.3s ease;}
-
-.app{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 20px 40px;}
-
-.topbar{padding:24px 0 20px;display:flex;align-items:center;justify-content:space-between;}
-.back-btn{width:44px;height:44px;border-radius:14px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:16px;cursor:pointer;transition:all 0.3s;}
-.back-btn:hover{background:#334155;color:#818cf8;}
-.header-title{font-size:20px;font-weight:800;color:#f8fafc;transition:color 0.3s;}
-
-.theme-toggle{width:44px;height:44px;border-radius:14px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:16px;cursor:pointer;transition:all 0.3s;}
-.theme-toggle:hover{background:#334155;color:#818cf8;}
-
-.card{background:#1e293b;border-radius:24px;padding:24px;border:1px solid #334155;box-shadow:0 4px 24px rgba(0,0,0,0.2);margin-bottom:24px;transition:all 0.3s ease;}
-
-.table-responsive{width:100%;overflow-x:auto;}
-table{width:100%;border-collapse:collapse;text-align:left;font-size:14px;}
-th{padding:14px 16px;background:#0f172a;color:#94a3b8;font-weight:700;border-bottom:1px solid #334155;text-transform:uppercase;font-size:11px;letter-spacing:1px;}
-td{padding:16px;border-bottom:1px solid #334155;color:#f8fafc;vertical-align:middle;}
-tr:last-child td{border-bottom:none;}
-
-.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-.badge.pending{background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.2);}
-.badge.approved{background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2);}
-.badge.rejected{background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);}
-
-.action-btn{padding:6px 12px;border-radius:10px;background:#6366f1;color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.3s;display:inline-flex;align-items:center;gap:6px;}
-.action-btn:hover{background:#4f46e5;transform:translateY(-1px);}
-
-/* Modal Viewer */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:all 0.3s;}
-.modal-overlay.active{opacity:1;pointer-events:auto;}
-.modal-content{background:#1e293b;border:1px solid #334155;border-radius:20px;width:100%;max-width:600px;padding:24px;position:relative;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:all 0.3s;}
-.modal-overlay.active .modal-content{transform:translateY(0);}
-.modal-close{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:50%;background:#334155;color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;}
-.modal-close:hover{background:#ef4444;}
-.proof-img{width:100%;border-radius:12px;margin-top:12px;border:1px solid #334155;max-height:400px;object-fit:contain;background:#0f172a;}
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #f8fafc; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 20px; }
+  .table-row { border-bottom: 1px solid #334155; transition: background 0.2s; }
+  .table-row:hover { background: rgba(51, 65, 85, 0.4); }
+  .badge-pending { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+  .badge-approved { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+  .badge-rejected { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
 </style>
 </head>
-<body>
+<body class="min-h-screen p-4 md:p-8">
 
-<div class="soft-bg"></div>
-
-<div class="app">
-
-  <div class="topbar">
-    <button class="back-btn" onclick="window.location.href='dashboard.html'">
-      <i class="fa-solid fa-arrow-left"></i>
-    </button>
-    <div class="header-title">Deposit Management</div>
-    <button class="theme-toggle" onclick="toggleTheme()">
-      <i class="fa-solid fa-sun" id="themeIcon"></i>
-    </button>
+<div class="max-w-7xl mx-auto">
+  <!-- Top Navigation Bar -->
+  <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+    <div>
+      <div class="flex items-center gap-3">
+        <a href="dashboard.html" class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-indigo-400 transition">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <h1 class="text-2xl font-extrabold text-white tracking-tight">Manage Deposits</h1>
+      </div>
+      <p class="text-sm text-slate-400 mt-1">Review user payment submissions and update transaction statuses.</p>
+    </div>
+    
+    <div class="flex items-center gap-3 w-full md:w-auto">
+      <div class="relative flex-1 md:w-64">
+        <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+        <input type="text" id="searchInput" placeholder="Search user or ID..." onkeyup="filterDeposits()" class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition">
+      </div>
+      <button onclick="loadDeposits()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 transition flex items-center gap-2">
+        <i class="fa-solid fa-rotate"></i> <span class="hidden md:inline">Refresh</span>
+      </button>
+    </div>
   </div>
 
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <h3 style="font-size:18px;font-weight:700;">User Deposits & Proofs</h3>
-      <button onclick="loadDeposits()" class="action-btn"><i class="fa-solid fa-rotate">Refresh</i></button>
-    </div>
-
-    <div class="table-responsive">
-      <table>
+  <!-- Deposits Table Card -->
+  <div class="card overflow-hidden shadow-2xl">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
         <thead>
-          <tr>
-            <th>Date</th>
-            <th>User</th>
-            <th>Type / Plan</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>Proof</th>
-            <th>Action</th>
+          <tr class="bg-slate-800/80 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+            <th class="p-4 font-bold">User / ID</th>
+            <th class="p-4 font-bold">Type / Plan</th>
+            <th class="p-4 font-bold">Amount</th>
+            <th class="p-4 font-bold">Method</th>
+            <th class="p-4 font-bold">Proof / Receipt</th>
+            <th class="p-4 font-bold">Status</th>
+            <th class="p-4 font-bold">Date</th>
+            <th class="p-4 font-bold text-right">Actions</th>
           </tr>
         </thead>
-        <tbody id="depositsTableBody">
+        <tbody id="depositsTableBody" class="text-sm text-slate-300">
           <tr>
-            <td colspan="7" style="text-align:center;color:#64748b;padding:30px;">Loading deposits...</td>
+            <td colspan="8" class="text-center py-12 text-slate-500">
+              <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i>
+              <p>Loading deposits collection...</p>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-
 </div>
 
-<!-- PROOF & DETAILS MODAL -->
-<div class="modal-overlay" id="depositModal">
-  <div class="modal-content">
-    <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
-    <h3 style="font-size:18px;font-weight:800;margin-bottom:16px;" id="modalTitle">Deposit Details</h3>
-    
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:13px;">
-      <div><span style="color:#64748b;">User Name:</span> <b id="mUserName">—</b></div>
-      <div><span style="color:#64748b;">User ID / Phone:</span> <b id="mUserId">—</b></div>
-      <div><span style="color:#64748b;">Flow Type:</span> <b id="mFlowType">—</b></div>
-      <div><span style="color:#64748b;">Amount:</span> <b id="mAmount" style="color:#10b981;">—</b></div>
-      <div><span style="color:#64748b;">Payment Method:</span> <b id="mMethod">—</b></div>
-      <div><span style="color:#64748b;">Country:</span> <b id="mCountry">—</b></div>
+<!-- Proof Preview Modal -->
+<div id="proofModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
+    <div class="flex items-center justify-between p-4 border-b border-slate-800">
+      <h3 class="font-bold text-white text-base">Payment Proof Preview</h3>
+      <button onclick="closeModal()" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
-
-    <div style="margin-top:12px;">
-      <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;text-transform:uppercase;">Uploaded Payment Proof</div>
-      <div id="proofContainer">
-        <p style="color:#64748b;font-size:13px;">No preview available</p>
-      </div>
+    <div class="p-6 text-center max-h-[70vh] overflow-y-auto" id="modalBodyContent">
+      <!-- Dynamic Preview Content -->
     </div>
-
-    <div style="margin-top:24px;display:flex;gap:10px;justify-content:flex-end;" id="modalActions">
-      <button class="action-btn" style="background:#10b981;" onclick="updateStatus('approved')"><i class="fa-solid fa-check"></i> Approve</button>
-      <button class="action-btn" style="background:#ef4444;" onclick="updateStatus('rejected')"><i class="fa-solid fa-ban"></i> Reject</button>
+    <div class="p-4 bg-slate-800/50 border-t border-slate-800 flex justify-end">
+      <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold transition">Close</button>
     </div>
   </div>
 </div>
 
 <script>
-let currentDepositId = null;
+let allDeposits = [];
 
-// Theme Toggle
-function initTheme() {
-  const isLight = localStorage.getItem("9jaCashDark") !== "true";
-  if (isLight) {
-    document.body.classList.add("light-mode");
-    document.getElementById("themeIcon").className = "fa-solid fa-moon";
-  }
-}
-function toggleTheme() {
-  const isLight = document.body.classList.toggle("light-mode");
-  localStorage.setItem("9jaCashDark", !isLight);
-  document.getElementById("themeIcon").className = isLight ? "fa-solid fa-moon" : "fa-solid fa-sun";
-}
-
-// Load Deposits from Firestore collection
+// Fetch deposits from Firestore on load
 function loadDeposits() {
   const tbody = document.getElementById("depositsTableBody");
-  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b;padding:30px;">Loading deposits...</td></tr>`;
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="8" class="text-center py-12 text-slate-500">
+        <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i>
+        <p>Loading deposits collection...</p>
+      </td>
+    </tr>
+  `;
 
   if (window._9jaCash && window._9jaCash.db) {
-    window._9jaCash.db.collection("deposits").orderBy("createdAt", "desc").get()
+    window._9jaCash.db.collection("deposits")
+      .orderBy("createdAt", "desc")
+      .get()
       .then(snapshot => {
-        if (snapshot.empty) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b;padding:30px;">No deposit records found.</td></tr>`;
-          return;
-        }
-
-        let html = "";
+        allDeposits = [];
         snapshot.forEach(doc => {
-          const d = doc.data();
-          const id = doc.id;
-          const dateStr = d.date || (d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleString() : "Recent");
-          const statusClass = d.status || "pending";
-          const amountFormatted = (d.currencySymbol || "€") + (d.amount || 0);
-
-          html += `
-            <tr>
-              <td>${dateStr}</td>
-              <td><b>${d.userName || "Unknown"}</b><br><span style="font-size:11px;color:#64748b;">${d.userId || ""}</span></td>
-              <td>${d.plan || d.flowType || "Payment"}</td>
-              <td style="font-weight:700;color:#10b981;">${amountFormatted}</td>
-              <td><span class="badge ${statusClass}">${statusClass.toUpperCase()}</span></td>
-              <td>
-                ${d.receiptPath ? `<a href="../${d.receiptPath}" target="_blank" style="color:#6366f1;text-decoration:underline;font-size:12px;"><i class="fa-solid fa-file-image"></i> View File</a>` : '<span style="color:#64748b;font-size:12px;">No File</span>'}
-              </td>
-              <td>
-                <button class="action-btn" onclick='openDepositModal("${id}", ${JSON.stringify(d).replace(/'/g, "&apos;")})'>
-                  <i class="fa-solid fa-eye"></i> Review
-                </button>
-              </td>
-            </tr>
-          `;
+          allDeposits.push({ id: doc.id, ...doc.data() });
         });
-        tbody.innerHTML = html;
+        renderTable(allDeposits);
       })
       .catch(err => {
         console.error("Error loading deposits:", err);
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ef4444;padding:30px;">Failed to load deposits from database.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-red-400">Failed to load deposits. Check console or permissions.</td></tr>`;
       });
   } else {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ef4444;padding:30px;">Firebase connection error.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-red-400">Firebase database reference not found.</td></tr>`;
   }
 }
 
-function openDepositModal(id, data) {
-  currentDepositId = id;
-  document.getElementById("mUserName").textContent = data.userName || "—";
-  document.getElementById("mUserId").textContent = data.userId || "—";
-  document.getElementById("mFlowType").textContent = data.flowType || data.type || "—";
-  document.getElementById("mAmount").textContent = (data.currencySymbol || "€") + (data.amount || 0);
-  document.getElementById("mMethod").textContent = data.paymentMethod || "—";
-  document.getElementById("mCountry").textContent = data.userCountry || "—";
-
-  const proofContainer = document.getElementById("proofContainer");
-  if (data.receiptPath) {
-    const fileUrl = `../${data.receiptPath}`;
-    if (data.receiptPath.endsWith(".pdf")) {
-      proofContainer.innerHTML = `<a href="${fileUrl}" target="_blank" class="action-btn" style="margin-top:8px;"><i class="fa-solid fa-file-pdf"></i> Open PDF Proof</a>`;
-    } else {
-      proofContainer.innerHTML = `<img src="${fileUrl}" alt="Payment Proof" class="proof-img">`;
-    }
-  } else {
-    proofContainer.innerHTML = `<p style="color:#64748b;font-size:13px;">No receipt uploaded.</p>`;
+// Render Table Rows
+function renderTable(deposits) {
+  const tbody = document.getElementById("depositsTableBody");
+  if (deposits.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-slate-500">No deposit records found.</td></tr>`;
+    return;
   }
 
-  document.getElementById("depositModal").classList.add("active");
+  let html = "";
+  deposits.forEach(item => {
+    const statusClass = item.status === "approved" ? "badge-approved" : item.status === "rejected" ? "badge-rejected" : "badge-pending";
+    const statusText = item.status ? item.status.toUpperCase() : "PENDING";
+    
+    // Format receipt preview button/link
+    let proofHtml = `<span class="text-slate-500 text-xs">No Proof</span>`;
+    if (item.receiptPath) {
+      // Check if path is full URL or relative path
+      const proofUrl = item.receiptPath.startsWith("http") ? item.receiptPath : `../${item.receiptPath}`;
+      proofHtml = `
+        <button onclick="openProofModal('${proofUrl}', '${item.receiptPath}')" class="px-3 py-1.5 rounded-lg bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 text-xs font-bold transition flex items-center gap-1.5">
+          <i class="fa-solid fa-eye"></i> View Proof
+        </button>
+      `;
+    }
+
+    html += `
+      <tr class="table-row">
+        <td class="p-4">
+          <div class="font-bold text-white">${item.userName || "Unknown User"}</div>
+          <div class="text-xs text-slate-500">${item.userId || "—"}</div>
+        </td>
+        <td class="p-4">
+          <div class="font-semibold text-slate-200">${item.plan || item.type || "Deposit"}</div>
+          <div class="text-xs text-slate-500 uppercase">${item.flowType || item.paymentMethod || "standard"}</div>
+        </td>
+        <td class="p-4 font-extrabold text-emerald-400">
+          ${item.currencySymbol || "€"}${parseFloat(item.amount || 0).toLocaleString()}
+        </td>
+        <td class="p-4 uppercase text-xs font-bold text-slate-400">
+          ${item.paymentMethod || "bank"}
+        </td>
+        <td class="p-4">
+          ${proofHtml}
+        </td>
+        <td class="p-4">
+          <span class="px-2.5 py-1 rounded-full text-xs font-bold ${statusClass}">
+            ${statusText}
+          </span>
+        </td>
+        <td class="p-4 text-xs text-slate-400">
+          ${item.date || "—"}
+        </td>
+        <td class="p-4 text-right">
+          <select onchange="updateDepositStatus('${item.id}', this.value)" class="bg-slate-800 border border-slate-700 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 transition cursor-pointer">
+            <option value="" disabled selected>Change Status</option>
+            <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>Pending</option>
+            <option value="approved" ${item.status === 'approved' ? 'selected' : ''}>Approve</option>
+            <option value="rejected" ${item.status === 'rejected' ? 'selected' : ''}>Reject</option>
+          </select>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+}
+
+// Filter deposits by search input
+function filterDeposits() {
+  const query = document.getElementById("searchInput").value.toLowerCase();
+  const filtered = allDeposits.filter(item => 
+    (item.userName && item.userName.toLowerCase().includes(query)) ||
+    (item.userId && item.userId.toLowerCase().includes(query)) ||
+    (item.plan && item.plan.toLowerCase().includes(query))
+  );
+  renderTable(filtered);
+}
+
+// Open Proof Modal
+function openProofModal(url, rawPath) {
+  const modal = document.getElementById("proofModal");
+  const content = document.getElementById("modalBodyContent");
+  
+  const isPdf = rawPath.toLowerCase().endsWith(".pdf");
+
+  if (isPdf) {
+    content.innerHTML = `
+      <div class="p-6">
+        <i class="fa-solid fa-file-pdf text-5xl text-rose-500 mb-3"></i>
+        <p class="text-sm text-slate-300 mb-4">Uploaded proof is a PDF document.</p>
+        <a href="${url}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition">
+          <i class="fa-solid fa-external-link"></i> Open PDF in New Tab
+        </a>
+      </div>
+    `;
+  } else {
+    content.innerHTML = `
+      <img src="${url}" alt="Payment Proof" class="max-w-full h-auto rounded-xl mx-auto border border-slate-700 shadow-lg">
+      <div class="mt-4">
+        <a href="${url}" target="_blank" class="text-xs text-indigo-400 hover:underline">Open full image in new tab</a>
+      </div>
+    `;
+  }
+
+  modal.classList.remove("hidden");
 }
 
 function closeModal() {
-  document.getElementById("depositModal").classList.remove("active");
-  currentDepositId = null;
+  document.getElementById("proofModal").classList.add("hidden");
 }
 
-function updateStatus(newStatus) {
-  if (!currentDepositId) return;
+// Update Status function
+async function updateDepositStatus(docId, newStatus) {
+  if (!window._9jaCash || !window._9jaCash.db) return;
 
-  Swal.fire({
-    title: `Are you sure you want to ${newStatus} this deposit?`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: newStatus === 'approved' ? '#10b981' : '#ef4444',
-    confirmButtonText: `Yes, ${newStatus}`
-  }).then((result) => {
-    if (result.isConfirmed && window._9jaCash && window._9jaCash.db) {
-      window._9jaCash.db.collection("deposits").doc(currentDepositId).update({
-        status: newStatus
-      }).then(() => {
-        Swal.fire('Updated!', `Deposit has been marked as ${newStatus}.`, 'success');
-        closeModal();
-        loadDeposits();
-      }).catch(err => {
-        Swal.fire('Error', err.message, 'error');
-      });
+  try {
+    Swal.fire({
+      title: "Updating Status...",
+      allowOutsideClick: false,
+      didOpen: () => { Swal.showLoading(); },
+      background: "#1e293b",
+      color: "#f8fafc"
+    });
+
+    // 1. Update deposit document status in Firestore
+    await window._9jaCash.db.collection("deposits").doc(docId).update({
+      status: newStatus,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Optional: If approved, you can also automatically upgrade user plan if plan name is present
+    const depositObj = allDeposits.find(d => d.id === docId);
+    if (newStatus === "approved" && depositObj && depositObj.userId && depositObj.plan) {
+      await window._9jaCash.db.collection("users").doc(depositObj.userId).set({
+        plan: depositObj.plan
+      }, { merge: true });
     }
-  });
+
+    Swal.fire({
+      icon: "success",
+      title: "Status Updated!",
+      text: `Deposit status changed to ${newStatus}.`,
+      timer: 1500,
+      showConfirmButton: false,
+      background: "#1e293b",
+      color: "#f8fafc"
+    });
+
+    // Refresh list locally and from server
+    loadDeposits();
+
+  } catch (err) {
+    console.error("Error updating status:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Update Failed",
+      text: err.message || "Could not update status.",
+      background: "#1e293b",
+      color: "#f8fafc"
+    });
+  }
 }
 
+// Initialize on load
 window.addEventListener("DOMContentLoaded", () => {
-  initTheme();
   loadDeposits();
 });
 </script>
