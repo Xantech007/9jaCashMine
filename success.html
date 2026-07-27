@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Withdrawal Successful - FlutterW Euro Earn</title>
+<title>Withdrawal Successful - Flutterwave MineApp</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -188,7 +188,7 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
   </div>
 
   <div class="footer slide-up d6">
-    FlutterW Euro Earn <span id="year"></span> • Secured Withdrawals
+    Flutterwave MineApp <span id="year"></span> • Secured Withdrawals
   </div>
 </div>
 
@@ -326,7 +326,7 @@ function sendWithdrawalNotification(amount, bank, accountName) {
   const formattedAmount = typeof amount === 'string' ? amount : formatMoney(amount);
   
   try {
-    const notification = new Notification("FlutterW Euro Earn - Withdrawal Successful", {
+    const notification = new Notification("Flutterwave MineApp - Withdrawal Successful", {
       body: "Withdrawal of " + formattedAmount + " has been successfully debited and is being credited to your (" + bank + ") account",
       icon: "9jaCash.png",
       badge: "9jaCash.png",
@@ -424,7 +424,7 @@ function shareReceipt() {
   const data = activeTxData;
   if (!data) return;
 
-  const text = "FlutterW Euro Earn Withdrawal Receipt\n" +
+  const text = "Flutterwave MineApp Withdrawal Receipt\n" +
     "Amount: " + formatMoney(data.amount) + "\n" +
     "Bank: " + (data.bank || "—") + "\n" +
     "Account: " + (data.account || data.accNumber || "—") + "\n" +
@@ -435,7 +435,7 @@ function shareReceipt() {
 
   if (navigator.share) {
     navigator.share({
-      title: 'FlutterW Euro Earn Withdrawal',
+      title: 'Flutterwave MineApp Withdrawal',
       text: text
     });
   } else {

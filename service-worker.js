@@ -1,4 +1,4 @@
-// FlutterW Euro Earn Service Worker — For Push Notifications
+// Flutterwave MineApp Service Worker — For Push Notifications
 const CACHE_NAME = 'FlutterW-v1';
 const urlsToCache = [
   'index.php',
@@ -28,7 +28,7 @@ self.addEventListener('fetch', function(event) {
 self.addEventListener('push', function(event) {
   const data = event.data.json();
   const options = {
-    body: data.body || 'You have a new notification from FlutterW Euro Earn!',
+    body: data.body || 'You have a new notification from Flutterwave MineApp!',
     icon: '9jaCash.png',
     badge: '9jaCash.png',
     tag: data.tag || 'FlutterW-general',
@@ -40,7 +40,7 @@ self.addEventListener('push', function(event) {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'FlutterW Euro Earn', options)
+    self.registration.showNotification(data.title || 'Flutterwave MineApp', options)
   );
 });
 
