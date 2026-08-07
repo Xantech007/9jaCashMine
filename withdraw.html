@@ -1,99 +1,228 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Withdraw - Flutterwave MineApp</title>
+<title>Withdraw - 9jaCash</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <script src="firebase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0f172a;color:#f8fafc;min-height:100vh;transition:all 0.3s ease;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh;transition:all 0.3s ease;}
 
-body.light-mode{background:#f8fafc;color:#1e293b;}
-body.light-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;}
-body.light-mode .card{background:#fff;border-color:#e2e8f0;box-shadow:0 4px 24px rgba(0,0,0,0.06);}
-body.light-mode .tab-btn{background:#f1f5f9;color:#64748b;border-color:#e2e8f0;}
-body.light-mode .tab-btn.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:#6366f1;}
-body.light-mode .back-btn{background:#fff;border-color:#e2e8f0;color:#64748b;}
-body.light-mode .back-btn:hover{background:#f1f5f9;color:#6366f1;}
-body.light-mode .header-title{color:#1e293b;}
-body.light-mode .amount-num{color:#1e293b;}
-body.light-mode .submit-btn:disabled{background:#e2e8f0;color:#94a3b8;}
-body.light-mode .notice-box{background:#fff7ed;border-color:rgba(245,158,11,0.2);}
-body.light-mode .notice-text{color:#64748b;}
-body.light-mode .notice-text b{color:#f59e0b;}
-body.light-mode .swal2-popup{background:#fff !important;color:#1e293b !important;}
-body.light-mode .swal2-title{color:#1e293b !important;}
-body.light-mode .swal2-html-container{color:#64748b !important;}
-body.light-mode .footer-text{color:#94a3b8;}
-body.light-mode .theme-toggle{color:#64748b;}
-body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f0;}
-body.light-mode .input-field{background:#f8fafc;border-color:#e2e8f0;color:#1e293b;}
-body.light-mode .input-field:focus{border-color:#6366f1;background:#fff;}
+body.dark-mode{background:#0f172a;color:#f8fafc;}
+body.dark-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.15),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.1),transparent 50%),#0f172a;}
+body.dark-mode .card,
+body.dark-mode .payout-card,
+body.dark-mode .bank-card{position:relative;z-index:20;}
+body.dark-mode .amount-card,
+body.dark-mode .key-card{background:#1e293b;border-color:#334155;}
+body.dark-mode .label,
+body.dark-mode .sec-label,
+body.dark-mode .key-label,
+body.dark-mode .bank-label,
+body.dark-mode .amount-label,
+body.dark-mode .hint-text{color:#94a3b8;}
+body.dark-mode .title,
+body.dark-mode .balance-text,
+body.dark-mode .bank-name,
+body.dark-mode .amount-display,
+body.dark-mode .key-title{color:#f8fafc;}
+body.dark-mode .input-field{background:#0f172a;border-color:#334155;color:#f8fafc;}
+body.dark-mode .input-field::placeholder{color:#64748b;}
+body.dark-mode .back-btn{background:#1e293b;border-color:#334155;color:#94a3b8;}
+body.dark-mode .back-btn:hover{background:#334155;color:#818cf8;}
+body.dark-mode .key-status.valid{background:rgba(16,185,129,0.15);color:#34d399;border-color:rgba(16,185,129,0.3);}
+body.dark-mode .key-status.invalid{background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.3);}
+body.dark-mode .key-status.empty{background:rgba(245,158,11,0.15);color:#fbbf24;border-color:rgba(245,158,11,0.3);}
+body.dark-mode .key-status.expired{background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.3);}
+body.dark-mode .divider{background:#334155;}
+body.dark-mode .footer-hint{color:#64748b;}
+body.dark-mode .toast{background:#1e293b;border-color:#334155;}
+body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
+body.dark-mode .loader-text{color:#f8fafc;}
+body.dark-mode .loader-sub{color:#94a3b8;}
+body.dark-mode .swal2-popup{background:#1e293b !important;color:#f8fafc !important;}
+body.dark-mode .swal2-title{color:#f8fafc !important;}
+body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
 
-.soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.12),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.08),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.06),transparent 50%),#0f172a;transition:all 0.3s ease;}
+.soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;transition:all 0.3s ease;}
 
 .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 40px;}
 
-.topbar{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between;}
-.back-btn{width:44px;height:44px;border-radius:14px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:16px;cursor:pointer;transition:all 0.3s;}
-.back-btn:hover{background:#334155;color:#818cf8;}
+.topbar{padding:24px 0 20px;display:flex;align-items:center;gap:12px;}
+.back-btn{width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.back-btn:hover{background:#f1f5f9;color:#6366f1;}
 .back-btn:active{transform:scale(0.92);}
-.header-title{font-size:18px;font-weight:800;color:#f8fafc;transition:color 0.3s;}
-.theme-toggle{width:44px;height:44px;border-radius:14px;background:#1e293b;border:1px solid #334155;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:16px;cursor:pointer;transition:all 0.3s;}
-.theme-toggle:hover{background:#334155;color:#818cf8;}
+.header-title{font-size:18px;font-weight:800;color:#1e293b;transition:color 0.3s;}
 
-.flow-badge{display:inline-flex;align-items:center;gap:6px;background:#1e293b;border:1px solid #334155;border-radius:50px;padding:6px 14px;font-size:11px;font-weight:700;color:#10b981;margin-bottom:16px;}
-.flow-badge i{font-size:12px;}
+.balance-section{text-align:center;margin-bottom:28px;padding-top:4px;}
+.balance-label{font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;transition:color 0.3s;}
+.balance-label i{color:#10b981;margin-right:6px;}
+.balance-text{font-size:42px;font-weight:900;color:#1e293b;line-height:1;letter-spacing:-2px;transition:color 0.3s;}
+.balance-text span{color:#6366f1;}
+.balance-hint{font-size:13px;color:#94a3b8;margin-top:10px;font-weight:500;transition:color 0.3s;}
+.balance-hint span{color:#10b981;font-weight:700;}
 
-.amount-header{text-align:center;padding:10px 0 20px;}
-.amount-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
-.amount-num{font-size:40px;font-weight:900;color:#f8fafc;line-height:1;letter-spacing:-1px;}
-.amount-num span{color:#10b981;}
-.amount-hint{font-size:13px;color:#64748b;margin-top:8px;font-weight:500;}
+.card{background:#fff;border-radius:24px;padding:24px;border:1px solid #e2e8f0;box-shadow:0 4px 24px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);margin-bottom:16px;transition:all 0.3s ease;}
 
-.tab-bar{display:flex;gap:6px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px;}
-.tab-btn{flex:1;min-width:110px;padding:12px 8px;border-radius:16px;background:#1e293b;border:1px solid #334155;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.3s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:'Plus Jakarta Sans',sans-serif;text-align:center;}
-.tab-btn i{font-size:14px;}
-.tab-btn.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:#6366f1;box-shadow:0 4px 16px rgba(99,102,241,0.3);}
+.key-card{position:relative;overflow:hidden;}
+.key-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899);}
+.key-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.key-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;box-shadow:0 4px 16px rgba(99,102,241,0.3);flex-shrink:0;}
+.key-title{font-size:16px;font-weight:800;color:#1e293b;transition:color 0.3s;}
+.key-sub{font-size:12px;color:#94a3b8;font-weight:500;margin-top:2px;transition:color 0.3s;}
 
-.card{background:#1e293b;border-radius:24px;padding:24px;border:1px solid #334155;box-shadow:0 4px 24px rgba(0,0,0,0.2);margin-bottom:16px;transition:all 0.3s ease;}
+.key-input-wrap{position:relative;margin-bottom:12px;}
+.key-input{width:100%;padding:16px 18px 16px 52px;border-radius:16px;background:#f8fafc;border:2px solid #e2e8f0;color:#1e293b;font-size:16px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:3px;text-transform:uppercase;transition:all 0.3s;outline:none;}
+.key-input:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.1);}
+.key-input::placeholder{color:#94a3b8;font-weight:500;letter-spacing:1px;text-transform:none;}
+.key-input-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:18px;}
 
-.input-group{margin-bottom:16px;}
-.input-label{display:block;font-size:12px;font-weight:700;color:#94a3b8;margin-bottom:6px;}
-.input-field{width:100%;padding:14px 16px;border-radius:14px;background:#0f172a;border:1px solid #334155;color:#f8fafc;font-size:14px;font-weight:600;outline:none;transition:all 0.3s;}
-.input-field:focus{border-color:#6366f1;}
-.input-field:disabled{opacity:0.7;cursor:not-allowed;}
+.key-status{padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:16px;border:1px solid transparent;transition:all 0.3s;}
+.key-status.valid{background:#ecfdf5;color:#10b981;border-color:#10b981;}
+.key-status.invalid{background:#fef2f2;color:#ef4444;border-color:#ef4444;}
+.key-status.empty{background:#fffbeb;color:#f59e0b;border-color:#f59e0b;}
+.key-status.expired{background:#fef2f2;color:#ef4444;border-color:#ef4444;}
+.key-status i{font-size:14px;}
 
-.notice-box{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:14px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:flex-start;gap:12px;}
-.notice-icon{width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-size:14px;flex-shrink:0;}
-.notice-text{font-size:13px;color:#64748b;line-height:1.5;}
-.notice-text b{color:#fbbf24;font-weight:700;}
+.key-actions{display:flex;gap:10px;}
+.key-btn{flex:1;padding:14px;border-radius:14px;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.key-btn:active{transform:scale(0.97);}
+.btn-verify{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 16px rgba(99,102,241,0.3);}
+.btn-verify:hover{box-shadow:0 6px 20px rgba(99,102,241,0.4);}
+.btn-buy{background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;}
+.btn-buy:hover{background:#e2e8f0;color:#475569;}
 
-.submit-btn{width:100%;padding:18px;border-radius:18px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:16px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(16,185,129,0.3);margin-top:8px;}
-.submit-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(16,185,129,0.4);}
+.divider{display:flex;align-items:center;gap:16px;margin:24px 0;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#e2e8f0;transition:background 0.3s;}
+
+.sec-label{font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;transition:color 0.3s;}
+.sec-label i{color:#f59e0b;margin-right:6px;}
+
+.amount-input-wrap{position:relative;margin-bottom:14px;}
+.amount-prefix{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:22px;font-weight:900;color:#6366f1;}
+.amount-input{width:100%;padding:18px 18px 18px 46px;border-radius:16px;background:#f8fafc;border:2px solid #e2e8f0;color:#1e293b;font-size:22px;font-weight:900;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-0.5px;transition:all 0.3s;outline:none;}
+.amount-input:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.1);}
+.amount-input::placeholder{color:#94a3b8;font-size:16px;font-weight:500;}
+.amount-input:disabled{background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;cursor:not-allowed;}
+
+.quick-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{padding:10px 16px;border-radius:12px;background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.3s;}
+.chip:hover{border-color:#6366f1;color:#6366f1;background:#eef2ff;transform:translateY(-1px);}
+.chip:active{transform:scale(0.95);}
+.chip.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:#6366f1;box-shadow:0 4px 12px rgba(99,102,241,0.25);}
+
+.bank-dropdown{position:relative;}
+
+.bank-trigger{width:100%;padding:16px 18px;border-radius:16px;background:#f8fafc;border:2px solid #e2e8f0;color:#1e293b;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all 0.3s;}
+.bank-trigger:hover{border-color:#6366f1;}
+.bank-trigger.active{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.1);}
+.bank-trigger-text{color:#94a3b8;font-weight:500;}
+.bank-trigger-text.selected{color:#1e293b;font-weight:700;}
+.bank-trigger i{color:#94a3b8;transition:transform 0.3s;font-size:14px;}
+.bank-trigger.active i{transform:rotate(180deg);}
+
+.bank-menu{position:fixed;background:#fff;border:1px solid #e2e8f0;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.15);z-index:99999;max-height:320px;display:none;flex-direction:column;overflow:hidden;transition:all 0.3s;width:calc(100% - 40px);max-width:440px;left:50%;transform:translateX(-50%);}
+
+body.dark-mode .bank-menu{background:#1e293b;border-color:#334155;}
+.bank-menu.show{display:flex;animation:slideDown 0.3s ease;}
+
+.bank-search{padding:12px 16px;border-bottom:1px solid #f1f5f0;}
+body.dark-mode .bank-search{border-color:#334155;}
+.bank-search input{width:100%;padding:10px 14px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;color:#1e293b;font-size:14px;outline:none;font-family:'Plus Jakarta Sans',sans-serif;}
+body.dark-mode .bank-search input{background:#0f172a;border-color:#334155;color:#f8fafc;}
+.bank-search input:focus{border-color:#6366f1;}
+.bank-search input::placeholder{color:#94a3b8;}
+
+.bank-list{flex:1;overflow-y:auto;padding:8px;}
+.bank-list::-webkit-scrollbar{width:4px;}
+.bank-list::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:4px;}
+body.dark-mode .bank-list::-webkit-scrollbar-thumb{background:#334155;}
+
+.bank-item{padding:12px 16px;border-radius:12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;}
+.bank-item:hover{background:#f1f5f9;}
+body.dark-mode .bank-item:hover{background:#334155;}
+.bank-item-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#10b981,#34d399);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;flex-shrink:0;}
+.bank-item-name{font-size:14px;font-weight:600;color:#1e293b;transition:color 0.3s;}
+body.dark-mode .bank-item-name{color:#f8fafc;}
+.bank-item-code{font-size:11px;color:#94a3b8;margin-top:2px;}
+
+.acct-input{width:100%;padding:16px 18px;border-radius:16px;background:#f8fafc;border:2px solid #e2e8f0;color:#1e293b;font-size:15px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.3s;outline:none;margin-bottom:10px;}
+.acct-input:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.1);}
+.acct-input::placeholder{color:#94a3b8;}
+.acct-input:disabled{background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;cursor:not-allowed;}
+
+.verify-btn{width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#10b981,#34d399);color:#fff;font-size:13px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(16,185,129,0.25);}
+.verify-btn:hover{box-shadow:0 6px 16px rgba(16,185,129,0.35);}
+.verify-btn:active{transform:scale(0.97);}
+.verify-btn:disabled{background:#e2e8f0;color:#94a3b8;box-shadow:none;cursor:not-allowed;}
+
+.resolver-wrap{margin-top:12px;}
+.resolver-loading{padding:12px 16px;border-radius:12px;background:#f1f5f9;display:none;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#64748b;}
+body.dark-mode .resolver-loading{background:#334155;color:#94a3b8;}
+.resolver-loading.show{display:flex;}
+.resolver-loading i{animation:spin 1s linear infinite;color:#6366f1;}
+
+.resolver-success{padding:12px 16px;border-radius:12px;background:#ecfdf5;border:1px solid #10b981;display:none;align-items:center;gap:10px;}
+.resolver-success.show{display:flex;}
+.resolver-success i{color:#10b981;font-size:16px;}
+.resolver-success-text{font-size:14px;font-weight:700;color:#10b981;}
+
+.resolver-error{padding:12px 16px;border-radius:12px;background:#fef2f2;border:1px solid #ef4444;display:none;align-items:center;gap:10px;}
+.resolver-error.show{display:flex;}
+.resolver-error i{color:#ef4444;font-size:16px;}
+.resolver-error-text{font-size:14px;font-weight:700;color:#ef4444;}
+
+.manual-name{margin-top:12px;display:none;}
+.manual-name.show{display:block;}
+.manual-label{font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px;}
+.manual-input{width:100%;padding:14px 16px;border-radius:14px;background:#f8fafc;border:2px solid #e2e8f0;color:#1e293b;font-size:15px;outline:none;font-family:'Plus Jakarta Sans',sans-serif;}
+.manual-input:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.1);}
+.manual-input::placeholder{color:#94a3b8;}
+
+.submit-btn{width:100%;padding:18px;border-radius:18px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:16px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(99,102,241,0.3);margin-top:8px;position:relative;overflow:hidden;}
+.submit-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transition:0.5s;}
+.submit-btn:hover::before{left:100%;}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(99,102,241,0.4);}
 .submit-btn:active{transform:scale(0.97);}
-.submit-btn:disabled{background:#1e293b;color:#64748b;box-shadow:none;cursor:not-allowed;border:1px solid #334155;}
+.submit-btn:disabled{background:#e2e8f0;color:#94a3b8;box-shadow:none;cursor:not-allowed;}
+.submit-btn:disabled::before{display:none;}
 
-.footer{text-align:center;margin-top:32px;}
-.footer-text{font-size:12px;color:#64748b;font-weight:500;}
+.footer-hint{text-align:center;margin-top:24px;font-size:12px;color:#94a3b8;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;}
+.footer-hint i{color:#10b981;}
 
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:#1e293b;color:#fff;padding:14px 24px;border-radius:16px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;z-index:200;transition:all 0.4s;box-shadow:0 10px 40px rgba(0,0,0,0.3);border:1px solid #334155;}
+.loader-overlay{position:fixed;inset:0;background:rgba(248,250,252,0.95);display:none;align-items:center;justify-content:center;z-index:1000;flex-direction:column;backdrop-filter:blur(15px);}
+body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
+.loader-overlay.active{display:flex;}
+.loader-ring{width:56px;height:56px;border:4px solid rgba(99,102,241,0.1);border-top:4px solid #6366f1;border-radius:50%;animation:spin 1s linear infinite;}
+.loader-text{color:#1e293b;font-size:20px;font-weight:800;margin-top:24px;letter-spacing:-0.3px;}
+.loader-sub{color:#94a3b8;font-size:14px;margin-top:8px;font-weight:500;}
+
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:#1e293b;color:#fff;padding:14px 24px;border-radius:16px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;z-index:200;transition:all 0.4s;box-shadow:0 10px 40px rgba(0,0,0,0.15);}
 .toast.show{transform:translateX(-50%) translateY(0);}
 .toast i{color:#10b981;}
 
+@keyframes slideDown{from{opacity:0;transform:translateY(-15px);}to{opacity:1;transform:translateY(0);}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes spin{to{transform:rotate(360deg);}}
+
 .anim{animation:slideUp 0.6s ease both;}
+.d1{animation-delay:0.1s;}
+.d2{animation-delay:0.2s;}
+.d3{animation-delay:0.3s;}
+.d4{animation-delay:0.4s;}
+.d5{animation-delay:0.5s;}
+.d6{animation-delay:0.6s;}
 </style>
 </head>
 <body>
@@ -102,502 +231,603 @@ body.light-mode .input-field:focus{border-color:#6366f1;background:#fff;}
 
 <div class="app">
 
-<div class="topbar anim">
+<!-- Header -->
+<div class="topbar anim d1">
   <button class="back-btn" onclick="window.location.href='dashboard.html'">
     <i class="fa-solid fa-arrow-left"></i>
   </button>
-  <div class="header-title">Request Withdrawal</div>
-  <button class="theme-toggle" onclick="toggleTheme()">
-    <i class="fa-solid fa-sun" id="themeIcon"></i>
+  <div class="header-title">Withdraw Funds</div>
+</div>
+
+<!-- Balance -->
+<div class="balance-section anim d1">
+  <div class="balance-label"><i class="fa-solid fa-wallet"></i>Available Balance</div>
+  <div class="balance-text" id="balanceDisplay">₦0<span>.00</span></div>
+  <div class="balance-hint">Minimum withdrawal: <span>₦50,000</span></div>
+</div>
+
+<!-- PAYOUT KEY -->
+<div class="card key-card anim d2">
+  <div class="key-header">
+    <div class="key-icon"><i class="fa-solid fa-key"></i></div>
+    <div>
+      <div class="key-title">Payout Key</div>
+      <div class="key-sub">Enter your valid payout key to unlock withdrawal</div>
+    </div>
+  </div>
+
+  <div class="key-input-wrap">
+    <i class="fa-solid fa-lock key-input-icon"></i>
+    <input type="text" id="payoutKeyInput" class="key-input" placeholder="Enter payout key" maxlength="20" autocomplete="off">
+  </div>
+
+  <div class="key-status empty" id="keyStatus">
+    <i class="fa-solid fa-circle-exclamation"></i>
+    <span id="keyStatusText">Enter your payout key above</span>
+  </div>
+
+  <div class="key-actions">
+    <button class="key-btn btn-verify" id="verifyKeyBtn" onclick="verifyPayoutKey()">
+      <i class="fa-solid fa-shield-halved"></i> Verify Key
+    </button>
+    <button class="key-btn btn-buy" onclick="window.location.href='buy.html'">
+      <i class="fa-solid fa-cart-shopping"></i> Purchase Key
+    </button>
+  </div>
+</div>
+
+<!-- Divider -->
+<div class="divider anim d3">Withdrawal Details</div>
+
+<!-- Amount -->
+<div class="card amount-card anim d3">
+  <div class="sec-label"><i class="fa-solid fa-coins"></i>Amount</div>
+  <div class="amount-input-wrap">
+    <span class="amount-prefix">₦</span>
+    <input type="tel" id="withdrawAmount" class="amount-input" placeholder="0.00" disabled>
+  </div>
+  <div class="quick-chips" id="quickChips">
+    <div class="chip" onclick="setAmount(50000)">₦50k</div>
+    <div class="chip" onclick="setAmount(100000)">₦100k</div>
+    <div class="chip" onclick="setAmount(250000)">₦250k</div>
+    <div class="chip" onclick="setAmount(500000)">₦500k</div>
+    <div class="chip" onclick="setAmount(1000000)">₦1M</div>
+  </div>
+</div>
+
+<!-- Bank -->
+<div class="card bank-card anim d4">
+  <div class="sec-label"><i class="fa-solid fa-building-columns"></i>Bank Account</div>
+  <div class="bank-dropdown">
+    <div class="bank-trigger" id="bankTrigger" onclick="toggleBankMenu()">
+      <span class="bank-trigger-text" id="bankTriggerText">Select your bank</span>
+      <i class="fa-solid fa-chevron-down"></i>
+    </div>
+    <input type="hidden" id="bankCode">
+    <input type="hidden" id="bankName">
+  </div>
+</div>
+
+<!-- Bank Menu - MOVED OUTSIDE THE CARD -->
+<div class="bank-menu" id="bankMenu">
+  <div class="bank-search">
+    <input type="text" id="bankSearch" placeholder="Search bank..." oninput="filterBanks()" onclick="event.stopPropagation()">
+  </div>
+  <div class="bank-list" id="bankList"></div>
+</div>
+
+<!-- Account Number -->
+<div class="card bank-card anim d5">
+  <div class="sec-label"><i class="fa-solid fa-hashtag"></i>Account Number</div>
+  <input type="tel" id="accountNumber" class="acct-input" maxlength="10" placeholder="Enter 10-digit account number" disabled>
+
+  <button class="verify-btn" id="verifyBtn" onclick="verifyAccount()" disabled>
+    <i class="fa-solid fa-magnifying-glass"></i> Verify Account
   </button>
-</div>
 
-<div class="anim" style="text-align:center;">
-  <div class="flow-badge">
-    <i class="fa-solid fa-wallet"></i> <span>Funds Withdrawal</span>
+  <div class="resolver-wrap">
+    <div class="resolver-loading" id="resolverLoading">
+      <i class="fa-solid fa-circle-notch"></i>
+      <span>Verifying account...</span>
+    </div>
+    <div class="resolver-success" id="resolverSuccess">
+      <i class="fa-solid fa-circle-check"></i>
+      <span class="resolver-success-text" id="resolvedName">Account Name</span>
+    </div>
+    <div class="resolver-error" id="resolverError">
+      <i class="fa-solid fa-circle-xmark"></i>
+      <span class="resolver-error-text" id="errorText">Could not verify</span>
+    </div>
+    <div class="manual-name" id="manualName">
+      <div class="manual-label">Enter Account Name Manually</div>
+      <input type="text" id="manualNameInput" class="manual-input" placeholder="Full name as registered with bank">
+    </div>
   </div>
 </div>
 
-<div class="amount-header anim">
-  <div class="amount-label" id="balanceLabelTitle">Available Balance</div>
-  <div class="amount-num" id="balanceDisplayNum">€0.00</div>
-  <div class="amount-hint" id="convertedDisplay">Equivalent: 0.00 <span></span></div>
-  <div class="amount-hint" id="rateHint" style="margin-top:4px;">Rate: Loading exchange rate...</div>
-  <div class="amount-hint" id="referralBreakdownHint" style="margin-top:6px; display:none; font-size:12px; color:#94a3b8;"></div>
-</div>
+<input type="hidden" id="accountName">
 
-<div class="tab-bar anim">
-  <button class="tab-btn active" id="tabBalance" onclick="switchWithdrawType('balance')">
-    <i class="fa-solid fa-wallet"></i> Balance
-  </button>
-  <button class="tab-btn" id="tabRegister" onclick="switchWithdrawType('register')">
-    <i class="fa-solid fa-gift"></i> Reg. Bonus
-  </button>
-  <button class="tab-btn" id="tabReferral" onclick="switchWithdrawType('referral')">
-    <i class="fa-solid fa-users"></i> Ref. Bonus
-  </button>
-</div>
-
-<!-- NOTICE BOX FOR FREE PLAN -->
-<div class="notice-box anim" id="planNotice" style="display:none;">
-  <div class="notice-icon"><i class="fa-solid fa-circle-info"></i></div>
-  <div class="notice-text">
-    <b>Free Plan Notice:</b> Balance withdrawals are disabled on free plan. You can only withdraw your registration bonus, which remains pending and processes on <b>Tuesdays</b>.
-  </div>
-</div>
-
-<div class="card anim">
-  <div class="input-group">
-    <label class="input-label">Amount in Euros (€)</label>
-    <input type="number" id="withdrawAmount" class="input-field" placeholder="Enter amount in EUR" oninput="calculateConversion()">
-  </div>
-
-  <div class="input-group">
-    <label class="input-label" id="bankNameTitleLabel">Bank Name</label>
-    <input type="text" id="bankNameInput" class="input-field" placeholder="Enter bank name">
-  </div>
-
-  <div class="input-group">
-    <label class="input-label" id="accNumTitleLabel">Account Number</label>
-    <input type="text" id="accNumberInput" class="input-field" placeholder="Enter account number">
-  </div>
-
-  <div class="input-group">
-    <label class="input-label" id="accNameTitleLabel">Account Name</label>
-    <input type="text" id="accNameInput" class="input-field" placeholder="Enter account name">
-  </div>
-</div>
-
-<button class="submit-btn anim" id="withdrawBtn" onclick="processWithdrawal()">
-  <i class="fa-solid fa-paper-plane"></i> Submit Withdrawal
+<!-- Submit -->
+<button class="submit-btn anim d6" id="submitBtn" onclick="submitWithdrawal()" disabled>
+  <i class="fa-solid fa-paper-plane"></i> Withdraw Now
 </button>
 
-<div class="footer anim">
-  <div class="footer-text">Flutterwave MineApp 2026 • Secure Payouts</div>
+<div class="footer-hint anim d6">
+  <i class="fa-solid fa-shield-halved"></i>
+  Secured with end-to-end encryption
 </div>
 
 </div>
 
+<!-- Toast -->
 <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
 
-<script>
-// Hardcoded plans config matching dashboard.html for referral active status verification
-const PLANS_CONFIG = {
-  "free plan": { name: "Free Plan" },
-  "basic plan": { name: "Basic Plan" },
-  "silver plan": { name: "Silver Plan" },
-  "gold plan": { name: "Gold Plan" },
-  "diamond plan": { name: "Diamond Plan" }
-};
+<!-- Loader -->
+<div class="loader-overlay" id="loaderOverlay">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Processing Withdrawal...</div>
+  <div class="loader-sub">Please wait • Do not close this page</div>
+</div>
 
+<script>
 let userData = null;
 try {
   userData = JSON.parse(localStorage.getItem("9jaCashUser"));
 } catch(e) { userData = null; }
 if (!userData) { window.location.href = "start.html"; }
 
-let regionalSettings = null;
-let defaultPaymentSettings = null;
-let registrationBonus = 0;
-let referralBonusSetting = 0;
-let availableReferralBalance = 0;
-let totalReferralBalance = 0;
-let withdrawType = "balance"; // "balance", "register", or "referral"
-let hasAlreadyWithdrawnBonus = false;
+let balance = parseFloat(localStorage.getItem("walletBalance")) || 0;
+const MIN_WITHDRAWAL = 50000;
+let payoutKeyVerified = false;
 
-// Map country to doc region
-function getRegionDocName(countryName) {
-  if (!countryName) return "ghanaRegion";
-  const normalized = countryName.trim().toLowerCase();
-  const countryMap = {
-    "ghana": "ghanaRegion", "usa": "usaRegion", "united states": "usaRegion",
-    "spain": "spainRegion", "nigeria": "nigeriaRegion", "uk": "ukRegion",
-    "canada": "canadaRegion", "kenya": "kenyaRegion", "south africa": "southafricaRegion"
-  };
-  return countryMap[normalized] || (normalized.replace(/[^a-z0-9]/g, "") + "Region");
+function formatMoney(num) {
+  if (num >= 1000000) return "₦" + (num / 1000000).toFixed(2) + "M";
+  return "₦" + num.toLocaleString("en-NG");
 }
 
-function initTheme() {
-  const isLight = localStorage.getItem("9jaCashDark") !== "true";
-  if (isLight) {
-    document.body.classList.add("light-mode");
-    document.getElementById("themeIcon").className = "fa-solid fa-moon";
+function updateBalanceDisplay() {
+  const el = document.getElementById("balanceDisplay");
+  const formatted = formatMoney(balance);
+  if (formatted.includes(".")) {
+    el.innerHTML = formatted.replace(/\.(\d+)$/, '<span>.$1</span>');
+  } else {
+    el.innerHTML = formatted + "<span>.00</span>";
   }
 }
 
-function toggleTheme() {
-  const isLight = document.body.classList.toggle("light-mode");
-  localStorage.setItem("9jaCashDark", !isLight);
-  document.getElementById("themeIcon").className = isLight ? "fa-solid fa-moon" : "fa-solid fa-sun";
+function initDarkMode() {
+  const isDark = localStorage.getItem("9jaCashDark") === "true";
+  if (isDark) document.body.classList.add("dark-mode");
 }
 
-function switchWithdrawType(type) {
-  if (type === "register" && hasAlreadyWithdrawnBonus) {
-    Swal.fire({
-      icon: "warning",
-      title: "Bonus Already Claimed",
-      text: "You have already submitted a withdrawal for your registration bonus. Bonus withdrawals can only be claimed once.",
-      background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
-      color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
-    });
-    return;
+// ========== CHECK KEY AGAINST FIREBASE ==========
+async function checkKeyAgainstFirebase(key) {
+  if (!window._9jaCash || !window._9jaCash.db) {
+    return { valid: false, error: "no_connection" };
   }
-
-  withdrawType = type;
-  document.getElementById("tabBalance").classList.toggle("active", type === "balance");
-  document.getElementById("tabRegister").classList.toggle("active", type === "register");
-  document.getElementById("tabReferral").classList.toggle("active", type === "referral");
-
-  const amountInput = document.getElementById("withdrawAmount");
-  const referralHint = document.getElementById("referralBreakdownHint");
-  referralHint.style.display = "none";
   
-  if (type === "register") {
-    amountInput.value = registrationBonus;
-    amountInput.disabled = true;
-    document.getElementById("balanceLabelTitle").textContent = "Registration Bonus Balance";
-    document.getElementById("balanceDisplayNum").textContent = "€" + (parseFloat(registrationBonus) || 0).toFixed(2);
-  } else if (type === "referral") {
-    amountInput.value = "";
-    amountInput.disabled = false;
-    document.getElementById("balanceLabelTitle").textContent = "Available Referrals Balance";
-    document.getElementById("balanceDisplayNum").textContent = "€" + availableReferralBalance.toFixed(2);
-    referralHint.style.display = "block";
-    referralHint.innerHTML = `Total Referrals Balance: €${totalReferralBalance.toFixed(2)} (Only available balance can be withdrawn)`;
-  } else {
-    const mainBal = parseFloat(userData.balance || 0);
-    amountInput.value = "";
-    amountInput.disabled = false;
-    document.getElementById("balanceLabelTitle").textContent = "Available Balance";
-    document.getElementById("balanceDisplayNum").textContent = "€" + mainBal.toFixed(2);
-  }
-  calculateConversion();
-}
-
-function calculateConversion() {
-  const amount = parseFloat(document.getElementById("withdrawAmount").value) || 0;
-  const rate = (regionalSettings && regionalSettings.rate) ? parseFloat(regionalSettings.rate) : 1;
-  const symbol = (regionalSettings && (regionalSettings.currencySymbol || regionalSettings.symbol)) ? (regionalSettings.currencySymbol || regionalSettings.symbol) : "$";
-
-  const converted = Math.ceil(amount * rate);
-  document.getElementById("convertedDisplay").innerHTML = `Equivalent: ${symbol}${converted.toLocaleString("en-US")}.00`;
-}
-
-// Load Regional Config & Settings
-async function loadConfig() {
-  const userDocId = userData.phone || userData.uid;
-
-  if (window._9jaCash && window._9jaCash.db) {
-    const db = window._9jaCash.db;
-
-    // 1. Fetch fresh user details from Firestore to keep balances updated
-    try {
-      const userSnap = await db.collection("users").doc(userDocId).get();
-      if (userSnap.exists) {
-        const firestoreData = userSnap.data();
-        userData = { ...userData, ...firestoreData };
-        localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-
-        if (firestoreData.hasWithdrawnBonus) {
-          hasAlreadyWithdrawnBonus = true;
-        }
-      }
-    } catch(e) { console.warn("Error reading fresh user record:", e); }
-
-    // Double check withdrawals collection for bonus if needed
-    if (!hasAlreadyWithdrawnBonus) {
-      try {
-        const bonusQuery = await db.collection("withdrawals")
-          .where("userId", "==", userDocId)
-          .where("type", "in", ["bonus", "register"])
-          .get();
-        if (!bonusQuery.empty) {
-          hasAlreadyWithdrawnBonus = true;
-        }
-      } catch(e) { console.warn("Error checking bonus withdrawal history:", e); }
-    }
-
-    if (userData.hasWithdrawnBonus) {
-      hasAlreadyWithdrawnBonus = true;
-    }
-
-    // 2. Fetch default payment labels
-    try {
-      const payDoc = await db.collection("settings").doc("payment").get();
-      if (payDoc.exists) {
-        defaultPaymentSettings = payDoc.data();
-      }
-    } catch(e) { console.warn("Error reading settings/payment:", e); }
-
-    // 3. Fetch bonus amount from settings/register collection
-    try {
-      const regDoc = await db.collection("settings").doc("register").get();
-      if (regDoc.exists) {
-        if (regDoc.data().bonus !== undefined) {
-          registrationBonus = parseFloat(regDoc.data().bonus) || 0;
-        }
-        if (regDoc.data().bonusReferral !== undefined) {
-          referralBonusSetting = parseFloat(regDoc.data().bonusReferral) || 0;
-        }
-      }
-    } catch(e) { console.warn("Error reading settings/register:", e); }
-
-    // 4. Calculate referral balances using inactive users logic from dashboard.html
-    try {
-      let inactiveCount = 0;
-      const refSnapshot = await db.collection("users").doc(userDocId).collection("referrals").get();
-      
-      for (const refDoc of refSnapshot.docs) {
-        const referredUserId = refDoc.id;
-        let isActive = false;
-        try {
-          const userDoc = await db.collection("users").doc(referredUserId).get();
-          if (userDoc.exists) {
-            const referredUserData = userDoc.data();
-            let refPlan = (referredUserData.plan || "free").toString().toLowerCase().trim();
-            if (!refPlan.endsWith("plan")) {
-              refPlan += " plan";
-            }
-            isActive = (refPlan !== "free plan" && PLANS_CONFIG[refPlan] !== undefined);
-          }
-        } catch (err) {
-          console.error("Error fetching user plan for referral:", referredUserId, err);
-        }
-        if (!isActive) {
-          inactiveCount++;
-        }
-      }
-
-      totalReferralBalance = parseFloat(userData.balanceReferral || userData.referralBalance || 0);
-      const unavailableReferralsBalance = inactiveCount * referralBonusSetting;
-      availableReferralBalance = Math.max(0, totalReferralBalance - unavailableReferralsBalance);
-    } catch(e) {
-      console.warn("Error calculating referral balances:", e);
-      totalReferralBalance = parseFloat(userData.balanceReferral || userData.referralBalance || 0);
-      availableReferralBalance = totalReferralBalance;
-    }
-
-    // 5. Fetch regional rate
-    const userCountry = userData.country || "Ghana";
-    const regionDoc = getRegionDocName(userCountry);
-    try {
-      const regDoc = await db.collection("settings").doc(regionDoc).get();
-      if (regDoc.exists) {
-        regionalSettings = regDoc.data();
-      }
-    } catch(e) { console.warn("Error fetching regional details:", e); }
-  }
-
-  // Set field labels from settings
-  const bankTitle = (regionalSettings && regionalSettings.bankNameTitle) || (defaultPaymentSettings && defaultPaymentSettings.bankNameTitle) || "Bank Name";
-  const accNumTitle = (regionalSettings && regionalSettings.accNumTitle) || (defaultPaymentSettings && defaultPaymentSettings.accNumTitle) || "Account Number";
-  const accNameTitle = (regionalSettings && regionalSettings.accNameTitle) || (defaultPaymentSettings && defaultPaymentSettings.accNameTitle) || "Account Name";
-
-  document.getElementById("bankNameTitleLabel").textContent = bankTitle;
-  document.getElementById("accNumTitleLabel").textContent = accNumTitle;
-  document.getElementById("accNameTitleLabel").textContent = accNameTitle;
-
-  const rateVal = (regionalSettings && regionalSettings.rate) ? regionalSettings.rate : 1;
-  const symVal = (regionalSettings && (regionalSettings.currencySymbol || regionalSettings.symbol)) ? (regionalSettings.currencySymbol || regionalSettings.symbol) : "Local";
-  document.getElementById("rateHint").textContent = `1 EUR = ${rateVal} ${symVal}`;
-
-  // Set initial display balances
-  document.getElementById("balanceDisplayNum").textContent = "€" + (parseFloat(userData.balance || 0)).toFixed(2);
-
-  // Check user plan status
-  const isFreePlan = !userData.plan || userData.plan.toLowerCase().includes("free");
-  if (isFreePlan) {
-    document.getElementById("planNotice").style.display = "flex";
-    if (!hasAlreadyWithdrawnBonus) {
-      switchWithdrawType("register");
-    } else {
-      calculateConversion();
-    }
-  } else {
-    calculateConversion();
-  }
-}
-
-async function processWithdrawal() {
-  const isFreePlan = !userData.plan || userData.plan.toLowerCase().includes("free");
-  const amount = parseFloat(document.getElementById("withdrawAmount").value) || 0;
-  const bank = document.getElementById("bankNameInput").value.trim();
-  const accNumber = document.getElementById("accNumberInput").value.trim();
-  const accName = document.getElementById("accNameInput").value.trim();
-
-  if (amount <= 0) {
-    showToast("Please enter a valid withdrawal amount");
-    return;
-  }
-  if (!bank || !accNumber || !accName) {
-    showToast("Please fill in all bank details");
-    return;
-  }
-
-  // Check if user is attempting to withdraw registration bonus again
-  if (withdrawType === "register" && hasAlreadyWithdrawnBonus) {
-    Swal.fire({
-      icon: "error",
-      title: "Bonus Already Withdrawn",
-      text: "You have already claimed your registration bonus. Bonus withdrawals can only be performed once per account.",
-      background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
-      color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
-    });
-    return;
-  }
-
-  // Free Plan Rules
-  if (isFreePlan) {
-    if (withdrawType === "balance") {
-      Swal.fire({
-        icon: "error",
-        title: "Withdrawal Restricted",
-        text: "Free plan users cannot withdraw main balance. Please upgrade your plan or switch to registration bonus withdrawal.",
-        background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
-        color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
-      });
-      return;
-    }
-
-    if (withdrawType === "register" && amount > registrationBonus) {
-      Swal.fire({
-        icon: "error",
-        title: "Invalid Bonus Amount",
-        text: `Free plan users can only withdraw up to the registration bonus limit (€${registrationBonus}).`,
-        background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
-        color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
-      });
-      return;
-    }
-  }
-
-  // Enforce rule that only available referrals balance can be withdrawn
-  if (withdrawType === "referral" && amount > availableReferralBalance) {
-    Swal.fire({
-      icon: "error",
-      title: "Exceeds Available Referral Balance",
-      text: `You can only withdraw up to your available referrals balance (€${availableReferralBalance.toFixed(2)}).`,
-      background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
-      color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
-    });
-    return;
-  }
-
-  const btn = document.getElementById("withdrawBtn");
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-
-  const userDocId = userData.phone || userData.uid;
-  let createdDocId = "";
-
   try {
-    if (window._9jaCash && window._9jaCash.db) {
-      const db = window._9jaCash.db;
-      const userRef = db.collection("users").doc(userDocId);
-
-      // Perform a Firestore Transaction to safely deduct balance and write withdrawal record
-      await db.runTransaction(async (transaction) => {
-        const userDoc = await transaction.get(userRef);
-
-        if (!userDoc.exists) {
-          throw new Error("User record does not exist!");
-        }
-
-        const data = userDoc.data();
-
-        // Additional safeguard check inside transaction
-        if (withdrawType === "register" && data.hasWithdrawnBonus) {
-          throw new Error("You have already withdrawn your registration bonus.");
-        }
-
-        const currentBalance = parseFloat(data.balance) || 0;
-        const currentBalanceRegister = parseFloat(data.balanceRegister) || 0;
-        const currentBalanceReferral = parseFloat(data.balanceReferral || data.referralBalance) || 0;
-
-        // Verify balance based on withdrawType
-        if (withdrawType === "balance" && currentBalance < amount) {
-          throw new Error("Insufficient main balance for this withdrawal.");
-        }
-        if (withdrawType === "register" && currentBalanceRegister < amount) {
-          throw new Error("Insufficient registration bonus balance.");
-        }
-        if (withdrawType === "referral" && availableReferralBalance < amount) {
-          throw new Error("Insufficient available referral bonus balance.");
-        }
-
-        const newBalance = Math.max(0, currentBalance - (withdrawType === "balance" ? amount : 0));
-        const newBalanceRegister = Math.max(0, currentBalanceRegister - (withdrawType === "register" ? amount : 0));
-        const newBalanceReferral = Math.max(0, currentBalanceReferral - (withdrawType === "referral" ? amount : 0));
-
-        // Build updates object for user document
-        const userUpdates = {
-          balance: newBalance,
-          balanceRegister: newBalanceRegister,
-          balanceReferral: newBalanceReferral
-        };
-
-        if (withdrawType === "register") {
-          userUpdates.hasWithdrawnBonus = true;
-        }
-
-        // 1. Update user document
-        transaction.update(userRef, userUpdates);
-
-        // Update local session data so it reflects instantly in app UI
-        userData.balance = newBalance;
-        userData.balanceRegister = newBalanceRegister;
-        userData.balanceReferral = newBalanceReferral;
-        if (withdrawType === "register") {
-          userData.hasWithdrawnBonus = true;
-        }
-        localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-
-        // 2. Pre-generate document ID to pass in URL
-        const newWithdrawalRef = db.collection("withdrawals").doc();
-        createdDocId = newWithdrawalRef.id;
-
-        transaction.set(newWithdrawalRef, {
-          userId: userDocId,
-          userName: userData.name || userData.fullName || "Unknown",
-          userPlan: userData.plan || "Free",
-          amount: amount,
-          type: withdrawType,
-          bank: bank,
-          accNumber: accNumber,
-          accName: accName,
-          status: "pending",
-          processDay: (isFreePlan && withdrawType === "register") ? "Tuesday" : "Immediate",
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      });
+    const doc = await window._9jaCash.db.collection("settings").doc("payoutKeys").get();
+    if (!doc.exists) {
+      return { valid: false, error: "no_keys_set" };
     }
-
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Withdrawal';
-
-    if (isFreePlan && withdrawType === "register") {
-      Swal.fire({
-        icon: "info",
-        title: "Withdrawal Submitted",
-        text: "Your registration bonus withdrawal request is currently pending and will be processed on Tuesday.",
-        confirmButtonText: "OK",
-        confirmButtonColor: "#10b981",
-        background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
-        color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
-      }).then(() => {
-        window.location.href = "dashboard.html";
-      });
-    } else {
-      // Redirect to success.html passing the withdrawal document ID
-      window.location.href = `success.html?id=${createdDocId}`;
+    
+    const data = doc.data();
+    const currentKey = (data.currentKey || "").toUpperCase();
+    const history = data.history || [];
+    
+    // Check current key
+    if (key === currentKey) {
+      return { valid: true, type: "current" };
     }
-
-  } catch(err) {
-    console.error("Withdrawal error:", err);
-    showToast(err.message || "Failed to process withdrawal. Try again.");
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Withdrawal';
+    
+    // Check history
+    const inHistory = history.some(k => (k || "").toUpperCase() === key);
+    if (inHistory) {
+      return { valid: true, type: "history" };
+    }
+    
+    return { valid: false, error: "not_found" };
+    
+  } catch (err) {
+    console.error("Firebase check error:", err);
+    return { valid: false, error: "firebase_error" };
   }
+}
+
+// ========== VERIFY PAYOUT KEY (USER CLICKS VERIFY) ==========
+async function verifyPayoutKey() {
+  const input = document.getElementById("payoutKeyInput").value.trim().toUpperCase();
+  const statusEl = document.getElementById("keyStatus");
+  const verifyBtn = document.getElementById("verifyKeyBtn");
+
+  if (!input) {
+    statusEl.className = "key-status empty";
+    statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i><span>Enter your payout key above</span>';
+    lockForm();
+    return;
+  }
+
+  verifyBtn.disabled = true;
+  verifyBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
+
+  const result = await checkKeyAgainstFirebase(input);
+
+  if (result.valid) {
+    // VALID KEY — save to localStorage and unlock
+    localStorage.setItem("9jaCashUserPayoutKey", input);
+    handleKeyValid(input);
+  } else {
+    // INVALID KEY — clear localStorage, show expired
+    localStorage.removeItem("9jaCashUserPayoutKey");
+    localStorage.removeItem("9jaCashPayoutKeys");
+    handleKeyInvalid(input, result.error);
+  }
+}
+
+// ========== AUTO-CHECK STORED KEY ON PAGE LOAD ==========
+async function autoCheckStoredKey() {
+  const storedKey = localStorage.getItem("9jaCashUserPayoutKey");
+  
+  if (!storedKey) {
+    // No stored key — just show empty state
+    lockForm();
+    return;
+  }
+  
+  // User has a stored key — fill input and check it
+  document.getElementById("payoutKeyInput").value = storedKey;
+  
+  const statusEl = document.getElementById("keyStatus");
+  statusEl.className = "key-status empty";
+  statusEl.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i><span>Checking your saved key...</span>';
+  
+  const result = await checkKeyAgainstFirebase(storedKey.toUpperCase());
+  
+  if (result.valid) {
+    // Stored key still valid — auto-activate
+    handleKeyValid(storedKey);
+    showToast("Saved key verified automatically!");
+  } else {
+    // STORED KEY EXPIRED — show expired message
+    localStorage.removeItem("9jaCashUserPayoutKey");
+    localStorage.removeItem("9jaCashPayoutKeys");
+    handleKeyExpired(storedKey);
+  }
+}
+
+function handleKeyValid(key) {
+  const statusEl = document.getElementById("keyStatus");
+  const verifyBtn = document.getElementById("verifyKeyBtn");
+
+  statusEl.className = "key-status valid";
+  statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i><span>Payout key verified • Withdrawal unlocked</span>';
+  verifyBtn.disabled = false;
+  verifyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Verified';
+  verifyBtn.style.background = 'linear-gradient(135deg,#10b981,#34d399)';
+
+  payoutKeyVerified = true;
+  unlockForm();
+}
+
+function handleKeyInvalid(input, errorType) {
+  const statusEl = document.getElementById("keyStatus");
+  const verifyBtn = document.getElementById("verifyKeyBtn");
+
+  statusEl.className = "key-status invalid";
+  statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i><span>Invalid payout key • Purchase a new one</span>';
+  verifyBtn.disabled = false;
+  verifyBtn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Verify Key';
+  verifyBtn.style.background = '';
+
+  payoutKeyVerified = false;
+  lockForm();
+}
+
+function handleKeyExpired(storedKey) {
+  const statusEl = document.getElementById("keyStatus");
+  const verifyBtn = document.getElementById("verifyKeyBtn");
+
+  // Show "KEY EXPIRED" — special styling
+  statusEl.className = "key-status expired";
+  statusEl.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i><span>Key Expired • Your saved key is no longer valid. Enter a new key or purchase one.</span>';
+  
+  verifyBtn.disabled = false;
+  verifyBtn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Verify Key';
+  verifyBtn.style.background = '';
+
+  payoutKeyVerified = false;
+  lockForm();
+  
+  // Clear the input so they must enter new key
+  document.getElementById("payoutKeyInput").value = "";
+  
+  showToast("Your saved payout key has expired!");
+}
+
+function lockForm() {
+  document.getElementById("withdrawAmount").disabled = true;
+  document.getElementById("accountNumber").disabled = true;
+  document.getElementById("verifyBtn").disabled = true;
+  document.getElementById("submitBtn").disabled = true;
+  document.getElementById("bankTrigger").style.pointerEvents = "none";
+  document.getElementById("bankTrigger").style.opacity = "0.5";
+  document.querySelectorAll(".chip").forEach(function(c) { c.style.pointerEvents = "none"; });
+}
+
+function unlockForm() {
+  document.getElementById("withdrawAmount").disabled = false;
+  document.getElementById("accountNumber").disabled = false;
+  document.getElementById("verifyBtn").disabled = false;
+  document.getElementById("submitBtn").disabled = false;
+  document.getElementById("bankTrigger").style.pointerEvents = "auto";
+  document.getElementById("bankTrigger").style.opacity = "1";
+  document.querySelectorAll(".chip").forEach(function(c) { c.style.pointerEvents = "auto"; });
+}
+
+const banks = [
+  {name:"Access Bank",code:"044"},{name:"Access Bank (Diamond)",code:"063"},
+  {name:"ALAT by Wema",code:"035"},{name:"ASO Savings and Loans",code:"401"},
+  {name:"Bowen Microfinance Bank",code:"50931"},{name:"CEMCS Microfinance Bank",code:"50823"},
+  {name:"Citibank Nigeria",code:"023"},{name:"Coronation Merchant Bank",code:"559"},
+  {name:"Ecobank Nigeria",code:"050"},{name:"Ekondo Microfinance Bank",code:"562"},
+  {name:"Eyowo",code:"50126"},{name:"Fidelity Bank",code:"070"},
+  {name:"Firmus MFB",code:"51314"},{name:"First Bank of Nigeria",code:"011"},
+  {name:"First City Monument Bank",code:"214"},{name:"FSDH Merchant Bank",code:"501"},
+  {name:"Globus Bank",code:"103"},{name:"Guaranty Trust Bank",code:"058"},
+  {name:"Hackman Microfinance Bank",code:"51251"},{name:"Hasal Microfinance Bank",code:"50383"},
+  {name:"Heritage Bank",code:"030"},{name:"Ibile Microfinance Bank",code:"51244"},
+  {name:"Infinity Microfinance Bank",code:"50457"},{name:"Jaiz Bank",code:"301"},
+  {name:"Kadpoly Microfinance Bank",code:"50200"},{name:"Keystone Bank",code:"082"},
+  {name:"Kuda Microfinance Bank",code:"50211"},{name:"Lagos Building Investment Company",code:"90052"},
+  {name:"Links MFB",code:"50549"},{name:"Lotus Bank",code:"303"},
+  {name:"Mayfair MFB",code:"50563"},{name:"Mint MFB",code:"50304"},
+  {name:"Moniepoint",code:"999993"},{name:"NPF Microfinance Bank",code:"50629"},
+  {name:"Opay",code:"999992"},{name:"Paga",code:"100002"},
+  {name:"PalmPay",code:"999991"},{name:"Parallex Bank",code:"526"},
+  {name:"Parkway - ReadyCash",code:"311"},{name:"Paycom",code:"999"},
+  {name:"Petra Mircofinance Bank",code:"50746"},{name:"Polaris Bank",code:"076"},
+  {name:"PremiumTrust Bank",code:"105"},{name:"Providus Bank",code:"101"},
+  {name:"QuickFund MFB",code:"51293"},{name:"Rand Merchant Bank",code:"502"},
+  {name:"Rubies Bank",code:"125"},{name:"Signature Bank",code:"106"},
+  {name:"Sparkle Bank",code:"51310"},{name:"Stanbic IBTC Bank",code:"221"},
+  {name:"Standard Chartered Bank",code:"068"},{name:"Sterling Bank",code:"232"},
+  {name:"SunTrust Bank",code:"100"},{name:"TAJBank",code:"302"},
+  {name:"Tanadi Microfinance Bank",code:"51269"},{name:"Titan Trust Bank",code:"102"},
+  {name:"U&C Microfinance Bank",code:"50840"},{name:"Union Bank of Nigeria",code:"032"},
+  {name:"United Bank for Africa",code:"033"},{name:"Unity Bank",code:"215"},
+  {name:"VFD Microfinance Bank",code:"566"},{name:"Wema Bank",code:"035"},
+  {name:"Zenith Bank",code:"057"},{name:"9 Payment Service Bank",code:"120001"}
+];
+
+function renderBankList(filtered) {
+  const list = document.getElementById("bankList");
+  list.innerHTML = "";
+  filtered.forEach(function(b) {
+    const item = document.createElement("div");
+    item.className = "bank-item";
+    item.innerHTML = '<div class="bank-item-icon">' + b.name.charAt(0) + '</div><div><div class="bank-item-name">' + b.name + '</div><div class="bank-item-code">Code: ' + b.code + '</div></div>';
+    item.onclick = function() { selectBank(b); };
+    list.appendChild(item);
+  });
+}
+renderBankList(banks);
+
+const bankTrigger = document.getElementById("bankTrigger");
+const bankMenu = document.getElementById("bankMenu");
+const bankTriggerText = document.getElementById("bankTriggerText");
+
+function toggleBankMenu() {
+  if (!payoutKeyVerified) return;
+  const rect = bankTrigger.getBoundingClientRect();
+  bankMenu.style.top = (rect.bottom + 8) + 'px';
+  bankMenu.classList.toggle("show");
+  bankTrigger.classList.toggle("active");
+}
+
+function selectBank(bank) {
+  bankTriggerText.textContent = bank.name;
+  bankTriggerText.classList.add("selected");
+  document.getElementById("bankCode").value = bank.code;
+  document.getElementById("bankName").value = bank.name;
+  bankMenu.classList.remove("show");
+  bankTrigger.classList.remove("active");
+}
+
+function filterBanks() {
+  const query = document.getElementById("bankSearch").value.toLowerCase();
+  const filtered = banks.filter(function(b) { return b.name.toLowerCase().includes(query); });
+  renderBankList(filtered);
+}
+
+document.addEventListener("click", function(e) {
+  if (!e.target.closest(".bank-dropdown")) {
+    bankMenu.classList.remove("show");
+    bankTrigger.classList.remove("active");
+  }
+});
+
+function setAmount(amt) {
+  if (!payoutKeyVerified) { showToast("Verify your payout key first!"); return; }
+  document.getElementById("withdrawAmount").value = amt.toLocaleString("en-NG");
+  document.querySelectorAll(".chip").forEach(function(c) { c.classList.remove("active"); });
+  event.target.classList.add("active");
+}
+
+document.getElementById("withdrawAmount").addEventListener("input", function(e) {
+  if (!payoutKeyVerified) { e.target.value = ""; showToast("Verify your payout key first!"); return; }
+  let val = e.target.value.replace(/[^\d]/g, "");
+  if (val) e.target.value = parseInt(val).toLocaleString("en-NG");
+  document.querySelectorAll(".chip").forEach(function(c) { c.classList.remove("active"); });
+});
+
+const acctInput = document.getElementById("accountNumber");
+const resolverLoading = document.getElementById("resolverLoading");
+const resolverSuccess = document.getElementById("resolverSuccess");
+const resolverError = document.getElementById("resolverError");
+const resolvedName = document.getElementById("resolvedName");
+const errorText = document.getElementById("errorText");
+const manualName = document.getElementById("manualName");
+const manualNameInput = document.getElementById("manualNameInput");
+const accountNameInput = document.getElementById("accountName");
+const verifyBtn = document.getElementById("verifyBtn");
+
+function verifyAccount() {
+  if (!payoutKeyVerified) { showToast("Verify your payout key first!"); return; }
+  const acct = acctInput.value.trim();
+  const bankCode = document.getElementById("bankCode").value;
+
+  resolverLoading.classList.remove("show");
+  resolverSuccess.classList.remove("show");
+  resolverError.classList.remove("show");
+  manualName.classList.remove("show");
+
+  if (acct.length !== 10 || !bankCode) {
+    showToast("Enter account number and select bank first");
+    return;
+  }
+
+  verifyBtn.disabled = true;
+  verifyBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
+  resolverLoading.classList.add("show");
+
+  setTimeout(function() {
+    showManualEntry("Could not auto-verify. Enter name manually.");
+  }, 1500);
+}
+
+function showSuccess(name) {
+  verifyBtn.disabled = false;
+  verifyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Verified';
+  verifyBtn.style.background = 'linear-gradient(135deg,#10b981,#34d399)';
+  resolvedName.textContent = name;
+  accountNameInput.value = name;
+  resolverSuccess.classList.add("show");
+  resolverError.classList.remove("show");
+  manualName.classList.remove("show");
+  resolverLoading.classList.remove("show");
+  acctInput.style.borderColor = "#10b981";
+  acctInput.style.boxShadow = "0 0 0 4px rgba(16,185,129,0.1)";
+}
+
+function showManualEntry(msg) {
+  verifyBtn.disabled = false;
+  verifyBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Verify Account';
+  verifyBtn.style.background = '';
+  errorText.textContent = msg;
+  resolverError.classList.add("show");
+  resolverSuccess.classList.remove("show");
+  manualName.classList.add("show");
+  resolverLoading.classList.remove("show");
+  acctInput.style.borderColor = "#f59e0b";
+  acctInput.style.boxShadow = "0 0 0 4px rgba(245,158,11,0.1)";
+}
+
+manualNameInput.addEventListener("input", function(e) {
+  accountNameInput.value = e.target.value;
+  if (e.target.value.length > 3) {
+    acctInput.style.borderColor = "#10b981";
+    acctInput.style.boxShadow = "0 0 0 4px rgba(16,185,129,0.1)";
+    resolverError.classList.remove("show");
+  }
+});
+
+acctInput.addEventListener("input", function() {
+  acctInput.value = acctInput.value.replace(/\D/g, "");
+  acctInput.style.borderColor = "";
+  acctInput.style.boxShadow = "";
+  resolverSuccess.classList.remove("show");
+  resolverError.classList.remove("show");
+  manualName.classList.remove("show");
+  verifyBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Verify Account';
+  verifyBtn.style.background = '';
+});
+
+// ========== SUBMIT WITHDRAWAL — FIXED: 30 SECOND BOUNCE ==========
+function submitWithdrawal() {
+  if (!payoutKeyVerified) { showToast("Verify your payout key first!"); return; }
+
+  const rawAmt = document.getElementById("withdrawAmount").value.replace(/[^\d]/g, "");
+  const amount = parseFloat(rawAmt) || 0;
+  const acct = acctInput.value.trim();
+  const name = accountNameInput.value.trim();
+  const bankCode = document.getElementById("bankCode").value;
+  const bankName = document.getElementById("bankName").value;
+
+  if (amount < MIN_WITHDRAWAL) {
+    Swal.fire({icon: "warning", title: "Minimum Required", html: 'Minimum withdrawal is <b>₦' + MIN_WITHDRAWAL.toLocaleString("en-NG") + '</b>', confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
+    return;
+  }
+  if (amount > balance) {
+    Swal.fire({icon: "error", title: "Insufficient Balance", html: 'You want to withdraw <b>₦' + amount.toLocaleString("en-NG") + '</b><br>Your balance: <b>' + formatMoney(balance) + '</b>', confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
+    return;
+  }
+  if (acct.length !== 10 || !/^\d{10}$/.test(acct)) {
+    Swal.fire({icon: "warning", title: "Invalid Account", text: "Enter a valid 10-digit account number", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
+    return;
+  }
+  if (!name) {
+    Swal.fire({icon: "warning", title: "Account Name Required", text: "Verify account or enter name manually", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
+    return;
+  }
+  if (!bankCode) {
+    Swal.fire({icon: "warning", title: "Select Bank", text: "Choose your bank from the list", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
+    return;
+  }
+
+  Swal.fire({
+    title: "Confirm Withdrawal",
+    html: 'Withdraw <b>₦' + amount.toLocaleString("en-NG") + '</b> to<br><b>' + name + '</b><br>' + bankName + ' • ' + acct,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#6366f1",
+    cancelButtonColor: "#ef4444",
+    confirmButtonText: "Confirm & Withdraw",
+    reverseButtons: true,
+    background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
+    color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
+  }).then(function(r) {
+    if (r.isConfirmed) {
+      // Deduct balance immediately
+      balance -= amount;
+      userData.balance = balance;
+      localStorage.setItem("walletBalance", balance);
+      localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+      
+      if (typeof firebase !== 'undefined' && firebase.firestore) {
+        firebase.firestore().collection("users").doc(userData.phone).update({
+          balance: balance
+        }).catch(function(err) { console.error("Firebase update failed:", err); });
+      }
+
+      // Save to transaction history
+      let tx = JSON.parse(localStorage.getItem("transactionHistory")) || [];
+      tx.unshift({
+        type: "Withdrawal",
+        amount: "₦" + amount.toLocaleString("en-NG"),
+        status: "Pending",
+        date: new Date().toLocaleString(),
+        bank: bankName,
+        account: acct,
+        name: name,
+        payoutKey: document.getElementById("payoutKeyInput").value.toUpperCase()
+      });
+      localStorage.setItem("transactionHistory", JSON.stringify(tx));
+
+      // ===== CRITICAL FIX: Schedule bounce in 30 seconds (30000ms) =====
+      localStorage.setItem("pendingBounce", JSON.stringify({
+        amount: amount,
+        timestamp: Date.now()
+      }));
+      console.log("Bounce scheduled: ₦" + amount + " in 30 seconds");
+
+      // Show loader then go to success page
+      document.getElementById("loaderOverlay").classList.add("active");
+      setTimeout(function() {
+        window.location.href = "success.html";
+      }, 2800);
+    }
+  });
 }
 
 function showToast(msg) {
@@ -607,9 +837,25 @@ function showToast(msg) {
   setTimeout(function() { t.classList.remove("show"); }, 2500);
 }
 
+// ========== INIT ==========
 window.addEventListener("DOMContentLoaded", function() {
-  initTheme();
-  loadConfig();
+  initDarkMode();
+  updateBalanceDisplay();
+  
+  // AUTO-CHECK stored key on load
+  autoCheckStoredKey();
+
+  if (window._9jaCash && window._9jaCash.db) {
+    window._9jaCash.db.collection("users").doc(userData.phone).get()
+      .then(function(doc) {
+        if (doc.exists) {
+          const fresh = doc.data();
+          balance = fresh.balance || balance;
+          updateBalanceDisplay();
+        }
+      })
+      .catch(function(err) { console.log("Firebase sync failed:", err); });
+  }
 });
 </script>
 
