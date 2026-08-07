@@ -597,7 +597,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
     </div>
     <div class="form-group" style="margin-bottom:0;">
       <label class="form-label">Telegram Handle</label>
-      <input type="text" id="supportHandle" class="form-input" placeholder="@9jaCash_Support">
+      <input type="text" id="supportHandle" class="form-input" placeholder="@New_9jacash_support">
     </div>
   </div>
 </div>
@@ -1017,7 +1017,7 @@ async function saveAll(){
   const wd={success:wdSuccess,updatedAt:new Date().toISOString()};
   const pm={success:pmSuccess,updatedAt:new Date().toISOString()};
   const keyD={currentKey:payoutKey,history:keyHistory,updatedAt:new Date().toISOString()};
-  const redir={successPrimaryRedirect:document.getElementById('successPrimary').value.trim()||'dashboard.html',successSecondaryRedirect:document.getElementById('successSecondary').value.trim()||'buy.html',successDelay:Number(document.getElementById('successDelay').value)||2000,successShowConfetti:true,successMessage:'Your payment has been confirmed',failedRetryRedirect:document.getElementById('failedRetry').value.trim()||'payment.html',failedDashboardRedirect:document.getElementById('failedDashboard').value.trim()||'dashboard.html',failedRetryLabel:'Retry Payment',failedDashboardLabel:'Back to Dashboard',failedMessage:'We could not confirm your payment. Please check your details and try again.',failedSupportHandle:document.getElementById('supportHandle').value.trim()||'@9jaCash_Support',failedShowSenderDetails:true,updatedAt:new Date().toISOString()};
+  const redir={successPrimaryRedirect:document.getElementById('successPrimary').value.trim()||'dashboard.html',successSecondaryRedirect:document.getElementById('successSecondary').value.trim()||'buy.html',successDelay:Number(document.getElementById('successDelay').value)||2000,successShowConfetti:true,successMessage:'Your payment has been confirmed',failedRetryRedirect:document.getElementById('failedRetry').value.trim()||'payment.html',failedDashboardRedirect:document.getElementById('failedDashboard').value.trim()||'dashboard.html',failedRetryLabel:'Retry Payment',failedDashboardLabel:'Back to Dashboard',failedMessage:'We could not confirm your payment. Please check your details and try again.',failedSupportHandle:document.getElementById('supportHandle').value.trim()||'@New_9jacash_support',failedShowSenderDetails:true,updatedAt:new Date().toISOString()};
   
   if(pay.accNumber&&pay.accNumber.length!==10){showToast('Main account: 10 digits','error');return;}
   if(fee.accNumber&&fee.accNumber.length!==10){showToast('Fee account: 10 digits','error');return;}
