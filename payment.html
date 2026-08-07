@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -247,7 +246,7 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
 
 <div class="notice-box anim d2">
   <div class="notice-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-  <div class="notice-text">
+  <div class="notice-text" id="noticeTextContainer">
     <b>Do NOT use Opay</b> for transfers. Preferred: GTBank, Access, Zenith, UBA, First Bank.
   </div>
 </div>
@@ -335,7 +334,8 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
   <div class="loader-text">Verifying Payment...</div>
   <div class="loader-sub">Please wait • Do not close this page</div>
 </div>
- <script>
+
+<script>
 // ========== GLOBALS ==========
 let userData = null;
 try {
@@ -352,6 +352,9 @@ let timerId = null;
 let currentTab = "bank";
 let flowType = "unknown";
 let isProcessing = false;
+
+// Fallback notice HTML snippet
+const FALLBACK_NOTICE = '<b>Do NOT use Opay</b> for transfers. Preferred: GTBank, Access, Zenith, UBA, First Bank.';
 
 // ========== FORMAT MONEY ==========
 function formatMoney(num) {
@@ -389,17 +392,14 @@ function goBack() {
 
 // ========== DETECT FLOW — FIXED ==========
 function detectFlow() {
-  // Reset both
   paymentData = null;
   upgradeData = null;
   flowType = "unknown";
 
-  // 1. Check UPGRADE first (selectedPlan from upgrade.html)
   const storedUpgrade = localStorage.getItem("selectedPlan");
   if (storedUpgrade) {
     try {
       const parsed = JSON.parse(storedUpgrade);
-      // Accept various property names from upgrade.html
       if (parsed && (parsed.name || parsed.planName || parsed.plan)) {
         upgradeData = {
           name: parsed.name || parsed.planName || parsed.plan || "Plan Upgrade",
@@ -407,7 +407,6 @@ function detectFlow() {
           earningLimit: parsed.earningLimit || parsed.limit || parsed.dailyEarning || 0
         };
         flowType = "upgrade";
-        // Don't remove yet — remove after successful redirect
         return;
       }
     } catch(e) {
@@ -415,7 +414,6 @@ function detectFlow() {
     }
   }
 
-  // 2. Check PAYOUT KEY (9jaCashPaymentData from buy.html)
   const storedPayment = localStorage.getItem("9jaCashPaymentData");
   if (storedPayment) {
     try {
@@ -430,7 +428,6 @@ function detectFlow() {
     }
   }
 
-  // 3. Fallback
   flowType = "unknown";
 }
 
@@ -459,7 +456,7 @@ function updateFlowBadge() {
   }
 }
 
-// ========== UPDATE ORDER SUMMARY — FIXED ==========
+// ========== UPDATE ORDER SUMMARY ==========
 function updateOrderSummary() {
   const orderTitle = document.getElementById("orderTitle");
   const orderSub = document.getElementById("orderSub");
@@ -474,7 +471,6 @@ function updateOrderSummary() {
   const orderTotal = document.getElementById("orderTotal");
 
   if (flowType === "upgrade" && upgradeData) {
-    // UPGRADE FLOW
     orderTitle.textContent = "Upgrade Plan";
     orderSub.textContent = "Plan upgrade payment";
     orderItem.textContent = upgradeData.name;
@@ -490,7 +486,6 @@ function updateOrderSummary() {
     document.getElementById("pageTitle").textContent = "Upgrade Payment";
 
   } else if (flowType === "payout_key" && paymentData) {
-    // PAYOUT KEY FLOW
     orderTitle.textContent = "Payout Key";
     orderSub.textContent = "Payout key purchase";
     orderItem.textContent = paymentData.plan || "Payout Key";
@@ -510,7 +505,6 @@ function updateOrderSummary() {
     document.getElementById("pageTitle").textContent = "Payout Key Payment";
 
   } else {
-    // UNKNOWN
     orderItem.textContent = "Unknown";
     orderPrice.textContent = "₦0";
     orderExtraRow.style.display = "none";
@@ -519,7 +513,7 @@ function updateOrderSummary() {
   }
 }
 
-// ========== UPDATE AMOUNT DISPLAY — FIXED ==========
+// ========== UPDATE AMOUNT DISPLAY ==========
 function updateAmountDisplay() {
   let amount = 0;
   
@@ -531,7 +525,6 @@ function updateAmountDisplay() {
 
   const formatted = formatMoney(amount);
   
-  // Big amount display
   const amountDisplay = document.getElementById("payAmountDisplay");
   if (formatted.includes(".")) {
     amountDisplay.innerHTML = formatted.replace(/\.(\d+)$/, '<span>.$1</span>');
@@ -539,10 +532,8 @@ function updateAmountDisplay() {
     amountDisplay.innerHTML = formatted + "<span>.00</span>";
   }
   
-  // Amount in bank panel
   document.getElementById("payAmount2").textContent = formatted;
 
-  // Hint text
   const payHint = document.getElementById("payHint");
   if (flowType === "upgrade" && upgradeData) {
     payHint.innerHTML = '<span>' + upgradeData.name + '</span> • One-time payment';
@@ -564,7 +555,7 @@ function switchTab(tab) {
   document.getElementById("panelCrypto").style.display = tab === "crypto" ? "block" : "none";
 }
 
-// ========== LOAD PAYMENT DETAILS FROM FIREBASE ==========
+// ========== LOAD PAYMENT DETAILS & NOTICE FROM FIREBASE ==========
 function loadPaymentDetails() {
   if (window._9jaCash && window._9jaCash.db) {
     window._9jaCash.db.collection("settings").doc("payment").get()
@@ -577,6 +568,13 @@ function loadPaymentDetails() {
           document.getElementById("cryptoAddr").textContent = data.cryptoAddress || "Not available";
           document.getElementById("cryptoNetwork").textContent = data.cryptoNetwork || "—";
           document.getElementById("cryptoAmount").textContent = data.cryptoAmount ? "$" + data.cryptoAmount : "—";
+          
+          // Dynamic notice fetching with hardcoded text fallback
+          if (data.notice && data.notice.trim() !== "") {
+            document.getElementById("noticeTextContainer").innerHTML = data.notice;
+          } else {
+            document.getElementById("noticeTextContainer").innerHTML = FALLBACK_NOTICE;
+          }
         } else {
           setFallbackDetails();
         }
@@ -597,6 +595,7 @@ function setFallbackDetails() {
   document.getElementById("cryptoAddr").textContent = "Not available";
   document.getElementById("cryptoNetwork").textContent = "—";
   document.getElementById("cryptoAmount").textContent = "—";
+  document.getElementById("noticeTextContainer").innerHTML = FALLBACK_NOTICE;
 }
 
 // ========== COPY TEXT ==========
@@ -698,7 +697,6 @@ function confirmPayment() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
 
-  // Build receipt data
   let receiptData = {
     userId: userData.phone || userData.uid || "unknown",
     userName: userData.name || userData.fullName || "Unknown",
@@ -726,7 +724,6 @@ function confirmPayment() {
     };
   }
 
-  // Show loading
   Swal.fire({
     title: "Verifying Payment...",
     html: '<div style="margin-top:16px;"><div style="width:40px;height:40px;border:3px solid #334155;border-top-color:#6366f1;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div><p style="margin-top:12px;color:#64748b;font-size:14px;">Please wait while we verify</p></div>',
@@ -737,7 +734,6 @@ function confirmPayment() {
     color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
   });
 
-  // Try Firebase save
   let savePromise = Promise.resolve();
   if (window._9jaCash && window._9jaCash.db) {
     savePromise = window._9jaCash.db.collection("paymentReceipts").add(receiptData)
@@ -749,7 +745,6 @@ function confirmPayment() {
       });
   }
 
-  // ALWAYS redirect after 3 seconds
   savePromise.finally(function() {
     setTimeout(function() {
       Swal.close();
@@ -758,11 +753,9 @@ function confirmPayment() {
   });
 }
 
-// ========== REDIRECT TO SUCCESS PAGE — FIXED ==========
-// ========== REDIRECT TO FAILED PAGE — FIXED ==========
+// ========== REDIRECT TO FAILED PAGE ==========
 function performRedirect() {
   if (flowType === "upgrade") {
-    // Save upgrade data for failed page to read
     localStorage.setItem("9jaCashUpgradeSuccess", JSON.stringify({
       name: upgradeData.name,
       amount: upgradeData.amount,
@@ -770,20 +763,17 @@ function performRedirect() {
       date: new Date().toLocaleString(),
       type: "upgrade"
     }));
-    // Keep selectedPlan for retry
     localStorage.setItem("selectedPlan", JSON.stringify({
       name: upgradeData.name,
       amount: upgradeData.amount,
       earningLimit: upgradeData.earningLimit
     }));
-    // CLEAR payout key data so it doesn't conflict
     localStorage.removeItem("9jaCashPaymentData");
     localStorage.removeItem("9jaCashPayoutKeyDetails");
     
     window.location.href = "payment-failed.html";
     
   } else if (flowType === "payout_key") {
-    // Save payout key data for failed page to read
     localStorage.setItem("9jaCashPayoutKeyDetails", JSON.stringify({
       plan: paymentData.plan,
       dailyLimit: paymentData.dailyLimit,
@@ -791,10 +781,8 @@ function performRedirect() {
       date: new Date().toLocaleString(),
       type: "payout_key"
     }));
-    // CLEAR upgrade data so it doesn't conflict
     localStorage.removeItem("selectedPlan");
     localStorage.removeItem("9jaCashUpgradeSuccess");
-    // Keep paymentData for retry
     localStorage.setItem("9jaCashPaymentData", JSON.stringify(paymentData));
     
     window.location.href = "payment-failed.html";
