@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Withdrawal Successful - Flutterwave MineApp</title>
+<title>Withdrawal Successful - 9jaCash</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -36,6 +37,9 @@ body.dark-mode .btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);c
 body.dark-mode .btn-primary:hover{box-shadow:0 6px 24px rgba(99,102,241,0.4);}
 body.dark-mode .btn-secondary{background:#1e293b;color:#94a3b8;border-color:#334155;}
 body.dark-mode .btn-secondary:hover{border-color:#6366f1;color:#818cf8;}
+body.dark-mode .timer-box{background:#0f172a;border-color:#334155;}
+body.dark-mode .timer-label{color:#94a3b8;}
+body.dark-mode .timer-value{color:#f8fafc;}
 body.dark-mode .footer-text{color:#64748b;}
 body.dark-mode .toast{background:#1e293b;border-color:#334155;}
 body.dark-mode .theme-toggle{background:#1e293b;border-color:#334155;color:#94a3b8;}
@@ -70,9 +74,8 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
 .title{font-size:26px;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px;transition:color 0.3s;}
 .subtitle{font-size:14px;color:#64748b;line-height:1.6;margin-bottom:24px;font-weight:500;transition:color 0.3s;}
 
-.amount-text{font-size:42px;font-weight:900;color:#10b981;letter-spacing:-2px;margin-bottom:4px;line-height:1;transition:color 0.3s;}
+.amount-text{font-size:42px;font-weight:900;color:#10b981;letter-spacing:-2px;margin-bottom:8px;line-height:1;transition:color 0.3s;}
 .amount-text span{font-size:24px;color:#6366f1;}
-.local-amount-text{font-size:15px;font-weight:700;color:#6366f1;margin-bottom:20px;}
 
 .status-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:50px;background:#ecfdf5;border:1px solid #10b981;color:#10b981;font-size:13px;font-weight:700;margin-bottom:28px;transition:all 0.3s ease;}
 .status-badge i{font-size:12px;}
@@ -84,6 +87,41 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
 .detail-value.green{color:#10b981;}
 .detail-value.mono{font-family:'Courier New',monospace;font-size:13px;}
 .detail-value i{font-size:12px;}
+
+.timer-box{background:#f8fafc;border:1px solid #f1f5f9;border-radius:16px;padding:20px;margin-bottom:20px;transition:all 0.3s ease;}
+.timer-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.timer-value{font-size:28px;font-weight:900;color:#1e293b;letter-spacing:2px;transition:color 0.3s;}
+.timer-value span{color:#6366f1;}
+
+.actions{display:flex;flex-direction:column;gap:12px;margin-top:24px;}
+.btn{width:100%;padding:18px;border-radius:18px;font-size:16px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;}
+.btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transition:0.5s;}
+.btn:hover::before{left:100%;}
+.btn:active{transform:scale(0.97);}
+
+.btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;10b981,transparent);}
+
+.title{font-size:26px;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px;transition:color 0.3s;}
+.subtitle{font-size:14px;color:#64748b;line-height:1.6;margin-bottom:24px;font-weight:500;transition:color 0.3s;}
+
+.amount-text{font-size:42px;font-weight:900;color:#10b981;letter-spacing:-2px;margin-bottom:8px;line-height:1;transition:color 0.3s;}
+.amount-text span{font-size:24px;color:#6366f1;}
+
+.status-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:50px;background:#ecfdf5;border:1px solid #10b981;color:#10b981;font-size:13px;font-weight:700;margin-bottom:28px;transition:all 0.3s ease;}
+.status-badge i{font-size:12px;}
+
+.detail-card{background:#f8fafc;border:1px solid #f1f5f9;border-radius:16px;padding:16px;margin-bottom:10px;transition:all 0.3s ease;display:flex;align-items:center;justify-content:space-between;}
+.detail-card:last-child{margin-bottom:0;}
+.detail-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;}
+.detail-value{font-size:14px;font-weight:800;color:#1e293b;display:flex;align-items:center;gap:8px;transition:color 0.3s;}
+.detail-value.green{color:#10b981;}
+.detail-value.mono{font-family:'Courier New',monospace;font-size:13px;}
+.detail-value i{font-size:12px;}
+
+.timer-box{background:#f8fafc;border:1px solid #f1f5f9;border-radius:16px;padding:20px;margin-bottom:20px;transition:all 0.3s ease;}
+.timer-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.timer-value{font-size:28px;font-weight:900;color:#1e293b;letter-spacing:2px;transition:color 0.3s;}
+.timer-value span{color:#6366f1;}
 
 .actions{display:flex;flex-direction:column;gap:12px;margin-top:24px;}
 .btn{width:100%;padding:18px;border-radius:18px;font-size:16px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;}
@@ -138,34 +176,34 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
       <i class="fa-solid fa-check"></i>
     </div>
     <div class="title">Withdrawal Successful!</div>
-    <div class="subtitle">Your funds are on the way to your wallet account</div>
-    <div class="amount-text count-up" id="amountDisplay">€0<span>.00</span></div>
-    <div class="local-amount-text" id="localAmountDisplay">≈ $0.00</div>
+    <div class="subtitle">Your funds are on the way to your bank account</div>
+    <div class="amount-text count-up" id="amountDisplay">₦0<span>.00</span></div>
     <div class="status-badge">
       <i class="fa-solid fa-circle-check"></i>
-      <span id="statusText">Completed • Credited</span>
+      <span id="statusText">Pending • Processing</span>
     </div>
+  </div>
+
+  <div class="timer-box slide-up d3">
+    <div class="timer-label">Estimated Arrival</div>
+    <div class="timer-value" id="timerDisplay">00<span>h</span> 03<span>m</span> 00<span>s</span></div>
   </div>
 
   <div class="success-card slide-up d4" style="padding:20px 24px;">
     <div class="detail-card">
-      <div class="detail-label">Amount (EUR)</div>
-      <div class="detail-value green" id="detailAmount">€0.00</div>
+      <div class="detail-label">Amount</div>
+      <div class="detail-value green" id="detailAmount">₦0</div>
     </div>
     <div class="detail-card">
-      <div class="detail-label">Actual Amount</div>
-      <div class="detail-value green" id="detailLocalAmount">$0.00</div>
-    </div>
-    <div class="detail-card">
-      <div class="detail-label" id="lblBank">Bank Name</div>
+      <div class="detail-label">Bank</div>
       <div class="detail-value" id="detailBank"><i class="fa-solid fa-building-columns"></i> —</div>
     </div>
     <div class="detail-card">
-      <div class="detail-label" id="lblAccount">Account Number</div>
+      <div class="detail-label">Account</div>
       <div class="detail-value mono" id="detailAccount">—</div>
     </div>
     <div class="detail-card">
-      <div class="detail-label" id="lblAccName">Account Name</div>
+      <div class="detail-label">Account Name</div>
       <div class="detail-value" id="detailName">—</div>
     </div>
     <div class="detail-card">
@@ -188,14 +226,13 @@ body.dark-mode .swal2-html-container{color:#94a3b8 !important;}
   </div>
 
   <div class="footer slide-up d6">
-    Flutterwave MineApp <span id="year"></span> • Secured Withdrawals
+    9jaCash <span id="year"></span> • Secured Withdrawals
   </div>
 </div>
 
 <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
 
 <script>
-// Authentication check: redirect to start.html if user is not logged in
 let userData = null;
 try {
   userData = JSON.parse(localStorage.getItem("9jaCashUser"));
@@ -203,25 +240,14 @@ try {
   userData = null;
 }
 
-if (!userData) {
-  window.location.href = "start.html";
+let txData = null;
+try {
+  txData = JSON.parse(localStorage.getItem("lastWithdrawal"));
+} catch(e) {
+  txData = null;
 }
 
-let activeTxData = null;
-let regionalSettings = null;
-let defaultPaymentSettings = null;
-
-// Helper function to convert country name to Firestore region document
-function getRegionDocName(countryName) {
-  if (!countryName) return "ghanaRegion";
-  const normalized = countryName.trim().toLowerCase();
-  const countryMap = {
-    "ghana": "ghanaRegion", "usa": "usaRegion", "united states": "usaRegion",
-    "spain": "spainRegion", "nigeria": "nigeriaRegion", "uk": "ukRegion",
-    "canada": "canadaRegion", "kenya": "kenyaRegion", "south africa": "southafricaRegion"
-  };
-  return countryMap[normalized] || (normalized.replace(/[^a-z0-9]/g, "") + "Region");
-}
+let adminSettings = null;
 
 // ========== THEME ==========
 function initTheme() {
@@ -242,95 +268,45 @@ function toggleTheme() {
 
 // ========== FORMAT MONEY ==========
 function formatMoney(num) {
-  if (!num && num !== 0) return "€0.00";
+  if (!num && num !== 0) return "₦0";
   let n = parseFloat(num);
-  if (isNaN(n)) return "€0.00";
-  return "€" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (isNaN(n)) return "₦0";
+  if (n >= 1000000) return "₦" + (n / 1000000).toFixed(2) + "M";
+  return "₦" + n.toLocaleString("en-NG");
 }
 
-function formatLocalMoney(num, symbol = "$") {
-  if (!num && num !== 0) return symbol + "0.00";
-  let n = parseFloat(num);
-  if (isNaN(n)) return symbol + "0.00";
-  return symbol + Math.ceil(n).toLocaleString("en-US") + ".00";
-}
-
-// ========== LOAD REGIONAL & PAYMENT SETTINGS ==========
-async function loadConfig() {
-  if (window._9jaCash && window._9jaCash.db) {
-    // 1. Fetch default payment labels
-    try {
-      const payDoc = await window._9jaCash.db.collection("settings").doc("payment").get();
-      if (payDoc.exists) {
-        defaultPaymentSettings = payDoc.data();
-      }
-    } catch(e) { console.warn("Error reading settings/payment:", e); }
-
-    // 2. Fetch regional rates and field overrides
-    const userCountry = (userData && userData.country) ? userData.country : "Ghana";
-    const regionDoc = getRegionDocName(userCountry);
-    try {
-      const regDoc = await window._9jaCash.db.collection("settings").doc(regionDoc).get();
-      if (regDoc.exists) {
-        regionalSettings = regDoc.data();
-      }
-    } catch(e) { console.warn("Error fetching regional details:", e); }
-  }
-}
-
-// ========== GET TRANSACTION DATA (URL OR LOCAL) ==========
-async function getTxData() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const docId = urlParams.get("id") || urlParams.get("docId");
-
-  if (docId && window._9jaCash && window._9jaCash.db) {
-    try {
-      const docSnap = await window._9jaCash.db.collection("withdrawals").doc(docId).get();
-      if (docSnap.exists) {
-        const data = docSnap.data();
-        return {
-          txId: docSnap.id,
-          amount: data.amount,
-          localAmount: data.localAmount || null,
-          bank: data.bank,
-          account: data.accNumber,
-          name: data.accName,
-          status: data.status,
-          date: data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleString() : new Date().toLocaleString()
-        };
-      }
-    } catch(e) {
-      console.warn("Error fetching withdrawal doc from Firestore:", e);
-    }
-  }
-
-  // Local Storage Fallbacks
-  try {
-    let lastWd = JSON.parse(localStorage.getItem("lastWithdrawal"));
-    if (lastWd && lastWd.amount) return lastWd;
-  } catch(e) {}
+// ========== GET TRANSACTION DATA ==========
+function getTxData() {
+  let tx = txData;
+  if (tx && tx.amount) return tx;
 
   try {
     let history = JSON.parse(localStorage.getItem("transactionHistory")) || [];
     if (history.length > 0 && history[0].type === "Withdrawal") return history[0];
   } catch(e) {}
 
+  try {
+    let wd = JSON.parse(localStorage.getItem("withdrawData"));
+    if (wd && wd.amount) return wd;
+  } catch(e) {}
+
   return null;
 }
 
-// ========== SEND WITHDRAWAL SUCCESS NOTIFICATION ==========
+// ========== SEND WITHDRAWAL SUCCESS NOTIFICATION (FIXED) ==========
 function sendWithdrawalNotification(amount, bank, accountName) {
+  // Check if notifications are supported and permitted
   if (!("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
   
   const formattedAmount = typeof amount === 'string' ? amount : formatMoney(amount);
   
   try {
-    const notification = new Notification("Flutterwave MineApp - Withdrawal Successful", {
+    const notification = new Notification("9jaCash - Withdrawal Successful", {
       body: "Withdrawal of " + formattedAmount + " has been successfully debited and is being credited to your (" + bank + ") account",
       icon: "9jaCash.png",
       badge: "9jaCash.png",
-      tag: "FlutterW-withdrawal-success",
+      tag: "9jaCash-withdrawal-success",
       requireInteraction: true,
       data: {
         type: 'withdrawal_success',
@@ -349,26 +325,16 @@ function sendWithdrawalNotification(amount, bank, accountName) {
 }
 
 // ========== UPDATE UI ==========
-async function updateUI() {
-  const data = await getTxData();
-  activeTxData = data;
+function updateUI() {
+  const data = getTxData();
 
   if (!data) {
-    showToast("No withdrawal record found!");
+    showToast("No withdrawal data found!");
     setTimeout(function() {
       window.location.href = "dashboard.html";
     }, 2000);
     return;
   }
-
-  // Set field labels dynamically using regional and default settings
-  const bankTitle = (regionalSettings && regionalSettings.bankNameTitle) || (defaultPaymentSettings && defaultPaymentSettings.bankNameTitle) || "Bank Name";
-  const accNumTitle = (regionalSettings && regionalSettings.accNumTitle) || (defaultPaymentSettings && defaultPaymentSettings.accNumTitle) || "Account Number";
-  const accNameTitle = (regionalSettings && regionalSettings.accNameTitle) || (defaultPaymentSettings && defaultPaymentSettings.accNameTitle) || "Account Name";
-
-  document.getElementById("lblBank").textContent = bankTitle;
-  document.getElementById("lblAccount").textContent = accNumTitle;
-  document.getElementById("lblAccName").textContent = accNameTitle;
 
   let rawAmount = 0;
   if (typeof data.amount === 'string') {
@@ -377,65 +343,78 @@ async function updateUI() {
     rawAmount = parseFloat(data.amount) || 0;
   }
 
-  // Extract Rate and Symbol dynamically
-  const rate = (regionalSettings && regionalSettings.rate) ? parseFloat(regionalSettings.rate) : 1;
-  const symbol = (regionalSettings && (regionalSettings.currencySymbol || regionalSettings.symbol)) ? (regionalSettings.currencySymbol || regionalSettings.symbol) : "$";
-
-  // Calculate local currency value
-  let localValue = data.localAmount ? parseFloat(data.localAmount) : (rawAmount * rate);
-
-  const formattedEUR = formatMoney(rawAmount);
-  const formattedLocal = formatLocalMoney(localValue, symbol);
+  const formatted = formatMoney(rawAmount);
 
   const amountDisplay = document.getElementById("amountDisplay");
-  if (formattedEUR.includes(".")) {
-    const parts = formattedEUR.split(".");
+  if (formatted.includes(".")) {
+    const parts = formatted.split(".");
     amountDisplay.innerHTML = parts[0] + '<span>.' + parts[1] + '</span>';
   } else {
-    amountDisplay.innerHTML = formattedEUR + '<span>.00</span>';
+    amountDisplay.innerHTML = formatted + '<span>.00</span>';
   }
 
-  document.getElementById("localAmountDisplay").textContent = "≈ " + formattedLocal;
-  document.getElementById("detailAmount").textContent = formattedEUR;
-  document.getElementById("detailLocalAmount").textContent = formattedLocal;
-
+  document.getElementById("detailAmount").textContent = formatted;
   document.getElementById("detailBank").innerHTML = '<i class="fa-solid fa-building-columns"></i> ' + (data.bank || "—");
   document.getElementById("detailAccount").textContent = data.account || data.accNumber || "—";
   document.getElementById("detailName").textContent = data.name || data.accName || "—";
-  
   document.getElementById("detailTxId").textContent = data.txId || 'TX-' + Date.now().toString(36).toUpperCase().slice(-8);
-  document.getElementById("detailDate").textContent = data.date || new Date().toLocaleString('en-US', {
+  document.getElementById("detailDate").textContent = data.date || new Date().toLocaleString('en-NG', {
     day: 'numeric', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   });
   document.getElementById("year").textContent = new Date().getFullYear();
 
-  document.getElementById("statusText").textContent = "Completed • Credited";
+  const status = data.status || "Pending";
+  document.getElementById("statusText").textContent = status === "Pending" ? "Pending • Processing" : status + " • Completed";
 
+  // SEND NOTIFICATION
   sendWithdrawalNotification(rawAmount, data.bank, data.name || data.accName);
+
+  startCountdown();
 }
 
-// ========== NAVIGATION & SHARING ==========
+// ========== COUNTDOWN TIMER ==========
+function startCountdown() {
+  let totalSeconds = 3 * 60;
+  const el = document.getElementById("timerDisplay");
+
+  const timer = setInterval(function() {
+    if (totalSeconds <= 0) {
+      clearInterval(timer);
+      el.innerHTML = '0<span>h</span> 00<span>m</span> 00<span>s</span>';
+      document.getElementById("statusText").textContent = "Completed • Credited";
+      return;
+    }
+    totalSeconds--;
+
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+
+    el.innerHTML = h + '<span>h</span> ' + m.toString().padStart(2, '0') + '<span>m</span> ' + s.toString().padStart(2, '0') + '<span>s</span>';
+  }, 1000);
+}
+
+// ========== NAVIGATION ==========
 function goDashboard() {
   window.location.href = "dashboard.html";
 }
 
 function shareReceipt() {
-  const data = activeTxData;
+  const data = getTxData();
   if (!data) return;
 
-  const text = "Flutterwave MineApp Withdrawal Receipt\n" +
-    "Amount: " + formatMoney(data.amount) + "\n" +
+  const text = "9jaCash Withdrawal Receipt\n" +
+    "Amount: " + (data.amount || "—") + "\n" +
     "Bank: " + (data.bank || "—") + "\n" +
     "Account: " + (data.account || data.accNumber || "—") + "\n" +
     "Name: " + (data.name || data.accName || "—") + "\n" +
-    "Transaction ID: " + (data.txId || "—") + "\n" +
-    "Status: Completed • Credited\n" +
+    "Status: " + (data.status || "Pending") + "\n" +
     "Date: " + (data.date || "—");
 
   if (navigator.share) {
     navigator.share({
-      title: 'Flutterwave MineApp Withdrawal',
+      title: '9jaCash Withdrawal',
       text: text
     });
   } else {
@@ -455,11 +434,33 @@ function showToast(msg) {
   }, 2500);
 }
 
+// ========== LOAD ADMIN SETTINGS ==========
+async function loadAdminSettings() {
+  if (window._9jaCash && window._9jaCash.db) {
+    try {
+      const doc = await window._9jaCash.db.collection("settings").doc("redirects").get();
+      if (doc.exists) adminSettings = doc.data();
+    } catch(err) {
+      console.error("Error:", err);
+    }
+  }
+
+  if (!adminSettings) {
+    adminSettings = {
+      successRedirect: "dashboard.html",
+      successDelay: 2000
+    };
+  }
+}
+
 // ========== INIT ==========
 async function init() {
   initTheme();
-  await loadConfig();
-  await updateUI();
+  await loadAdminSettings();
+
+  updateUI();
+
+  const delay = parseInt(adminSettings.successDelay) || 2000;
 
   setTimeout(function() {
     const loader = document.getElementById("loader");
@@ -470,13 +471,13 @@ async function init() {
 
     if (typeof confetti !== "undefined") {
       confetti({
-        particleCount: 150,
-        spread: 80,
+        particleCount: 200,
+        spread: 100,
         origin: { y: 0.5 },
         colors: ['#6366f1', '#8b5cf6', '#10b981', '#34d399', '#f59e0b']
       });
     }
-  }, 1500);
+  }, delay);
 }
 
 window.addEventListener("DOMContentLoaded", init);
