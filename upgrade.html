@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Upgrade Plan - Flutterwave MineApp</title>
+<title>Upgrade Plan - 9jaCash</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -82,7 +83,7 @@ body.dark-mode .compare-table{background:#1e293b;border-color:#334155;}
 .plan-header-gold{background:linear-gradient(135deg,#f59e0b,#d97706);}
 .plan-header-diamond{background:linear-gradient(135deg,#8b5cf6,#7c3aed);}
 
-.plan-header-content{position:relative;z-index:1;display:flex;justify-space-between;align-items:flex-start;}
+.plan-header-content{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-start;}
 .plan-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:4px;}
 .plan-desc{font-size:13px;color:rgba(255,255,255,0.8);font-weight:500;}
 .plan-header-icon{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;backdrop-filter:blur(8px);}
@@ -181,17 +182,17 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
       <div class="plan-header-icon"><i class="fa-solid fa-leaf"></i></div>
     </div>
     <div class="plan-price-wrap">
-      <div class="plan-price" id="priceBasic">€230 <span>one-time</span></div>
+      <div class="plan-price">₦23,000 <span>one-time</span></div>
     </div>
   </div>
   <div class="plan-body">
-    <div class="plan-limit">Earn up to <span>€1,720</span></div>
+    <div class="plan-limit">Earn up to <span>₦172,000</span></div>
     <ul class="plan-features">
       <li><div class="feature-icon green"><i class="fa-solid fa-check"></i></div><div class="feature-text">Standard <strong>mining speed</strong></div></li>
-      <li><div class="feature-icon purple"><i class="fa-solid fa-check"></i></div><div class="feature-text">Daily rewards up to <strong>€240</strong></div></li>
+      <li><div class="feature-icon purple"><i class="fa-solid fa-check"></i></div><div class="feature-text">Daily rewards up to <strong>₦24,000</strong></div></li>
       <li><div class="feature-icon orange"><i class="fa-solid fa-check"></i></div><div class="feature-text">Withdraw <strong>anytime</strong></div></li>
     </ul>
-    <button class="plan-btn btn-basic" onclick="upgradePlan(planAmounts.basicAmt, 1720, 'Basic Plan')" id="btnBasic">
+    <button class="plan-btn btn-basic" onclick="upgradePlan(23000, 172000, 'Basic Plan')" id="btnBasic">
       Upgrade to Basic <i class="fa-solid fa-arrow-right"></i>
     </button>
   </div>
@@ -208,17 +209,17 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
       <div class="plan-header-icon"><i class="fa-solid fa-gem"></i></div>
     </div>
     <div class="plan-price-wrap">
-      <div class="plan-price" id="priceSilver">€350 <span>one-time</span></div>
+      <div class="plan-price">₦35,000 <span>one-time</span></div>
     </div>
   </div>
   <div class="plan-body">
-    <div class="plan-limit">Earn up to <span>€3,800</span></div>
+    <div class="plan-limit">Earn up to <span>₦380,000</span></div>
     <ul class="plan-features">
       <li><div class="feature-icon green"><i class="fa-solid fa-check"></i></div><div class="feature-text"><strong>2× faster</strong> mining speed</div></li>
       <li><div class="feature-icon purple"><i class="fa-solid fa-check"></i></div><div class="feature-text">Higher daily <strong>mining cap</strong></div></li>
       <li><div class="feature-icon orange"><i class="fa-solid fa-check"></i></div><div class="feature-text"><strong>Priority</strong> withdrawals</div></li>
     </ul>
-    <button class="plan-btn btn-silver" onclick="upgradePlan(planAmounts.silverAmt, 3800, 'Silver Plan')" id="btnSilver">
+    <button class="plan-btn btn-silver" onclick="upgradePlan(35000, 380000, 'Silver Plan')" id="btnSilver">
       Upgrade to Silver <i class="fa-solid fa-arrow-right"></i>
     </button>
   </div>
@@ -234,17 +235,17 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
       <div class="plan-header-icon"><i class="fa-solid fa-crown"></i></div>
     </div>
     <div class="plan-price-wrap">
-      <div class="plan-price" id="priceGold">€750 <span>one-time</span></div>
+      <div class="plan-price">₦75,000 <span>one-time</span></div>
     </div>
   </div>
   <div class="plan-body">
-    <div class="plan-limit">Earn up to <span>€6,400</span></div>
+    <div class="plan-limit">Earn up to <span>₦640,000</span></div>
     <ul class="plan-features">
       <li><div class="feature-icon green"><i class="fa-solid fa-check"></i></div><div class="feature-text"><strong>3× ultra-fast</strong> mining</div></li>
       <li><div class="feature-icon purple"><i class="fa-solid fa-check"></i></div><div class="feature-text">High-profit <strong>algorithm</strong></div></li>
       <li><div class="feature-icon orange"><i class="fa-solid fa-check"></i></div><div class="feature-text"><strong>Instant</strong> withdrawals</div></li>
     </ul>
-    <button class="plan-btn btn-gold" onclick="upgradePlan(planAmounts.goldAmt, 6400, 'Gold Plan')" id="btnGold">
+    <button class="plan-btn btn-gold" onclick="upgradePlan(75000, 640000, 'Gold Plan')" id="btnGold">
       Upgrade to Gold <i class="fa-solid fa-arrow-right"></i>
     </button>
   </div>
@@ -260,17 +261,17 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
       <div class="plan-header-icon"><i class="fa-solid fa-gem"></i></div>
     </div>
     <div class="plan-price-wrap">
-      <div class="plan-price" id="priceDiamond">€1,800 <span>one-time</span></div>
+      <div class="plan-price">₦180,000 <span>one-time</span></div>
     </div>
   </div>
   <div class="plan-body">
-    <div class="plan-limit">Earn up to <span>€12,500</span></div>
+    <div class="plan-limit">Earn up to <span>₦1,250,000</span></div>
     <ul class="plan-features">
       <li><div class="feature-icon green"><i class="fa-solid fa-check"></i></div><div class="feature-text"><strong>5× maximum</strong> mining speed</div></li>
       <li><div class="feature-icon purple"><i class="fa-solid fa-check"></i></div><div class="feature-text"><strong>Unlimited</strong> daily potential</div></li>
       <li><div class="feature-icon orange"><i class="fa-solid fa-check"></i></div><div class="feature-text"><strong>Lifetime</strong> priority access</div></li>
     </ul>
-    <button class="plan-btn btn-diamond" onclick="upgradePlan(planAmounts.diamondAmt, 12500, 'Diamond Plan')" id="btnDiamond">
+    <button class="plan-btn btn-diamond" onclick="upgradePlan(180000, 1250000, 'Diamond Plan')" id="btnDiamond">
       Upgrade to Diamond <i class="fa-solid fa-arrow-right"></i>
     </button>
   </div>
@@ -295,9 +296,9 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
     </tr>
     <tr>
       <td class="compare-label">Daily Cap</td>
-      <td class="compare-val" style="text-align:center;">€240</td>
-      <td class="compare-val" style="text-align:center;">€500</td>
-      <td class="compare-val" style="text-align:center;">€1,000</td>
+      <td class="compare-val" style="text-align:center;">₦24K</td>
+      <td class="compare-val" style="text-align:center;">₦50K</td>
+      <td class="compare-val" style="text-align:center;">₦100K</td>
       <td class="compare-val" style="text-align:center;">Unlimited</td>
     </tr>
     <tr>
@@ -318,7 +319,7 @@ body.dark-mode .nav-mid{border-color:#0f172a;}
 </div>
 
 <div class="footer anim d7">
-  <div class="footer-text">© Flutterwave MineApp 2026 • All rights reserved</div>
+  <div class="footer-text">© 9jaCash 2026 • All rights reserved</div>
 </div>
 
 </div>
@@ -341,39 +342,6 @@ try {
 
 if (!userData) {
   window.location.href = "start.html";
-}
-
-// Global variable to store plan amounts fetched from Firestore settings/payment
-let planAmounts = {
-  basicAmt: 230,
-  silverAmt: 350,
-  goldAmt: 750,
-  diamondAmt: 1800
-};
-
-function fetchPaymentSettings() {
-  if (window._9jaCash && window._9jaCash.db) {
-    window._9jaCash.db.collection("settings").doc("payment").get().then(function(doc) {
-      if (doc.exists) {
-        const data = doc.data();
-        if (data.basicAmt !== undefined) planAmounts.basicAmt = Number(data.basicAmt);
-        if (data.silverAmt !== undefined) planAmounts.silverAmt = Number(data.silverAmt);
-        if (data.goldAmt !== undefined) planAmounts.goldAmt = Number(data.goldAmt);
-        if (data.diamondAmt !== undefined) planAmounts.diamondAmt = Number(data.diamondAmt);
-
-        updatePlanUI();
-      }
-    }).catch(function(err) {
-      console.error("Error fetching payment settings:", err);
-    });
-  }
-}
-
-function updatePlanUI() {
-  document.getElementById("priceBasic").innerHTML = `€${planAmounts.basicAmt.toLocaleString()} <span>one-time</span>`;
-  document.getElementById("priceSilver").innerHTML = `€${planAmounts.silverAmt.toLocaleString()} <span>one-time</span>`;
-  document.getElementById("priceGold").innerHTML = `€${planAmounts.goldAmt.toLocaleString()} <span>one-time</span>`;
-  document.getElementById("priceDiamond").innerHTML = `€${planAmounts.diamondAmt.toLocaleString()} <span>one-time</span>`;
 }
 
 function initDarkMode() {
@@ -400,7 +368,6 @@ function toggleDarkMode() {
 window.addEventListener("DOMContentLoaded", function() {
   initDarkMode();
   checkCurrentPlan();
-  fetchPaymentSettings();
 });
 
 function checkCurrentPlan() {
@@ -445,11 +412,11 @@ function upgradePlan(amount, earningLimit, planName) {
       <div style="text-align:left;margin-top:16px;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e2e8f0;">
           <span style="color:#64748b;font-size:13px;">Plan Cost</span>
-          <span style="font-weight:800;color:#1e293b;font-size:16px;">€${amount.toLocaleString()}</span>
+          <span style="font-weight:800;color:#1e293b;font-size:16px;">₦${amount.toLocaleString()}</span>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e2e8f0;">
           <span style="color:#64748b;font-size:13px;">Earning Limit</span>
-          <span style="font-weight:800;color:#6366f1;font-size:16px;">€${earningLimit.toLocaleString()}</span>
+          <span style="font-weight:800;color:#6366f1;font-size:16px;">₦${earningLimit.toLocaleString()}</span>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
           <span style="color:#64748b;font-size:13px;">Type</span>
@@ -476,7 +443,8 @@ function upgradePlan(amount, earningLimit, planName) {
         date: new Date().toLocaleString(),
         status: "pending"
       };
-      // Clear any old payout key data so payment.html shows upgrade, not payout key
+            // Clear any old payout key data so payment.html shows upgrade, not payout key
+      localStorage.removeItem("9jaCashPaymentData");
       localStorage.removeItem("9jaCashPaymentData");
 
       localStorage.setItem("selectedPlan", JSON.stringify(plan));
@@ -487,11 +455,11 @@ function upgradePlan(amount, earningLimit, planName) {
 
 function startMining() {
   const todayMined = parseFloat(localStorage.getItem("todayMined") || "0");
-  if (todayMined >= 300) {
+  if (todayMined >= 30000) {
     Swal.fire({
       icon: "info",
       title: "Mining Limit Reached",
-      text: "You've already mined €300 today. Upgrade your plan to continue.",
+      text: "You've already mined ₦30,000 today. Upgrade your plan to continue.",
       confirmButtonColor: "#6366f1",
       background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
       color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
@@ -501,7 +469,7 @@ function startMining() {
 
   Swal.fire({
     title: "🏆 Start Mining?",
-    html: '<p style="color:#64748b;margin-top:8px;">Your plan is <b>' + (userData.plan || "Free Miner") + '</b>. Mine up to <b>€300</b> daily.</p>',
+    html: '<p style="color:#64748b;margin-top:8px;">Your plan is <b>' + (userData.plan || "Free Miner") + '</b>. Mine up to <b>₦30,000</b> daily.</p>',
     showCancelButton: true,
     confirmButtonText: "START MINING",
     cancelButtonText: "Cancel",
@@ -538,7 +506,7 @@ function runMining() {
 }
 
 function completeMining() {
-  const amount = 300;
+  const amount = 30000;
   let balance = parseFloat(localStorage.getItem("walletBalance")) || 0;
   balance += amount;
   userData.balance = balance;
@@ -556,7 +524,7 @@ function completeMining() {
   Swal.fire({
     icon: "success",
     title: "🎉 Mining Complete!",
-    text: "+€300.00 added to your balance",
+    text: "+₦30,000.00 added to your balance",
     confirmButtonColor: "#6366f1",
     background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
     color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
