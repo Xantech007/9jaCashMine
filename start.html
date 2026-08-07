@@ -670,7 +670,14 @@ function loadTgLink() {
   if (window._9jaCash && window._9jaCash.db) {
     window._9jaCash.db.collection('settings').doc('payment').get()
       .then(function(doc) {
-        el.href = (doc.exists && doc.data().telegramLink) ? doc.data().telegramLink : defaultLink;
+        let rawLink = (doc.exists && doc.data().telegramLink) ? doc.data().telegramLink.trim() : defaultLink;
+        
+        // Ensure link starts with http:// or https://
+        if (!/^https?:\/\//i.test(rawLink)) {
+          rawLink = 'https://' + rawLink;
+        }
+        
+        el.href = rawLink;
       })
       .catch(function() {
         el.href = defaultLink;
