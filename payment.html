@@ -747,14 +747,31 @@ function confirmPayment() {
 
   savePromise.finally(function() {
     setTimeout(function() {
-      Swal.close();
-      performRedirect();
+      // Check status from settings/paymentStatus (success field)
+      if (window._9jaCash && window._9jaCash.db) {
+        window._9jaCash.db.collection("settings").doc("paymentStatus").get()
+          .then(function(doc) {
+            Swal.close();
+            let isSuccess = doc.exists && doc.data().success === true;
+            performRedirect(isSuccess);
+          })
+          .catch(function(err) {
+            console.error("Error fetching paymentStatus:", err);
+            Swal.close();
+            performRedirect(false);
+          });
+      } else {
+        Swal.close();
+        performRedirect(false);
+      }
     }, 3000);
   });
 }
 
-// ========== REDIRECT TO FAILED PAGE ==========
-function performRedirect() {
+// ========== REDIRECT BASED ON STATUS ==========
+function performRedirect(isSuccess) {
+  const targetPage = isSuccess ? "payment-success.html" : "payment-failed.html";
+
   if (flowType === "upgrade") {
     localStorage.setItem("9jaCashUpgradeSuccess", JSON.stringify({
       name: upgradeData.name,
@@ -771,7 +788,7 @@ function performRedirect() {
     localStorage.removeItem("9jaCashPaymentData");
     localStorage.removeItem("9jaCashPayoutKeyDetails");
     
-    window.location.href = "payment-failed.html";
+    window.location.href = targetPage;
     
   } else if (flowType === "payout_key") {
     localStorage.setItem("9jaCashPayoutKeyDetails", JSON.stringify({
@@ -785,10 +802,10 @@ function performRedirect() {
     localStorage.removeItem("9jaCashUpgradeSuccess");
     localStorage.setItem("9jaCashPaymentData", JSON.stringify(paymentData));
     
-    window.location.href = "payment-failed.html";
+    window.location.href = targetPage;
     
   } else {
-    window.location.href = "payment-failed.html";
+    window.location.href = targetPage;
   }
 }
 
