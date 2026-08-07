@@ -2,14 +2,14 @@
 // Initialize Firebase and export _9jaCash global for all pages
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDmZHw7z3AkVRIOmrBaEj1eFlZd8jMwoWM",
+  apiKey: "AIzaSyAN_9d137mx7SkgGyY1nMwD36wC8xgk6oI",
   authDomain: "flutterwave-d3a50.firebaseapp.com",
-  databaseURL: "https://flutterwave-d3a50-default-rtdb.firebaseio.com",
-  projectId: "flutterwave-d3a50",
-  storageBucket: "flutterwave-d3a50.firebasestorage.app",
-  messagingSenderId: "806697073496",
-  appId: "1:806697073496:web:0cacbaab77adb23452c32d",
-  measurementId: "G-MFZ04JRGK3"
+  databaseURL: "https://jacashmine-default-rtdb.firebaseio.com",
+  projectId: "jacashmine",
+  storageBucket: "jacashmine.firebasestorage.app",
+  messagingSenderId: "375336303263",
+  appId: "1:375336303263:web:5888b4630b7be2998500aa",
+  measurementId: "G-0N8TJ3MPKJ"
 };
 
 
