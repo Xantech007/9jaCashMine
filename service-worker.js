@@ -1,13 +1,15 @@
-// 9jaCash Service Worker — For Push Notifications
+// 9jaCash Service Worker
 const CACHE_NAME = '9jaCash-v1';
 const urlsToCache = [
-  'index.html',
-  'start.html',
-  'dashboard.html',
-  '9jaCash.png'
+  '/',
+  '/index.html',
+  '/start.html',
+  '/dashboard.html',
+  '/9jaCash.png'
 ];
 
 self.addEventListener('install', function(event) {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
       return cache.addAll(urlsToCache);
@@ -15,22 +17,32 @@ self.addEventListener('install', function(event) {
   );
 });
 
+self.addEventListener('activate', function(event) {
+  event.waitUntil(clients.claim());
+});
+
 self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.match(event.request).then(function(response) {
-      if (response) { return response; }
-      return fetch(event.request);
+      return response || fetch(event.request);
     })
   );
 });
 
 // Handle push notifications
 self.addEventListener('push', function(event) {
-  const data = event.data.json();
+  let data = {};
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch(e) {
+      data = { body: event.data.text() };
+    }
+  }
   const options = {
     body: data.body || 'You have a new notification from 9jaCash!',
-    icon: '9jaCash.png',
-    badge: '9jaCash.png',
+    icon: '/9jaCash.png',
+    badge: '/9jaCash.png',
     tag: data.tag || '9jaCash-general',
     requireInteraction: true,
     actions: [
@@ -48,7 +60,7 @@ self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   if (event.action === 'open' || !event.action) {
     event.waitUntil(
-      clients.openWindow('dashboard.html')
+      clients.openWindow('/dashboard.html')
     );
   }
 });
