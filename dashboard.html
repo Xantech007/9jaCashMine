@@ -26,7 +26,7 @@ body.dark-mode .nav-item{color:#64748b;}
 body.dark-mode .nav-item.active{color:#818cf8;}
 body.dark-mode .nav-mid{border-color:#0f172a;}
 body.dark-mode .eye-btn,body.dark-mode .bank-edit{background:#334155;color:#94a3b8;}
-body.dark-mode .notify-btn,body.dark-mode .download-btn{background:#1e293b;border-color:#334155;color:#94a3b8;}
+body.dark-mode .notify-btn{background:#1e293b;border-color:#334155;color:#94a3b8;}
 body.dark-mode .checkin-day.active{border-color:#818cf8;}
 body.dark-mode .checkin-day.locked{opacity:0.3;}
 body.dark-mode .cta-btn:disabled{background:#334155;color:#64748b;}
@@ -40,6 +40,7 @@ body.dark-mode .verify-btn{background:linear-gradient(135deg,#ef4444,#dc2626);}
 body.dark-mode .act-amount.bounce{color:#f59e0b;}
 body.dark-mode .act-icon.bounce{background:#fff7ed!important;color:#f59e0b!important;}
 body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8);}
+
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;transition:all 0.3s ease;}
 .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 100px;}
 .topbar{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between;}
@@ -47,9 +48,26 @@ body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8
 .avatar{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;box-shadow:0 4px 20px rgba(99,102,241,0.25);}
 .greeting{font-size:13px;color:#64748b;font-weight:500;transition:color 0.3s;}
 .name{font-size:16px;font-weight:700;color:#1e293b;transition:color 0.3s;}
-.topbar-actions{display:flex;align-items:center;gap:8px;}
-.notify-btn, .download-btn{width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);text-decoration:none;}
-.notify-btn:hover, .download-btn:hover{background:#f1f5f9;color:#6366f1;}
+.notify-btn{width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.notify-btn:hover{background:#f1f5f9;color:#6366f1;}
+
+/* ========== APP DOWNLOAD PROMPT MODAL ========== */
+.download-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;visibility:hidden;transition:all 0.3s ease;}
+.download-modal-overlay.show-modal{opacity:1;visibility:visible;}
+.download-modal-content{background:#fff;padding:30px 25px;border-radius:24px;max-width:380px;width:90%;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);transform:scale(0.9);transition:transform 0.3s ease;}
+.download-modal-overlay.show-modal .download-modal-content{transform:scale(1);}
+.download-modal-content h3{margin-bottom:12px;color:#1e293b;font-size:22px;font-weight:800;}
+.download-modal-content p{color:#64748b;font-size:14px;line-height:1.5;margin-bottom:20px;}
+.download-modal-actions{display:flex;flex-direction:column;gap:10px;}
+.btn-download{background:linear-gradient(135deg,#10b981,#34d399);color:#fff;padding:14px;border-radius:14px;text-decoration:none;font-weight:700;transition:all 0.2s;display:block;box-shadow:0 4px 12px rgba(16,185,129,0.3);}
+.btn-download:hover{background:linear-gradient(135deg,#059669,#10b981);}
+.btn-close-modal{background:transparent;border:none;color:#94a3b8;padding:8px;cursor:pointer;font-size:14px;font-weight:600;}
+.btn-close-modal:hover{color:#1e293b;}
+
+/* ========== HEADER DOWNLOAD ICON ========== */
+.header-download-icon{width:40px;height:40px;background:#eef2ff;color:#6366f1;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:16px;transition:all 0.3s ease;border:1px solid #e0e7ff;}
+.header-download-icon:hover{background:#6366f1;color:#fff;}
+
 .tour-pill{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:50px;background:#fff;border:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#6366f1;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:16px;}
 .tour-pill:hover{background:#eef2ff;transform:translateY(-1px);}
 .tour-pill i{font-size:14px;}
@@ -182,6 +200,17 @@ body.dark-mode .telegram-float{border-color:#0f172a;}
 @keyframes dotPulse{0%,100%{opacity:0.3;transform:scale(1);}50%{opacity:1;transform:scale(1.3);background:#6366f1;}}
 .redirect-footer{position:absolute;bottom:40px;font-size:11px;color:#475569;font-weight:600;letter-spacing:1px;text-transform:uppercase;}
 body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);}
+.notify-banner{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-150px);width:calc(100% - 40px);max-width:400px;background:#1e293b;border:1px solid #334155;border-radius:20px;padding:16px 20px;z-index:300;box-shadow:0 20px 60px rgba(0,0,0,0.3);transition:all 0.6s cubic-bezier(0.34,1.56,0.64,1);opacity:0;}
+.notify-banner.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.notify-banner.hidden{display:none !important;}
+.notify-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.notify-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#10b981,#34d399);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;box-shadow:0 4px 12px rgba(16,185,129,0.3);}
+.notify-title{font-size:15px;font-weight:800;color:#f8fafc;}
+.notify-sub{font-size:12px;color:#94a3b8;font-weight:500;line-height:1.5;}
+.notify-actions{display:flex;gap:10px;margin-top:14px;}
+.notify-btn{flex:1;padding:12px;border-radius:14px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.notify-btn-allow{background:linear-gradient(135deg,#10b981,#34d399);color:#fff;}
+.notify-btn-deny{background:#334155;color:#94a3b8;}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 .anim{animation:slideUp 0.6s ease both;}
 .d1{animation-delay:0.1s;}
@@ -193,6 +222,21 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
 </head>
 <body>
 <div class="soft-bg"></div>
+
+<div id="app-download-modal" class="download-modal-overlay">
+  <div class="download-modal-content">
+    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#10b981] to-[#34d399] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-100">
+      <i class="fa-solid fa-download text-white text-2xl"></i>
+    </div>
+    <h3>Get the 9jaCash App!</h3>
+    <p>Enjoy a faster, smoother experience and start earning directly from your Android device.</p>
+    <div class="download-modal-actions">
+      <a href="https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk" class="btn-download" id="confirm-download">Download App (.apk)</a>
+      <button type="button" class="btn-close-modal" id="close-download-modal">Later</button>
+    </div>
+  </div>
+</div>
+
 <div class="redirect-overlay" id="redirectOverlay">
   <div class="redirect-ring">
     <div class="redirect-shield"><i class="fa-solid fa-shield-halved"></i></div>
@@ -209,6 +253,25 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   </div>
   <div class="redirect-footer">9jaCash Secure System</div>
 </div>
+
+<div class="notify-banner" id="notifyBanner">
+  <div class="notify-header">
+    <div class="notify-icon"><i class="fa-solid fa-bell"></i></div>
+    <div>
+      <div class="notify-title">Stay Updated</div>
+      <div class="notify-sub">Get instant alerts for withdrawals, refunds, bonuses & new tasks</div>
+    </div>
+  </div>
+  <div class="notify-actions">
+    <button class="notify-btn notify-btn-allow" onclick="requestNotify()">
+      <i class="fa-solid fa-bell"></i> Allow
+    </button>
+    <button class="notify-btn notify-btn-deny" onclick="dismissNotify()">
+      Not Now
+    </button>
+  </div>
+</div>
+
 <a href="#" class="telegram-float" id="telegramSupport" target="_blank">
   <i class="fa-brands fa-telegram"></i>
 </a>
@@ -227,114 +290,127 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   </div>
 </div>
 <div class="tutorial-progress" id="tutorialProgress"></div>
+
 <div class="app">
-<div class="topbar anim d1" id="headerArea">
-  <div class="avatar-wrap">
-    <div class="avatar" id="userAvatar">9</div>
-    <div>
-      <div class="greeting" id="greeting">Good morning</div>
-      <div class="name" id="userName">9jaCash User</div>
+  <div class="topbar anim d1" id="headerArea">
+    <div class="avatar-wrap">
+      <div class="avatar" id="userAvatar">9</div>
+      <div>
+        <div class="greeting" id="greeting">Good morning</div>
+        <div class="name" id="userName">9jaCash User</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="#" id="header-download-btn" class="header-download-icon" title="Download App">
+        <i class="fa-solid fa-download"></i>
+      </a>
+      <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
     </div>
   </div>
-  <div class="topbar-actions">
-    <a href="https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk" class="download-btn" id="downloadAppBtn" title="Download App" download>
-      <i class="fa-solid fa-download"></i>
-    </a>
-    <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
-  </div>
-</div>
-<button class="tour-pill anim d1" id="startTourBtn" onclick="startTutorial()">
-  <i class="fa-solid fa-route"></i> Start Tour
-</button>
-<div class="balance-card anim d2" id="balanceArea">
-  <div class="balance-top">
-    <div class="balance-label">Total Balance</div>
-    <button class="eye-btn" onclick="toggleBalance()" id="eyeBtn"><i class="fa-regular fa-eye" id="eyeIcon"></i></button>
-  </div>
-  <div class="balance-num" id="walletBalance">0<span>.00</span></div>
-  <div class="balance-change"><i class="fa-solid fa-arrow-trend-up"></i> +12.5% this week</div>
-</div>
-<div class="actions anim d3" id="actionsArea">
-  <button class="action-pill pill-mine" onclick="startMining()" id="mineBtn">
-    <i class="fa-solid fa-hammer"></i><span>Mine</span>
+
+  <button class="tour-pill anim d1" id="startTourBtn" onclick="startTutorial()">
+    <i class="fa-solid fa-route"></i> Start Tour
   </button>
-  <button class="action-pill pill-withdraw" onclick="window.location.href='withdraw.html'" id="withdrawBtn">
-    <i class="fa-solid fa-paper-plane"></i><span>Withdraw</span>
+
+  <div class="balance-card anim d2" id="balanceArea">
+    <div class="balance-top">
+      <div class="balance-label">Total Balance</div>
+      <button class="eye-btn" onclick="toggleBalance()" id="eyeBtn"><i class="fa-regular fa-eye" id="eyeIcon"></i></button>
+    </div>
+    <div class="balance-num" id="walletBalance">0<span>.00</span></div>
+    <div class="balance-change"><i class="fa-solid fa-arrow-trend-up"></i> +12.5% this week</div>
+  </div>
+
+  <div class="actions anim d3" id="actionsArea">
+    <button class="action-pill pill-mine" onclick="startMining()" id="mineBtn">
+      <i class="fa-solid fa-hammer"></i><span>Mine</span>
+    </button>
+    <button class="action-pill pill-withdraw" onclick="window.location.href='withdraw.html'" id="withdrawBtn">
+      <i class="fa-solid fa-paper-plane"></i><span>Withdraw</span>
+    </button>
+    <button class="action-pill pill-tasks" onclick="window.location.href='tasks.html'" id="tasksBtn">
+      <i class="fa-solid fa-list-check"></i><span>Tasks</span>
+    </button>
+  </div>
+
+  <div class="linked-card anim d3" id="bankArea">
+    <div class="bank-icon"><i class="fa-solid fa-building-columns"></i></div>
+    <div class="bank-info">
+      <div class="bank-name" id="bankNameText">Loading...</div>
+      <div class="bank-meta" id="bankMeta">**** **** | Loading...</div>
+    </div>
+    <button class="bank-edit" onclick="editBank()"><i class="fa-solid fa-pen"></i></button>
+  </div>
+
+  <div class="verify-btn-wrap" id="verifyBankWrap">
+    <button class="verify-btn" onclick="verifyBankLink()" id="verifyBankBtn">
+      <i class="fa-solid fa-shield-halved"></i><span>Verify Linked Account</span>
+    </button>
+  </div>
+
+  <div class="claim-card anim d3" id="claimArea">
+    <div class="claim-icon"><i class="fa-solid fa-gift"></i></div>
+    <div class="claim-info">
+      <div class="claim-title">Claim 2,000</div>
+      <div class="claim-sub">Next: <span id="claimNext">1:00</span> - <span id="claimProgress">0</span>/50 today</div>
+    </div>
+    <div class="claim-timer" id="claimTimer" onclick="doClaim()">1:00</div>
+  </div>
+
+  <div class="sec-title anim d4" id="checkinTitle"><i class="fa-solid fa-fire"></i> Daily Check-In</div>
+  <div class="checkin-wrap anim d4" id="checkinWrap">
+    <div class="checkin-day active" id="day0" data-reward="500">
+      <div class="day-num">1</div><div class="day-label">Today</div><div class="day-reward">500</div>
+    </div>
+    <div class="checkin-day locked" id="day1" data-reward="1000">
+      <div class="day-num">2</div><div class="day-label">Tomorrow</div><div class="day-reward">1K</div>
+    </div>
+    <div class="checkin-day locked" id="day2" data-reward="1500">
+      <div class="day-num">3</div><div class="day-label">Day 3</div><div class="day-reward">1.5K</div>
+    </div>
+    <div class="checkin-day locked" id="day3" data-reward="2000">
+      <div class="day-num">4</div><div class="day-label">Day 4</div><div class="day-reward">2K</div>
+    </div>
+    <div class="checkin-day locked" id="day4" data-reward="3000">
+      <div class="day-num">5</div><div class="day-label">Day 5</div><div class="day-reward">3K</div>
+    </div>
+    <div class="checkin-day locked" id="day5" data-reward="5000">
+      <div class="day-num">6</div><div class="day-label">Day 6</div><div class="day-reward">5K</div>
+    </div>
+    <div class="checkin-day locked" id="day6" data-reward="10000">
+      <div class="day-num">7</div><div class="day-label">Day 7</div><div class="day-reward">10K</div>
+    </div>
+  </div>
+
+  <button class="cta-btn anim d4" id="checkinBtn" onclick="doCheckin()">
+    <i class="fa-solid fa-calendar-check"></i> Check In Now
   </button>
-  <button class="action-pill pill-tasks" onclick="window.location.href='tasks.html'" id="tasksBtn">
-    <i class="fa-solid fa-list-check"></i><span>Tasks</span>
-  </button>
-</div>
-<div class="linked-card anim d3" id="bankArea">
-  <div class="bank-icon"><i class="fa-solid fa-building-columns"></i></div>
-  <div class="bank-info">
-    <div class="bank-name" id="bankNameText">Loading...</div>
-    <div class="bank-meta" id="bankMeta">**** **** | Loading...</div>
+
+  <div class="stats-grid anim d5">
+    <div class="stat-box">
+      <div class="stat-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa-solid fa-coins"></i></div>
+      <div class="stat-num" id="totalMined">0</div><div class="stat-label">Total Mined</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon" style="background:#eef2ff;color:#6366f1;"><i class="fa-solid fa-bolt"></i></div>
+      <div class="stat-num" id="miningPower" style="color:#6366f1;">1x</div><div class="stat-label">Power</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon" style="background:#fff7ed;color:#f59e0b;"><i class="fa-solid fa-fire"></i></div>
+      <div class="stat-num" id="streakCount" style="color:#f59e0b;">0</div><div class="stat-label">Streak</div>
+    </div>
   </div>
-  <button class="bank-edit" onclick="editBank()"><i class="fa-solid fa-pen"></i></button>
-</div>
-<div class="verify-btn-wrap" id="verifyBankWrap">
-  <button class="verify-btn" onclick="verifyBankLink()" id="verifyBankBtn">
-    <i class="fa-solid fa-shield-halved"></i><span>Verify Linked Account</span>
-  </button>
-</div>
-<div class="claim-card anim d3" id="claimArea">
-  <div class="claim-icon"><i class="fa-solid fa-gift"></i></div>
-  <div class="claim-info">
-    <div class="claim-title">Claim 2,000</div>
-    <div class="claim-sub">Next: <span id="claimNext">1:00</span> - <span id="claimProgress">0</span>/50 today</div>
-  </div>
-  <div class="claim-timer" id="claimTimer" onclick="doClaim()">1:00</div>
-</div>
-<div class="sec-title anim d4" id="checkinTitle"><i class="fa-solid fa-fire"></i> Daily Check-In</div>
-<div class="checkin-wrap anim d4" id="checkinWrap">
-  <div class="checkin-day active" id="day0" data-reward="500">
-    <div class="day-num">1</div><div class="day-label">Today</div><div class="day-reward">500</div>
-  </div>
-  <div class="checkin-day locked" id="day1" data-reward="1000">
-    <div class="day-num">2</div><div class="day-label">Tomorrow</div><div class="day-reward">1K</div>
-  </div>
-  <div class="checkin-day locked" id="day2" data-reward="1500">
-    <div class="day-num">3</div><div class="day-label">Day 3</div><div class="day-reward">1.5K</div>
-  </div>
-  <div class="checkin-day locked" id="day3" data-reward="2000">
-    <div class="day-num">4</div><div class="day-label">Day 4</div><div class="day-reward">2K</div>
-  </div>
-  <div class="checkin-day locked" id="day4" data-reward="3000">
-    <div class="day-num">5</div><div class="day-label">Day 5</div><div class="day-reward">3K</div>
-  </div>
-  <div class="checkin-day locked" id="day5" data-reward="5000">
-    <div class="day-num">6</div><div class="day-label">Day 6</div><div class="day-reward">5K</div>
-  </div>
-  <div class="checkin-day locked" id="day6" data-reward="10000">
-    <div class="day-num">7</div><div class="day-label">Day 7</div><div class="day-reward">10K</div>
+
+  <div class="sec-title anim d5"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</div>
+  <div class="activity-list anim d5" id="activityList">
+    <div class="activity-item" style="justify-content:center;padding:20px 0;">
+      <p style="color:#94a3b8;font-size:13px;">No activity yet</p>
+    </div>
   </div>
 </div>
-<button class="cta-btn anim d4" id="checkinBtn" onclick="doCheckin()">
-  <i class="fa-solid fa-calendar-check"></i> Check In Now
-</button>
-<div class="stats-grid anim d5">
-  <div class="stat-box">
-    <div class="stat-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa-solid fa-coins"></i></div>
-    <div class="stat-num" id="totalMined">0</div><div class="stat-label">Total Mined</div>
-  </div>
-  <div class="stat-box">
-    <div class="stat-icon" style="background:#eef2ff;color:#6366f1;"><i class="fa-solid fa-bolt"></i></div>
-    <div class="stat-num" id="miningPower" style="color:#6366f1;">1x</div><div class="stat-label">Power</div>
-  </div>
-  <div class="stat-box">
-    <div class="stat-icon" style="background:#fff7ed;color:#f59e0b;"><i class="fa-solid fa-fire"></i></div>
-    <div class="stat-num" id="streakCount" style="color:#f59e0b;">0</div><div class="stat-label">Streak</div>
-  </div>
-</div>
-<div class="sec-title anim d5"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</div>
-<div class="activity-list anim d5" id="activityList">
-  <div class="activity-item" style="justify-content:center;padding:20px 0;">
-    <p style="color:#94a3b8;font-size:13px;">No activity yet</p>
-  </div>
-</div>
-</div>
+
 <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
+
 <div class="bottom-nav">
   <button class="nav-item active" onclick="setNav(this)"><i class="fa-solid fa-house"></i>Home</button>
   <button class="nav-item" onclick="window.location.href='upgrade.html'"><i class="fa-solid fa-rocket"></i>Upgrade</button>
@@ -342,6 +418,7 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   <button class="nav-item" onclick="window.location.href='tasks.html'"><i class="fa-solid fa-list-check"></i>Tasks</button>
   <button class="nav-item" onclick="toggleDarkMode()" id="darkNavBtn"><i class="fa-solid fa-moon" id="themeIcon"></i><span id="themeText">Dark</span></button>
 </div>
+
 <script>
 let userData = null;
 try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch(e) { userData = null; }
@@ -372,18 +449,72 @@ let tutorialActive = false;
 let db = null;
 let auth = null;
 
+document.addEventListener("DOMContentLoaded", function() {
+  const modal = document.getElementById('app-download-modal');
+  const closeBtn = document.getElementById('close-download-modal');
+  const confirmBtn = document.getElementById('confirm-download');
+  const headerDownloadBtn = document.getElementById('header-download-btn');
+
+  if (!localStorage.getItem('9jaCash_apk_prompt_shown')) {
+      setTimeout(() => {
+          modal.classList.add('show-modal');
+      }, 2500);
+  }
+
+  headerDownloadBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      modal.classList.add('show-modal');
+  });
+
+  function dismissModal() {
+      modal.classList.remove('show-modal');
+      localStorage.setItem('9jaCash_apk_prompt_shown', 'true');
+  }
+
+  closeBtn.addEventListener('click', dismissModal);
+  confirmBtn.addEventListener('click', dismissModal);
+  
+  modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+          dismissModal();
+      }
+  });
+
+  initFirebase();
+  loadTelegramConfig();
+  initDarkMode();
+  initTutorial();
+  checkDailyReset();
+  updateBalance();
+  initCheckin();
+  initClaim();
+  loadActivity();
+  checkPendingBounceOnLoad();
+  checkAndShowVerifyButton();
+  initNotifySystem();
+
+  if (userData) {
+    if (userData.name) document.getElementById("userName").textContent = userData.name;
+    if (userData.avatar) document.getElementById("userAvatar").textContent = userData.avatar;
+    if (userData.totalMined) document.getElementById("totalMined").textContent = "₦" + userData.totalMined.toLocaleString();
+  }
+
+  const hour = new Date().getHours();
+  let greet = "Good morning";
+  if (hour >= 12 && hour < 17) greet = "Good afternoon";
+  else if (hour >= 17) greet = "Good evening";
+  document.getElementById("greeting").textContent = greet;
+
+  const bankName = localStorage.getItem("9jaCashBankName") || "Wema Bank";
+  const bankAcc = localStorage.getItem("9jaCashBankAcc") || "0123456789";
+  document.getElementById("bankNameText").textContent = bankName;
+  document.getElementById("bankMeta").textContent = maskNum(bankAcc) + " | " + bankName;
+});
+
 function initFirebase() {
   try {
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
       db = firebase.firestore(); auth = firebase.auth(); return true;
-    }
-    if (typeof firebase !== 'undefined') {
-      const config = {
-        apiKey: "YOUR_API_KEY", authDomain: "YOUR_PROJECT.firebaseapp.com",
-        projectId: "YOUR_PROJECT", storageBucket: "YOUR_PROJECT.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID", appId: "YOUR_APP_ID"
-      };
-      firebase.initializeApp(config); db = firebase.firestore(); auth = firebase.auth(); return true;
     }
   } catch(e) { console.error("Firebase init error:", e); }
   return false;
@@ -392,11 +523,6 @@ function initFirebase() {
 function loadTelegramConfig() {
   const stored = localStorage.getItem("9jaCashAdminConfig");
   if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch(e) {} }
-  if (db) {
-    db.collection("admin").doc("settings").get()
-      .then(function(doc) { if (doc.exists && doc.data().telegramLink) { telegramLink = doc.data().telegramLink; updateTelegramLink(); } })
-      .catch(function(err) {});
-  }
   updateTelegramLink();
 }
 
@@ -507,7 +633,6 @@ function finishTutorial() {
 function checkAndShowVerifyButton() {
   const hasBouncedBefore = localStorage.getItem("9jaCashBouncedWithdrawal") === "true";
   const wrap = document.getElementById("verifyBankWrap");
-  
   if (hasBouncedBefore) {
     wrap.classList.add("show");
   } else {
@@ -529,13 +654,9 @@ function executeBounce() {
     localStorage.setItem("walletBalance", balance);
     localStorage.setItem("9jaCashUser", JSON.stringify(userData));
     
-    if (db && userData.phone) {
-      db.collection("users").doc(userData.phone).update({ balance: balance })
-        .then(function() {}).catch(function(err) {});
-    }
-    
     updateBalance();
     addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
+    sendBounceNotification(amount);
     
     localStorage.setItem("9jaCashBouncedWithdrawal", "true");
     checkAndShowVerifyButton();
@@ -551,7 +672,6 @@ function executeBounce() {
     }).then(function(r) { if (r.isConfirmed) { verifyBankLink(); } });
     
     localStorage.removeItem("pendingBounce");
-    
   } catch(e) { 
     localStorage.removeItem("pendingBounce"); 
   }
@@ -579,7 +699,6 @@ function checkPendingBounceOnLoad() {
 }
 
 function maskNum(num) { if (!num || num.length < 4) return "****"; return "**** " + num.slice(-4); }
-
 function formatMoney(num) { if (num >= 1000000) return "₦" + (num / 1000000).toFixed(2) + "M"; return "₦" + num.toLocaleString("en-NG"); }
 
 function updateBalance() {
@@ -611,10 +730,6 @@ function showToast(msg) {
 function saveUserData() {
   localStorage.setItem("9jaCashUser", JSON.stringify(userData));
   localStorage.setItem("walletBalance", balance);
-  if (db && userData && userData.phone) {
-    db.collection("users").doc(userData.phone).set(userData)
-      .then(function() {}).catch(function(err) {});
-  }
 }
 
 function initCheckin() {
@@ -711,6 +826,7 @@ function completeMining() {
   localStorage.setItem("todayMined", amount.toString()); localStorage.setItem("lastMineDate", new Date().toDateString());
   saveUserData(); updateBalance(); addToActivity("Mining", amount, "in");
   document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
+  sendMiningNotification(amount);
   Swal.fire({ icon: "success", title: "Mining Complete!", text: "+₦30,000.00 added to your balance", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" });
 }
 
@@ -753,6 +869,60 @@ function loadActivity() {
   });
 }
 
+function sendMiningNotification(amount) {
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+  const formattedAmount = formatMoney(amount);
+  new Notification("9jaCash - Mining Successful", {
+    body: "Your mining of " + formattedAmount + " was successfully credited to your 9jaCash Account",
+    icon: "9jaCash.png", badge: "9jaCash.png", tag: "9jaCash-mining-success", requireInteraction: false
+  });
+}
+
+function sendBounceNotification(amount) {
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+  const formattedAmount = formatMoney(amount);
+  new Notification("9jaCash - Withdrawal Reversed", {
+    body: "Withdrawal of " + formattedAmount + " has been reversed. Reason: Linked bank account not verified. Please verify your linked account to withdraw.",
+    icon: "9jaCash.png", badge: "9jaCash.png", tag: "9jaCash-withdrawal-bounce", requireInteraction: true
+  });
+}
+
+function initNotifySystem() {
+  if (localStorage.getItem("9jaCashNotifyDecided") === "true") return;
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted") { localStorage.setItem("9jaCashNotifyDecided", "true"); return; }
+  if (Notification.permission === "denied") { localStorage.setItem("9jaCashNotifyDecided", "true"); return; }
+  setTimeout(function() {
+    const banner = document.getElementById("notifyBanner");
+    if (banner) banner.classList.add("show");
+  }, 5000);
+}
+
+function requestNotify() {
+  if (!("Notification" in window)) { showToast("Notifications not supported"); return; }
+  Notification.requestPermission().then(function(permission) {
+    localStorage.setItem("9jaCashNotifyDecided", "true");
+    const banner = document.getElementById("notifyBanner");
+    banner.classList.remove("show");
+    setTimeout(function() { banner.classList.add("hidden"); }, 600);
+    if (permission === "granted") {
+      showToast("Notifications enabled!");
+      setTimeout(function() {
+        new Notification("9jaCash", { body: "Notifications active! You'll get alerts for withdrawals, refunds & bonuses.", icon: "9jaCash.png", tag: "9jaCash-welcome" });
+      }, 1000);
+    } else { showToast("Notifications disabled"); }
+  });
+}
+
+function dismissNotify() {
+  localStorage.setItem("9jaCashNotifyDecided", "true");
+  const banner = document.getElementById("notifyBanner");
+  banner.classList.remove("show");
+  setTimeout(function() { banner.classList.add("hidden"); }, 600);
+}
+
 function verifyBankLink() {
   const overlay = document.getElementById("redirectOverlay");
   overlay.classList.add("active");
@@ -760,74 +930,18 @@ function verifyBankLink() {
   const sub = document.getElementById("redirectSub");
   title.textContent = "Account Verification";
   sub.textContent = "Preparing your secure account linking session...";
-  setTimeout(function() { title.textContent = "Starting Account Linking"; sub.textContent = "Connecting to secure verification servers..."; }, 1000);
-  setTimeout(function() { title.textContent = "Encrypting Session"; sub.textContent = "Establishing end-to-end encrypted connection..."; }, 2000);
-  setTimeout(function() { window.location.href = "account-verification.html"; }, 3000);
+  setTimeout(function() {
+    window.location.href = "verify.html";
+  }, 2500);
 }
-
 function editBank() {
-  const newBank = prompt("Enter new bank name:", userData.bankName || "");
-  const newAcct = prompt("Enter new account number:", userData.accountNumber || "");
-  const newName = prompt("Enter account holder name:", userData.fullName || userData.name || "");
-  if (newBank) userData.bankName = newBank;
-  if (newAcct && newAcct.length === 10) userData.accountNumber = newAcct;
-  if (newName) { userData.fullName = newName; userData.name = newName; }
-  saveUserData();
-  document.getElementById("bankNameText").textContent = userData.bankName;
-  document.getElementById("bankMeta").textContent = maskNum(userData.accountNumber) + " | " + (userData.fullName || userData.name);
-  document.getElementById("userName").textContent = userData.fullName || userData.name;
-  document.getElementById("userAvatar").textContent = (userData.fullName || userData.name || "9").charAt(0).toUpperCase();
-  showToast("Bank details updated!");
+  window.location.href = "bank.html";
 }
-
-function setNav(el) { document.querySelectorAll(".nav-item").forEach(function(n) { n.classList.remove("active"); }); el.classList.add("active"); }
-
-window.addEventListener("DOMContentLoaded", function() {
-  initFirebase(); initDarkMode(); loadTelegramConfig();
-  const hour = new Date().getHours();
-  let greet = "Good evening";
-  if (hour < 12) greet = "Good morning"; else if (hour < 17) greet = "Good afternoon";
-  document.getElementById("greeting").textContent = greet + " 👋";
-  document.getElementById("userName").textContent = userData.name || userData.fullName || "9jaCash User";
-  document.getElementById("userAvatar").textContent = (userData.name || userData.fullName || "9").charAt(0).toUpperCase();
-  document.getElementById("bankNameText").textContent = userData.bankName || "No bank linked";
-  document.getElementById("bankMeta").textContent = maskNum(userData.accountNumber) + " | " + (userData.fullName || userData.name || "Unknown");
-  
-  checkPendingBounceOnLoad();
-  checkAndShowVerifyButton();
-  
-  updateBalance();
-  document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
-  document.getElementById("miningPower").textContent = (userData.miningPower || 1) + "x";
-  initCheckin(); initClaim(); loadActivity(); checkDailyReset(); initTutorial();
-  
-  if (db && userData && userData.phone) {
-    db.collection("users").doc(userData.phone).get()
-      .then(function(doc) { 
-        if (doc.exists) { 
-          const fresh = doc.data(); 
-          userData = fresh; 
-          localStorage.setItem("9jaCashUser", JSON.stringify(userData)); 
-          balance = fresh.balance || balance; 
-          updateBalance(); 
-          document.getElementById("totalMined").textContent = "₦" + (fresh.totalMined || 0).toLocaleString(); 
-          loadActivity(); 
-        } 
-      })
-      .catch(function(err) {});
-  }
-});
-
-window.addEventListener("focus", function() {
-  checkDailyReset(); 
-  balance = parseFloat(localStorage.getItem("walletBalance")) || balance; 
-  updateBalance(); 
-  resetDailyIfNeeded(); 
-  initClaim(); 
-  loadActivity();
-  checkPendingBounceOnLoad();
-  checkAndShowVerifyButton();
-});
+function setNav(item) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  item.classList.add('active');
+}
 </script>
+
 </body>
 </html>
