@@ -27,6 +27,13 @@ body.dark-mode .nav-item.active{color:#818cf8;}
 body.dark-mode .nav-mid{border-color:#0f172a;}
 body.dark-mode .eye-btn,body.dark-mode .bank-edit{background:#334155;color:#94a3b8;}
 body.dark-mode .notify-btn{background:#1e293b;border-color:#334155;color:#94a3b8;}
+body.dark-mode .header-download-icon{background:#1e293b;border-color:#334155;color:#94a3b8;}
+body.dark-mode .header-download-icon:hover{background:#334155;color:#818cf8;}
+body.dark-mode .download-modal-content{background:#1e293b;border:1px solid #334155;color:#f8fafc;}
+body.dark-mode .download-modal-content h3{color:#f8fafc;}
+body.dark-mode .download-modal-content p{color:#94a3b8;}
+body.dark-mode .btn-close-modal{color:#94a3b8;}
+body.dark-mode .btn-close-modal:hover{color:#f8fafc;}
 body.dark-mode .checkin-day.active{border-color:#818cf8;}
 body.dark-mode .checkin-day.locked{opacity:0.3;}
 body.dark-mode .cta-btn:disabled{background:#334155;color:#64748b;}
@@ -65,8 +72,8 @@ body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8
 .btn-close-modal:hover{color:#1e293b;}
 
 /* ========== HEADER DOWNLOAD ICON ========== */
-.header-download-icon{width:40px;height:40px;background:#eef2ff;color:#6366f1;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:16px;transition:all 0.3s ease;border:1px solid #e0e7ff;}
-.header-download-icon:hover{background:#6366f1;color:#fff;}
+.header-download-icon{width:44px;height:44px;background:#fff;color:#6366f1;border-radius:14px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:16px;transition:all 0.3s ease;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04);cursor:pointer;}
+.header-download-icon:hover{background:#f1f5f9;color:#6366f1;}
 
 .tour-pill{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:50px;background:#fff;border:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#6366f1;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:16px;}
 .tour-pill:hover{background:#eef2ff;transform:translateY(-1px);}
@@ -455,11 +462,9 @@ document.addEventListener("DOMContentLoaded", function() {
   const confirmBtn = document.getElementById('confirm-download');
   const headerDownloadBtn = document.getElementById('header-download-btn');
 
-  if (!localStorage.getItem('9jaCash_apk_prompt_shown')) {
-      setTimeout(() => {
-          modal.classList.add('show-modal');
-      }, 2500);
-  }
+  setTimeout(() => {
+      modal.classList.add('show-modal');
+  }, 1500);
 
   headerDownloadBtn.addEventListener('click', function(e) {
       e.preventDefault();
