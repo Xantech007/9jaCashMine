@@ -58,7 +58,6 @@ body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8
 .notify-btn{width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
 .notify-btn:hover{background:#f1f5f9;color:#6366f1;}
 
-/* ========== APP DOWNLOAD PROMPT MODAL ========== */
 .download-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;visibility:hidden;transition:all 0.3s ease;}
 .download-modal-overlay.show-modal{opacity:1;visibility:visible;}
 .download-modal-content{background:#fff;padding:30px 25px;border-radius:24px;max-width:380px;width:90%;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);transform:scale(0.9);transition:transform 0.3s ease;}
@@ -71,7 +70,6 @@ body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8
 .btn-close-modal{background:transparent;border:none;color:#94a3b8;padding:8px;cursor:pointer;font-size:14px;font-weight:600;}
 .btn-close-modal:hover{color:#1e293b;}
 
-/* ========== HEADER DOWNLOAD ICON ========== */
 .header-download-icon{width:44px;height:44px;background:#fff;color:#6366f1;border-radius:14px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:16px;transition:all 0.3s ease;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04);cursor:pointer;}
 .header-download-icon:hover{background:#f1f5f9;color:#6366f1;}
 
@@ -343,8 +341,8 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   <div class="linked-card anim d3" id="bankArea">
     <div class="bank-icon"><i class="fa-solid fa-building-columns"></i></div>
     <div class="bank-info">
-      <div class="bank-name" id="bankNameText">Loading...</div>
-      <div class="bank-meta" id="bankMeta">**** **** | Loading...</div>
+      <div class="bank-name" id="bankNameText">Not Linked</div>
+      <div class="bank-meta" id="bankMeta">Tap edit icon to add account</div>
     </div>
     <button class="bank-edit" onclick="editBank()"><i class="fa-solid fa-pen"></i></button>
   </div>
@@ -432,9 +430,9 @@ try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch(e) { u
 if (!userData) { window.location.href = "start.html"; }
 
 let currentLinkedAccount = {
-  bankName: "Wema Bank",
-  fullName: "Account Holder",
-  accountNumber: "0123456789"
+  bankName: "",
+  fullName: "",
+  accountNumber: ""
 };
 
 let balance = parseFloat(localStorage.getItem("walletBalance")) || 0;
@@ -503,7 +501,6 @@ document.addEventListener("DOMContentLoaded", function() {
   checkPendingBounceOnLoad();
   checkAndShowVerifyButton();
   initNotifySystem();
-  fetchLinkedAccountData();
 
   if (userData) {
     if (userData.name) document.getElementById("userName").textContent = userData.name;
@@ -521,32 +518,27 @@ document.addEventListener("DOMContentLoaded", function() {
 function initFirebase() {
   try {
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
-      db = firebase.firestore(); auth = firebase.auth(); return true;
+      db = firebase.firestore();
+      auth = firebase.auth();
+      
+      auth.onAuthStateChanged(function(user) {
+        fetchLinkedAccountData();
+      });
+      return true;
     }
   } catch(e) { console.error("Firebase init error:", e); }
   return false;
 }
 
 function fetchLinkedAccountData() {
-  const localBank = localStorage.getItem("9jaCashBankName") || "Wema Bank";
-  const localAcc = localStorage.getItem("9jaCashBankAcc") || "0123456789";
-  const localName = localStorage.getItem("9jaCashBankHolder") || (userData && userData.name ? userData.name : "Account Holder");
+  let userId = (auth && auth.currentUser) ? auth.currentUser.uid : (userData ? (userData.uid || userData.id) : null);
+  
+  const localBank = localStorage.getItem("9jaCashBankName") || "";
+  const localAcc = localStorage.getItem("9jaCashBankAcc") || "";
+  const localName = localStorage.getItem("9jaCashBankHolder") || (userData && userData.name ? userData.name : "");
 
-  currentLinkedAccount = {
-    bankName: localBank,
-    accountNumber: localAcc,
-    fullName: localName
-  };
+  currentLinkedAccount = { bankName: localBank, accountNumber: localAcc, fullName: localName };
   updateBankDisplay(currentLinkedAccount);
-
-  let userId = null;
-  if (auth && auth.currentUser) {
-    userId = auth.currentUser.uid;
-  } else if (userData && userData.uid) {
-    userId = userData.uid;
-  } else if (userData && userData.id) {
-    userId = userData.id;
-  }
 
   if (db && userId) {
     db.collection("linkedAccounts").doc(userId).get().then(function(doc) {
@@ -563,14 +555,22 @@ function fetchLinkedAccountData() {
         updateBankDisplay(currentLinkedAccount);
       }
     }).catch(function(err) {
-      console.log("Error reading linked account details from Firestore:", err);
+      console.log("Firestore error or document not initialized yet:", err);
     });
   }
 }
 
 function updateBankDisplay(accData) {
-  document.getElementById("bankNameText").textContent = accData.bankName || "Wema Bank";
-  document.getElementById("bankMeta").textContent = maskNum(accData.accountNumber || "0123456789") + " | " + (accData.fullName || "Account Holder");
+  const bankNameEl = document.getElementById("bankNameText");
+  const bankMetaEl = document.getElementById("bankMeta");
+
+  if (accData.bankName && accData.accountNumber) {
+    bankNameEl.textContent = accData.bankName;
+    bankMetaEl.textContent = maskNum(accData.accountNumber) + " | " + (accData.fullName || "Account Holder");
+  } else {
+    bankNameEl.textContent = "Not Linked";
+    bankMetaEl.textContent = "Tap edit icon to add account";
+  }
 }
 
 function editBank() {
@@ -581,22 +581,22 @@ function editBank() {
   const borderCol = isDark ? "#475569" : "#e2e8f0";
 
   Swal.fire({
-    title: 'Modify Linked Account',
+    title: 'Link Account Details',
     html: `
       <div style="text-align:left; font-size:13px; margin-top:10px;">
         <label style="display:block; margin-bottom:4px; font-weight:700; color:${color};">Bank Name</label>
-        <input id="swal-bank-name" class="swal2-input" value="${currentLinkedAccount.bankName}" style="width:100%; margin:0 0 14px 0; background:${inputBg}; color:${color}; border:1px solid ${borderCol}; border-radius:12px; font-size:14px; padding:10px 14px;">
+        <input id="swal-bank-name" class="swal2-input" placeholder="e.g. Access Bank, Opay, Kuda" value="${currentLinkedAccount.bankName || ''}" style="width:100%; margin:0 0 14px 0; background:${inputBg}; color:${color}; border:1px solid ${borderCol}; border-radius:12px; font-size:14px; padding:10px 14px;">
         
-        <label style="display:block; margin-bottom:4px; font-weight:700; color:${color};">Account Holder Full Name</label>
-        <input id="swal-full-name" class="swal2-input" value="${currentLinkedAccount.fullName}" style="width:100%; margin:0 0 14px 0; background:${inputBg}; color:${color}; border:1px solid ${borderCol}; border-radius:12px; font-size:14px; padding:10px 14px;">
+        <label style="display:block; margin-bottom:4px; font-weight:700; color:${color};">Account Holder Name</label>
+        <input id="swal-full-name" class="swal2-input" placeholder="Full name on bank account" value="${currentLinkedAccount.fullName || (userData ? userData.name || '' : '')}" style="width:100%; margin:0 0 14px 0; background:${inputBg}; color:${color}; border:1px solid ${borderCol}; border-radius:12px; font-size:14px; padding:10px 14px;">
         
         <label style="display:block; margin-bottom:4px; font-weight:700; color:${color};">Account Number</label>
-        <input id="swal-account-number" class="swal2-input" type="number" value="${currentLinkedAccount.accountNumber}" style="width:100%; margin:0 0 6px 0; background:${inputBg}; color:${color}; border:1px solid ${borderCol}; border-radius:12px; font-size:14px; padding:10px 14px;">
+        <input id="swal-account-number" class="swal2-input" type="number" placeholder="10 Digit Account Number" value="${currentLinkedAccount.accountNumber || ''}" style="width:100%; margin:0 0 6px 0; background:${inputBg}; color:${color}; border:1px solid ${borderCol}; border-radius:12px; font-size:14px; padding:10px 14px;">
       </div>
     `,
     focusConfirm: false,
     showCancelButton: true,
-    confirmButtonText: 'Save Details',
+    confirmButtonText: 'Save Account',
     cancelButtonText: 'Cancel',
     confirmButtonColor: '#6366f1',
     background: bg,
@@ -608,6 +608,10 @@ function editBank() {
 
       if (!bName || !fName || !aNum) {
         Swal.showValidationMessage('All fields are required!');
+        return false;
+      }
+      if (aNum.length < 10) {
+        Swal.showValidationMessage('Please enter a valid account number');
         return false;
       }
       return { bankName: bName, fullName: fName, accountNumber: aNum };
@@ -623,29 +627,33 @@ function editBank() {
 
       updateBankDisplay(updated);
 
-      let userId = null;
-      if (auth && auth.currentUser) {
-        userId = auth.currentUser.uid;
-      } else if (userData && userData.uid) {
-        userId = userData.uid;
-      } else if (userData && userData.id) {
-        userId = userData.id;
-      }
+      let userId = (auth && auth.currentUser) ? auth.currentUser.uid : (userData ? (userData.uid || userData.id) : null);
 
       if (db && userId) {
-        db.collection("linkedAccounts").doc(userId).set({
+        Swal.fire({ title: 'Saving...', text: 'Updating bank details in database', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
+        const payload = {
           bankName: updated.bankName,
           fullName: updated.fullName,
           accountNumber: updated.accountNumber,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }).then(() => {
-          showToast("Bank details updated successfully!");
+        };
+
+        const batch = db.batch();
+        const linkedRef = db.collection("linkedAccounts").doc(userId);
+        const userRef = db.collection("users").doc(userId);
+
+        batch.set(linkedRef, payload, { merge: true });
+        batch.set(userRef, { bankDetails: payload }, { merge: true });
+
+        batch.commit().then(() => {
+          Swal.fire({ icon: 'success', title: 'Account Saved', text: 'Bank account details updated successfully!', confirmButtonColor: '#6366f1', background: bg, color: color });
         }).catch((err) => {
-          console.error("Firestore update error:", err);
-          showToast("Saved locally. Firestore sync pending.");
+          console.error("Firestore Error:", err);
+          Swal.fire({ icon: 'warning', title: 'Saved Locally', text: 'Account saved locally, but database sync encountered an error. Ensure Firestore Security Rules allow writes.', confirmButtonColor: '#6366f1', background: bg, color: color });
         });
       } else {
-        showToast("Bank details updated!");
+        showToast("Bank details updated locally!");
       }
     }
   });
