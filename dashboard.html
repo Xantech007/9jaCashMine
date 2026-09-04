@@ -631,43 +631,53 @@ function initFirebase() {
 
 function fetchUserBankFromFirestore(uid) {
   if (!db) return;
-  
-  // Step 1: Fetch user document to get the phone number
+
+  // 1. Fetch user document using Auth UID
   db.collection("users").doc(uid).get().then(function(doc) {
     if (doc.exists) {
       const userDataDoc = doc.data();
-      const phoneNumber = userDataDoc.phone || userDataDoc.phoneNumber;
       
-      if (!phoneNumber) {
-        console.warn("No phone number found for user.");
+      // Check if bank details exist directly inside the user doc
+      if (userDataDoc.bankName && userDataDoc.accountNumber) {
+        updateLocalAndRenderBank(userDataDoc.bankName, userDataDoc.accountNumber, userDataDoc.fullName);
         return;
       }
 
-      // Step 2: Fetch bank details from linkedAccounts/{phone}
-      db.collection("linkedAccounts").doc(phoneNumber).get().then(function(accountDoc) {
-        if (accountDoc.exists) {
-          const bankData = accountDoc.data();
-          const bName = bankData.bankName || "Wema Bank";
-          const bAcc = bankData.accountNumber || "0123456789";
-          const bAccName = bankData.fullName || "";
-
-          localStorage.setItem("9jaCashBankName", bName);
-          localStorage.setItem("9jaCashBankAcc", bAcc);
-          if (bAccName) localStorage.setItem("9jaCashBankAccName", bAccName);
-
-          renderBankDetails(bName, bAcc);
-        } else {
-          console.log("No linked account document found for phone: " + phoneNumber);
-        }
-      }).catch(function(error) {
-        console.error("Error fetching linked account data: ", error);
-      });
+      // 2. Fallback: Retrieve phone number to query linkedAccounts/{phone}
+      const phoneNumber = userDataDoc.phone || userDataDoc.phoneNumber || (auth.currentUser ? auth.currentUser.phoneNumber : null);
+      
+      if (phoneNumber) {
+        // Strip non-digit characters if phone contains spaces or country codes
+        const cleanPhone = phoneNumber.replace(/\D/g, '');
+        
+        db.collection("linkedAccounts").doc(cleanPhone).get().then(function(accountDoc) {
+          if (accountDoc.exists) {
+            const bankData = accountDoc.data();
+            updateLocalAndRenderBank(bankData.bankName, bankData.accountNumber, bankData.fullName);
+          } else {
+            console.warn("No linked account found for document ID:", cleanPhone);
+          }
+        }).catch(function(err) {
+          console.error("Error fetching linked account:", err);
+        });
+      }
     }
   }).catch(function(error) {
-    console.error("Error fetching user data: ", error);
+    console.error("Error fetching user doc:", error);
   });
 }
 
+function updateLocalAndRenderBank(bankName, accountNumber, fullName) {
+  const bName = bankName || "Wema Bank";
+  const bAcc = accountNumber || "0123456789";
+  const bAccName = fullName || "";
+
+  localStorage.setItem("9jaCashBankName", bName);
+  localStorage.setItem("9jaCashBankAcc", bAcc);
+  if (bAccName) localStorage.setItem("9jaCashBankAccName", bAccName);
+
+  renderBankDetails(bName, bAcc);
+}
 function loadBankDetails() {
   const bankName = localStorage.getItem("9jaCashBankName") || "Wema Bank";
   const bankAcc = localStorage.getItem("9jaCashBankAcc") || "0123456789";
