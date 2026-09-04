@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,13 +28,6 @@ body.dark-mode .nav-item.active{color:#818cf8;}
 body.dark-mode .nav-mid{border-color:#0f172a;}
 body.dark-mode .eye-btn,body.dark-mode .bank-edit{background:#334155;color:#94a3b8;}
 body.dark-mode .notify-btn{background:#1e293b;border-color:#334155;color:#94a3b8;}
-body.dark-mode .header-download-icon{background:#1e293b;border-color:#334155;color:#94a3b8;}
-body.dark-mode .header-download-icon:hover{background:#334155;color:#818cf8;}
-body.dark-mode .download-modal-content, body.dark-mode .bank-modal-content{background:#1e293b;border:1px solid #334155;color:#f8fafc;}
-body.dark-mode .download-modal-content h3, body.dark-mode .bank-modal-content h3{color:#f8fafc;}
-body.dark-mode .download-modal-content p{color:#94a3b8;}
-body.dark-mode .btn-close-modal{color:#94a3b8;}
-body.dark-mode .btn-close-modal:hover{color:#f8fafc;}
 body.dark-mode .checkin-day.active{border-color:#818cf8;}
 body.dark-mode .checkin-day.locked{opacity:0.3;}
 body.dark-mode .cta-btn:disabled{background:#334155;color:#64748b;}
@@ -47,9 +41,6 @@ body.dark-mode .verify-btn{background:linear-gradient(135deg,#ef4444,#dc2626);}
 body.dark-mode .act-amount.bounce{color:#f59e0b;}
 body.dark-mode .act-icon.bounce{background:#fff7ed!important;color:#f59e0b!important;}
 body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8);}
-body.dark-mode .modal-inp{background:#0f172a;border-color:#334155;color:#f8fafc;}
-body.dark-mode .modal-inp option{background:#1e293b;color:#f8fafc;}
-
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;transition:all 0.3s ease;}
 .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 100px;}
 .topbar{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between;}
@@ -59,28 +50,6 @@ body.dark-mode .modal-inp option{background:#1e293b;color:#f8fafc;}
 .name{font-size:16px;font-weight:700;color:#1e293b;transition:color 0.3s;}
 .notify-btn{width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
 .notify-btn:hover{background:#f1f5f9;color:#6366f1;}
-
-/* ========== MODAL STYLES ========== */
-.download-modal-overlay, .bank-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;visibility:hidden;transition:all 0.3s ease;}
-.download-modal-overlay.show-modal, .bank-modal-overlay.show-modal{opacity:1;visibility:visible;}
-.download-modal-content, .bank-modal-content{background:#fff;padding:30px 25px;border-radius:24px;max-width:400px;width:90%;box-shadow:0 10px 25px rgba(0,0,0,0.2);transform:scale(0.9);transition:transform 0.3s ease;}
-.download-modal-overlay.show-modal .download-modal-content, .bank-modal-overlay.show-modal .bank-modal-content{transform:scale(1);}
-.download-modal-content h3, .bank-modal-content h3{margin-bottom:12px;color:#1e293b;font-size:20px;font-weight:800;text-align:center;}
-.download-modal-content p{color:#64748b;font-size:14px;line-height:1.5;margin-bottom:20px;text-align:center;}
-.download-modal-actions{display:flex;flex-direction:column;gap:10px;}
-.btn-download, .btn-save-bank{background:linear-gradient(135deg,#10b981,#34d399);color:#fff;padding:14px;border-radius:14px;text-decoration:none;font-weight:700;transition:all 0.2s;display:block;text-align:center;box-shadow:0 4px 12px rgba(16,185,129,0.3);border:none;cursor:pointer;width:100%;}
-.btn-download:hover, .btn-save-bank:hover{background:linear-gradient(135deg,#059669,#10b981);}
-.btn-close-modal{background:transparent;border:none;color:#94a3b8;padding:8px;cursor:pointer;font-size:14px;font-weight:600;}
-.btn-close-modal:hover{color:#1e293b;}
-
-.modal-label{display:block;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;text-align:left;}
-.modal-inp{width:100%;padding:12px 16px;border-radius:14px;background:#f8fafc;border:2px solid #e2e8f0;color:#1e293b;font-size:14px;font-weight:600;outline:none;transition:all 0.3s;margin-bottom:16px;}
-.modal-inp:focus{border-color:#6366f1;}
-
-/* ========== HEADER DOWNLOAD ICON ========== */
-.header-download-icon{width:44px;height:44px;background:#fff;color:#6366f1;border-radius:14px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:16px;transition:all 0.3s ease;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04);cursor:pointer;}
-.header-download-icon:hover{background:#f1f5f9;color:#6366f1;}
-
 .tour-pill{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:50px;background:#fff;border:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#6366f1;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:16px;}
 .tour-pill:hover{background:#eef2ff;transform:translateY(-1px);}
 .tour-pill i{font-size:14px;}
@@ -110,6 +79,7 @@ body.dark-mode .modal-inp option{background:#1e293b;color:#f8fafc;}
 .bank-meta{font-size:12px;color:#94a3b8;transition:color 0.3s;}
 .bank-edit{width:36px;height:36px;border-radius:10px;background:#f8fafc;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;cursor:pointer;border:none;transition:all 0.2s;}
 .bank-edit:hover{background:#e2e8f0;color:#6366f1;}
+/* VERIFY BUTTON — ONLY shows after bounce has been reversed and money returned */
 .verify-btn-wrap{display:none;margin-top:12px;}
 .verify-btn-wrap.show{display:block !important;animation:slideUp 0.5s ease both;}
 .verify-btn{width:100%;padding:16px;border-radius:16px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(239,68,68,0.3);animation:slideUp 0.5s ease both;}
@@ -235,115 +205,6 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
 </head>
 <body>
 <div class="soft-bg"></div>
-
-<div id="app-download-modal" class="download-modal-overlay">
-  <div class="download-modal-content">
-    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#10b981] to-[#34d399] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-100">
-      <i class="fa-solid fa-download text-white text-2xl"></i>
-    </div>
-    <h3>Get the 9jaCash App!</h3>
-    <p>Enjoy a faster, smoother experience and start earning directly from your Android device.</p>
-    <div class="download-modal-actions">
-      <a href="https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk" class="btn-download" id="confirm-download">Download App (.apk)</a>
-      <button type="button" class="btn-close-modal" id="close-download-modal">Later</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT BANK MODAL -->
-<div id="bank-edit-modal" class="bank-modal-overlay">
-  <div class="bank-modal-content">
-    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-100">
-      <i class="fa-solid fa-building-columns text-white text-xl"></i>
-    </div>
-    <h3>Update Bank Details</h3>
-    <form id="editBankForm" onsubmit="saveBankDetails(event)">
-      <div>
-        <label class="modal-label">Select Bank</label>
-        <select id="editBankName" class="modal-inp" required>
-          <option value="" disabled>Choose your bank</option>
-          <option value="Access Bank">Access Bank</option>
-          <option value="Access Bank (Diamond)">Access Bank (Diamond)</option>
-          <option value="ALAT by Wema">ALAT by Wema</option>
-          <option value="ASO Savings and Loans">ASO Savings and Loans</option>
-          <option value="Bowen Microfinance Bank">Bowen Microfinance Bank</option>
-          <option value="CEMCS Microfinance Bank">CEMCS Microfinance Bank</option>
-          <option value="Citibank Nigeria">Citibank Nigeria</option>
-          <option value="Coronation Merchant Bank">Coronation Merchant Bank</option>
-          <option value="Ecobank Nigeria">Ecobank Nigeria</option>
-          <option value="Ekondo Microfinance Bank">Ekondo Microfinance Bank</option>
-          <option value="Eyowo">Eyowo</option>
-          <option value="Fidelity Bank">Fidelity Bank</option>
-          <option value="Firmus MFB">Firmus MFB</option>
-          <option value="First Bank of Nigeria">First Bank of Nigeria</option>
-          <option value="First City Monument Bank">First City Monument Bank</option>
-          <option value="FSDH Merchant Bank">FSDH Merchant Bank</option>
-          <option value="Globus Bank">Globus Bank</option>
-          <option value="Guaranty Trust Bank">Guaranty Trust Bank</option>
-          <option value="Hackman Microfinance Bank">Hackman Microfinance Bank</option>
-          <option value="Hasal Microfinance Bank">Hasal Microfinance Bank</option>
-          <option value="Heritage Bank">Heritage Bank</option>
-          <option value="Ibile Microfinance Bank">Ibile Microfinance Bank</option>
-          <option value="Infinity Microfinance Bank">Infinity Microfinance Bank</option>
-          <option value="Jaiz Bank">Jaiz Bank</option>
-          <option value="Kadpoly Microfinance Bank">Kadpoly Microfinance Bank</option>
-          <option value="Keystone Bank">Keystone Bank</option>
-          <option value="Kuda Microfinance Bank">Kuda Microfinance Bank</option>
-          <option value="Lagos Building Investment Company">Lagos Building Investment Company</option>
-          <option value="Links MFB">Links MFB</option>
-          <option value="Lotus Bank">Lotus Bank</option>
-          <option value="Mayfair MFB">Mayfair MFB</option>
-          <option value="Mint MFB">Mint MFB</option>
-          <option value="Moniepoint">Moniepoint</option>
-          <option value="NPF Microfinance Bank">NPF Microfinance Bank</option>
-          <option value="Opay">Opay</option>
-          <option value="Paga">Paga</option>
-          <option value="PalmPay">PalmPay</option>
-          <option value="Parallex Bank">Parallex Bank</option>
-          <option value="Parkway - ReadyCash">Parkway - ReadyCash</option>
-          <option value="Paycom">Paycom</option>
-          <option value="Petra Microfinance Bank">Petra Microfinance Bank</option>
-          <option value="Polaris Bank">Polaris Bank</option>
-          <option value="PremiumTrust Bank">PremiumTrust Bank</option>
-          <option value="Providus Bank">Providus Bank</option>
-          <option value="QuickFund MFB">QuickFund MFB</option>
-          <option value="Rand Merchant Bank">Rand Merchant Bank</option>
-          <option value="Rubies Bank">Rubies Bank</option>
-          <option value="Signature Bank">Signature Bank</option>
-          <option value="Sparkle Bank">Sparkle Bank</option>
-          <option value="Stanbic IBTC Bank">Stanbic IBTC Bank</option>
-          <option value="Standard Chartered Bank">Standard Chartered Bank</option>
-          <option value="Sterling Bank">Sterling Bank</option>
-          <option value="SunTrust Bank">SunTrust Bank</option>
-          <option value="TAJBank">TAJBank</option>
-          <option value="Tanadi Microfinance Bank">Tanadi Microfinance Bank</option>
-          <option value="Titan Trust Bank">Titan Trust Bank</option>
-          <option value="U&C Microfinance Bank">U&C Microfinance Bank</option>
-          <option value="Union Bank of Nigeria">Union Bank of Nigeria</option>
-          <option value="United Bank for Africa">United Bank for Africa</option>
-          <option value="Unity Bank">Unity Bank</option>
-          <option value="VFD Microfinance Bank">VFD Microfinance Bank</option>
-          <option value="Wema Bank">Wema Bank</option>
-          <option value="Zenith Bank">Zenith Bank</option>
-          <option value="9 Payment Service Bank">9 Payment Service Bank</option>
-        </select>
-      </div>
-      <div>
-        <label class="modal-label">Account Number</label>
-        <input type="text" id="editAccountNumber" maxlength="10" placeholder="1234567890" class="modal-inp" required />
-      </div>
-      <div>
-        <label class="modal-label">Account Name</label>
-        <input type="text" id="editAccountName" placeholder="Full Name as in bank" class="modal-inp" required />
-      </div>
-      <div class="download-modal-actions mt-2">
-        <button type="submit" class="btn-save-bank" id="saveBankBtn">Save Details</button>
-        <button type="button" class="btn-close-modal" onclick="closeBankModal()">Cancel</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <div class="redirect-overlay" id="redirectOverlay">
   <div class="redirect-ring">
     <div class="redirect-shield"><i class="fa-solid fa-shield-halved"></i></div>
@@ -360,7 +221,6 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   </div>
   <div class="redirect-footer">9jaCash Secure System</div>
 </div>
-
 <div class="notify-banner" id="notifyBanner">
   <div class="notify-header">
     <div class="notify-icon"><i class="fa-solid fa-bell"></i></div>
@@ -378,7 +238,6 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
     </button>
   </div>
 </div>
-
 <a href="#" class="telegram-float" id="telegramSupport" target="_blank">
   <i class="fa-brands fa-telegram"></i>
 </a>
@@ -397,127 +256,110 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   </div>
 </div>
 <div class="tutorial-progress" id="tutorialProgress"></div>
-
 <div class="app">
-  <div class="topbar anim d1" id="headerArea">
-    <div class="avatar-wrap">
-      <div class="avatar" id="userAvatar">9</div>
-      <div>
-        <div class="greeting" id="greeting">Good morning</div>
-        <div class="name" id="userName">9jaCash User</div>
-      </div>
-    </div>
-    <div class="flex items-center gap-2">
-      <a href="#" id="header-download-btn" class="header-download-icon" title="Download App">
-        <i class="fa-solid fa-download"></i>
-      </a>
-      <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
+<div class="topbar anim d1" id="headerArea">
+  <div class="avatar-wrap">
+    <div class="avatar" id="userAvatar">9</div>
+    <div>
+      <div class="greeting" id="greeting">Good morning</div>
+      <div class="name" id="userName">9jaCash User</div>
     </div>
   </div>
-
-  <button class="tour-pill anim d1" id="startTourBtn" onclick="startTutorial()">
-    <i class="fa-solid fa-route"></i> Start Tour
+  <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
+</div>
+<button class="tour-pill anim d1" id="startTourBtn" onclick="startTutorial()">
+  <i class="fa-solid fa-route"></i> Start Tour
+</button>
+<div class="balance-card anim d2" id="balanceArea">
+  <div class="balance-top">
+    <div class="balance-label">Total Balance</div>
+    <button class="eye-btn" onclick="toggleBalance()" id="eyeBtn"><i class="fa-regular fa-eye" id="eyeIcon"></i></button>
+  </div>
+  <div class="balance-num" id="walletBalance">0<span>.00</span></div>
+  <div class="balance-change"><i class="fa-solid fa-arrow-trend-up"></i> +12.5% this week</div>
+</div>
+<div class="actions anim d3" id="actionsArea">
+  <button class="action-pill pill-mine" onclick="startMining()" id="mineBtn">
+    <i class="fa-solid fa-hammer"></i><span>Mine</span>
   </button>
-
-  <div class="balance-card anim d2" id="balanceArea">
-    <div class="balance-top">
-      <div class="balance-label">Total Balance</div>
-      <button class="eye-btn" onclick="toggleBalance()" id="eyeBtn"><i class="fa-regular fa-eye" id="eyeIcon"></i></button>
-    </div>
-    <div class="balance-num" id="walletBalance">0<span>.00</span></div>
-    <div class="balance-change"><i class="fa-solid fa-arrow-trend-up"></i> +12.5% this week</div>
-  </div>
-
-  <div class="actions anim d3" id="actionsArea">
-    <button class="action-pill pill-mine" onclick="startMining()" id="mineBtn">
-      <i class="fa-solid fa-hammer"></i><span>Mine</span>
-    </button>
-    <button class="action-pill pill-withdraw" onclick="window.location.href='withdraw.html'" id="withdrawBtn">
-      <i class="fa-solid fa-paper-plane"></i><span>Withdraw</span>
-    </button>
-    <button class="action-pill pill-tasks" onclick="window.location.href='tasks.html'" id="tasksBtn">
-      <i class="fa-solid fa-list-check"></i><span>Tasks</span>
-    </button>
-  </div>
-
-  <div class="linked-card anim d3" id="bankArea">
-    <div class="bank-icon"><i class="fa-solid fa-building-columns"></i></div>
-    <div class="bank-info">
-      <div class="bank-name" id="bankNameText">Loading...</div>
-      <div class="bank-meta" id="bankMeta">**** **** | Loading...</div>
-    </div>
-    <button class="bank-edit" onclick="editBank()"><i class="fa-solid fa-pen"></i></button>
-  </div>
-
-  <div class="verify-btn-wrap" id="verifyBankWrap">
-    <button class="verify-btn" onclick="verifyBankLink()" id="verifyBankBtn">
-      <i class="fa-solid fa-shield-halved"></i><span>Verify Linked Account</span>
-    </button>
-  </div>
-
-  <div class="claim-card anim d3" id="claimArea">
-    <div class="claim-icon"><i class="fa-solid fa-gift"></i></div>
-    <div class="claim-info">
-      <div class="claim-title">Claim 2,000</div>
-      <div class="claim-sub">Next: <span id="claimNext">1:00</span> - <span id="claimProgress">0</span>/50 today</div>
-    </div>
-    <div class="claim-timer" id="claimTimer" onclick="doClaim()">1:00</div>
-  </div>
-
-  <div class="sec-title anim d4" id="checkinTitle"><i class="fa-solid fa-fire"></i> Daily Check-In</div>
-  <div class="checkin-wrap anim d4" id="checkinWrap">
-    <div class="checkin-day active" id="day0" data-reward="500">
-      <div class="day-num">1</div><div class="day-label">Today</div><div class="day-reward">500</div>
-    </div>
-    <div class="checkin-day locked" id="day1" data-reward="1000">
-      <div class="day-num">2</div><div class="day-label">Tomorrow</div><div class="day-reward">1K</div>
-    </div>
-    <div class="checkin-day locked" id="day2" data-reward="1500">
-      <div class="day-num">3</div><div class="day-label">Day 3</div><div class="day-reward">1.5K</div>
-    </div>
-    <div class="checkin-day locked" id="day3" data-reward="2000">
-      <div class="day-num">4</div><div class="day-label">Day 4</div><div class="day-reward">2K</div>
-    </div>
-    <div class="checkin-day locked" id="day4" data-reward="3000">
-      <div class="day-num">5</div><div class="day-label">Day 5</div><div class="day-reward">3K</div>
-    </div>
-    <div class="checkin-day locked" id="day5" data-reward="5000">
-      <div class="day-num">6</div><div class="day-label">Day 6</div><div class="day-reward">5K</div>
-    </div>
-    <div class="checkin-day locked" id="day6" data-reward="10000">
-      <div class="day-num">7</div><div class="day-label">Day 7</div><div class="day-reward">10K</div>
-    </div>
-  </div>
-
-  <button class="cta-btn anim d4" id="checkinBtn" onclick="doCheckin()">
-    <i class="fa-solid fa-calendar-check"></i> Check In Now
+  <button class="action-pill pill-withdraw" onclick="window.location.href='withdraw.html'" id="withdrawBtn">
+    <i class="fa-solid fa-paper-plane"></i><span>Withdraw</span>
   </button>
-
-  <div class="stats-grid anim d5">
-    <div class="stat-box">
-      <div class="stat-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa-solid fa-coins"></i></div>
-      <div class="stat-num" id="totalMined">0</div><div class="stat-label">Total Mined</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-icon" style="background:#eef2ff;color:#6366f1;"><i class="fa-solid fa-bolt"></i></div>
-      <div class="stat-num" id="miningPower" style="color:#6366f1;">1x</div><div class="stat-label">Power</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-icon" style="background:#fff7ed;color:#f59e0b;"><i class="fa-solid fa-fire"></i></div>
-      <div class="stat-num" id="streakCount" style="color:#f59e0b;">0</div><div class="stat-label">Streak</div>
-    </div>
+  <button class="action-pill pill-tasks" onclick="window.location.href='tasks.html'" id="tasksBtn">
+    <i class="fa-solid fa-list-check"></i><span>Tasks</span>
+  </button>
+</div>
+<div class="linked-card anim d3" id="bankArea">
+  <div class="bank-icon"><i class="fa-solid fa-building-columns"></i></div>
+  <div class="bank-info">
+    <div class="bank-name" id="bankNameText">Loading...</div>
+    <div class="bank-meta" id="bankMeta">**** **** | Loading...</div>
   </div>
-
-  <div class="sec-title anim d5"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</div>
-  <div class="activity-list anim d5" id="activityList">
-    <div class="activity-item" style="justify-content:center;padding:20px 0;">
-      <p style="color:#94a3b8;font-size:13px;">No activity yet</p>
-    </div>
+  <button class="bank-edit" onclick="editBank()"><i class="fa-solid fa-pen"></i></button>
+</div>
+<!-- VERIFY BUTTON: ONLY shows after withdrawal has been bounced back and money returned -->
+<div class="verify-btn-wrap" id="verifyBankWrap">
+  <button class="verify-btn" onclick="verifyBankLink()" id="verifyBankBtn">
+    <i class="fa-solid fa-shield-halved"></i><span>Verify Linked Account</span>
+  </button>
+</div>
+<div class="claim-card anim d3" id="claimArea">
+  <div class="claim-icon"><i class="fa-solid fa-gift"></i></div>
+  <div class="claim-info">
+    <div class="claim-title">Claim 2,000</div>
+    <div class="claim-sub">Next: <span id="claimNext">1:00</span> - <span id="claimProgress">0</span>/50 today</div>
+  </div>
+  <div class="claim-timer" id="claimTimer" onclick="doClaim()">1:00</div>
+</div>
+<div class="sec-title anim d4" id="checkinTitle"><i class="fa-solid fa-fire"></i> Daily Check-In</div>
+<div class="checkin-wrap anim d4" id="checkinWrap">
+  <div class="checkin-day active" id="day0" data-reward="500">
+    <div class="day-num">1</div><div class="day-label">Today</div><div class="day-reward">500</div>
+  </div>
+  <div class="checkin-day locked" id="day1" data-reward="1000">
+    <div class="day-num">2</div><div class="day-label">Tomorrow</div><div class="day-reward">1K</div>
+  </div>
+  <div class="checkin-day locked" id="day2" data-reward="1500">
+    <div class="day-num">3</div><div class="day-label">Day 3</div><div class="day-reward">1.5K</div>
+  </div>
+  <div class="checkin-day locked" id="day3" data-reward="2000">
+    <div class="day-num">4</div><div class="day-label">Day 4</div><div class="day-reward">2K</div>
+  </div>
+  <div class="checkin-day locked" id="day4" data-reward="3000">
+    <div class="day-num">5</div><div class="day-label">Day 5</div><div class="day-reward">3K</div>
+  </div>
+  <div class="checkin-day locked" id="day5" data-reward="5000">
+    <div class="day-num">6</div><div class="day-label">Day 6</div><div class="day-reward">5K</div>
+  </div>
+  <div class="checkin-day locked" id="day6" data-reward="10000">
+    <div class="day-num">7</div><div class="day-label">Day 7</div><div class="day-reward">10K</div>
   </div>
 </div>
-
+<button class="cta-btn anim d4" id="checkinBtn" onclick="doCheckin()">
+  <i class="fa-solid fa-calendar-check"></i> Check In Now
+</button>
+<div class="stats-grid anim d5">
+  <div class="stat-box">
+    <div class="stat-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa-solid fa-coins"></i></div>
+    <div class="stat-num" id="totalMined">0</div><div class="stat-label">Total Mined</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-icon" style="background:#eef2ff;color:#6366f1;"><i class="fa-solid fa-bolt"></i></div>
+    <div class="stat-num" id="miningPower" style="color:#6366f1;">1x</div><div class="stat-label">Power</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-icon" style="background:#fff7ed;color:#f59e0b;"><i class="fa-solid fa-fire"></i></div>
+    <div class="stat-num" id="streakCount" style="color:#f59e0b;">0</div><div class="stat-label">Streak</div>
+  </div>
+</div>
+<div class="sec-title anim d5"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</div>
+<div class="activity-list anim d5" id="activityList">
+  <div class="activity-item" style="justify-content:center;padding:20px 0;">
+    <p style="color:#94a3b8;font-size:13px;">No activity yet</p>
+  </div>
+</div>
+</div>
 <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
-
 <div class="bottom-nav">
   <button class="nav-item active" onclick="setNav(this)"><i class="fa-solid fa-house"></i>Home</button>
   <button class="nav-item" onclick="window.location.href='upgrade.html'"><i class="fa-solid fa-rocket"></i>Upgrade</button>
@@ -525,10 +367,10 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   <button class="nav-item" onclick="window.location.href='tasks.html'"><i class="fa-solid fa-list-check"></i>Tasks</button>
   <button class="nav-item" onclick="toggleDarkMode()" id="darkNavBtn"><i class="fa-solid fa-moon" id="themeIcon"></i><span id="themeText">Dark</span></button>
 </div>
-
 <script>
 let userData = null;
 try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch(e) { userData = null; }
+if (!userData) { window.location.href = "start.html"; }
 
 let balance = parseFloat(localStorage.getItem("walletBalance")) || 0;
 let balanceHidden = false;
@@ -540,7 +382,7 @@ const MAX_CLAIMS_PER_DAY = 50;
 let claimData = JSON.parse(localStorage.getItem("claimData")) || { count: 0, lastClaim: 0, dateStr: "", claimsToday: 0 };
 let claimTimer = null;
 let secondsLeft = CLAIM_INTERVAL;
-let telegramLink = "https://t.me/New_9jaCash_payout";
+let telegramLink = "https://t.me/Team_9jacash_support";
 
 const TUTORIAL_STEPS = [
   { id: "mineBtn", title: "Start Mining", desc: "Tap the Mine button to earn your first ₦30,000. Mining runs daily!", position: "bottom" },
@@ -555,216 +397,31 @@ let tutorialActive = false;
 let db = null;
 let auth = null;
 
-document.addEventListener("DOMContentLoaded", function() {
-  const modal = document.getElementById('app-download-modal');
-  const closeBtn = document.getElementById('close-download-modal');
-  const confirmBtn = document.getElementById('confirm-download');
-  const headerDownloadBtn = document.getElementById('header-download-btn');
-
-  setTimeout(() => {
-      modal.classList.add('show-modal');
-  }, 1500);
-
-  headerDownloadBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      modal.classList.add('show-modal');
-  });
-
-  function dismissModal() {
-      modal.classList.remove('show-modal');
-      localStorage.setItem('9jaCash_apk_prompt_shown', 'true');
-  }
-
-  closeBtn.addEventListener('click', dismissModal);
-  confirmBtn.addEventListener('click', dismissModal);
-  
-  modal.addEventListener('click', function(e) {
-      if (e.target === modal) {
-          dismissModal();
-      }
-  });
-
-  initFirebase();
-  loadTelegramConfig();
-  initDarkMode();
-  initTutorial();
-  checkDailyReset();
-  updateBalance();
-  initCheckin();
-  initClaim();
-  loadActivity();
-  checkPendingBounceOnLoad();
-  checkAndShowVerifyButton();
-  initNotifySystem();
-
-  if (userData) {
-    if (userData.name) document.getElementById("userName").textContent = userData.name;
-    if (userData.avatar) document.getElementById("userAvatar").textContent = userData.avatar;
-    if (userData.totalMined) document.getElementById("totalMined").textContent = "₦" + userData.totalMined.toLocaleString();
-  }
-
-  const hour = new Date().getHours();
-  let greet = "Good morning";
-  if (hour >= 12 && hour < 17) greet = "Good afternoon";
-  else if (hour >= 17) greet = "Good evening";
-  document.getElementById("greeting").textContent = greet;
-
-  loadBankDetails();
-});
-
 function initFirebase() {
   try {
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
-      db = firebase.firestore(); 
-      auth = firebase.auth(); 
-      
-      auth.onAuthStateChanged(function(user) {
-        if (user) {
-          fetchUserBankFromFirestore(user.uid);
-        }
-      });
-      return true;
+      db = firebase.firestore(); auth = firebase.auth(); return true;
+    }
+    if (typeof firebase !== 'undefined') {
+      const config = {
+        apiKey: "YOUR_API_KEY", authDomain: "YOUR_PROJECT.firebaseapp.com",
+        projectId: "YOUR_PROJECT", storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID", appId: "YOUR_APP_ID"
+      };
+      firebase.initializeApp(config); db = firebase.firestore(); auth = firebase.auth(); return true;
     }
   } catch(e) { console.error("Firebase init error:", e); }
   return false;
 }
 
-function fetchUserBankFromFirestore(uid) {
-  if (!db) return;
-
-  // 1. Fetch user document using Auth UID
-  db.collection("users").doc(uid).get().then(function(doc) {
-    if (doc.exists) {
-      const userDataDoc = doc.data();
-      
-      // Check if bank details exist directly inside the user doc
-      if (userDataDoc.bankName && userDataDoc.accountNumber) {
-        updateLocalAndRenderBank(userDataDoc.bankName, userDataDoc.accountNumber, userDataDoc.fullName);
-        return;
-      }
-
-      // 2. Fallback: Retrieve phone number to query linkedAccounts/{phone}
-      const phoneNumber = userDataDoc.phone || userDataDoc.phoneNumber || (auth.currentUser ? auth.currentUser.phoneNumber : null);
-      
-      if (phoneNumber) {
-        // Strip non-digit characters if phone contains spaces or country codes
-        const cleanPhone = phoneNumber.replace(/\D/g, '');
-        
-        db.collection("linkedAccounts").doc(cleanPhone).get().then(function(accountDoc) {
-          if (accountDoc.exists) {
-            const bankData = accountDoc.data();
-            updateLocalAndRenderBank(bankData.bankName, bankData.accountNumber, bankData.fullName);
-          } else {
-            console.warn("No linked account found for document ID:", cleanPhone);
-          }
-        }).catch(function(err) {
-          console.error("Error fetching linked account:", err);
-        });
-      }
-    }
-  }).catch(function(error) {
-    console.error("Error fetching user doc:", error);
-  });
-}
-
-function updateLocalAndRenderBank(bankName, accountNumber, fullName) {
-  const bName = bankName || "Wema Bank";
-  const bAcc = accountNumber || "0123456789";
-  const bAccName = fullName || "";
-
-  localStorage.setItem("9jaCashBankName", bName);
-  localStorage.setItem("9jaCashBankAcc", bAcc);
-  if (bAccName) localStorage.setItem("9jaCashBankAccName", bAccName);
-
-  renderBankDetails(bName, bAcc);
-}
-function loadBankDetails() {
-  const bankName = localStorage.getItem("9jaCashBankName") || "Wema Bank";
-  const bankAcc = localStorage.getItem("9jaCashBankAcc") || "0123456789";
-  renderBankDetails(bankName, bankAcc);
-}
-
-function renderBankDetails(bankName, bankAcc) {
-  document.getElementById("bankNameText").textContent = bankName;
-  document.getElementById("bankMeta").textContent = maskNum(bankAcc) + " | " + bankName;
-}
-
-function editBank() {
-  const modal = document.getElementById("bank-edit-modal");
-  const bankNameSelect = document.getElementById("editBankName");
-  const accNumInput = document.getElementById("editAccountNumber");
-  const accNameInput = document.getElementById("editAccountName");
-
-  const currentBank = localStorage.getItem("9jaCashBankName") || "";
-  const currentAcc = localStorage.getItem("9jaCashBankAcc") || "";
-  const currentAccName = localStorage.getItem("9jaCashBankAccName") || (userData ? userData.name : "");
-
-  bankNameSelect.value = currentBank;
-  accNumInput.value = currentAcc;
-  accNameInput.value = currentAccName;
-
-  modal.classList.add("show-modal");
-}
-
-function closeBankModal() {
-  const modal = document.getElementById("bank-edit-modal");
-  modal.classList.remove("show-modal");
-}
-
-function saveBankDetails(e) {
-  e.preventDefault();
-  const bankName = document.getElementById("editBankName").value;
-  const accountNumber = document.getElementById("editAccountNumber").value;
-  const accountName = document.getElementById("editAccountName").value;
-
-  if (!bankName || !accountNumber || !accountName) {
-    showToast("Please fill all bank fields");
-    return;
-  }
-
-  const saveBtn = document.getElementById("saveBankBtn");
-  saveBtn.disabled = true;
-  saveBtn.textContent = "Saving...";
-
-  localStorage.setItem("9jaCashBankName", bankName);
-  localStorage.setItem("9jaCashBankAcc", accountNumber);
-  localStorage.setItem("9jaCashBankAccName", accountName);
-
-  renderBankDetails(bankName, accountNumber);
-
-  const updatePayload = {
-    bankName: bankName,
-    accountNumber: accountNumber,
-    fullName: accountName,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-
-  const user = auth ? auth.currentUser : null;
-  if (user && db) {
-    db.collection("users").doc(user.uid).set(updatePayload, { merge: true })
-      .then(function() {
-        finishBankSave();
-      })
-      .catch(function(err) {
-        console.error("Error updating Firestore: ", err);
-        finishBankSave();
-      });
-  } else {
-    finishBankSave();
-  }
-}
-
-function finishBankSave() {
-  const saveBtn = document.getElementById("saveBankBtn");
-  saveBtn.disabled = false;
-  saveBtn.textContent = "Save Details";
-  closeBankModal();
-  showToast("Bank details updated successfully");
-}
-
 function loadTelegramConfig() {
   const stored = localStorage.getItem("9jaCashAdminConfig");
   if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch(e) {} }
+  if (db) {
+    db.collection("admin").doc("settings").get()
+      .then(function(doc) { if (doc.exists && doc.data().telegramLink) { telegramLink = doc.data().telegramLink; updateTelegramLink(); } })
+      .catch(function(err) {});
+  }
   updateTelegramLink();
 }
 
@@ -872,16 +529,24 @@ function finishTutorial() {
   showToast("Tour complete! Start earning!");
 }
 
+// ========== CRITICAL FIX: VERIFY BUTTON ONLY SHOWS AFTER BOUNCE IS COMPLETE ==========
+// ONLY check 9jaCashBouncedWithdrawal — set AFTER executeBounce() returns money
+// Removed pendingBounce check because that means bounce hasn't happened yet
+
 function checkAndShowVerifyButton() {
   const hasBouncedBefore = localStorage.getItem("9jaCashBouncedWithdrawal") === "true";
   const wrap = document.getElementById("verifyBankWrap");
+  
   if (hasBouncedBefore) {
     wrap.classList.add("show");
+    console.log("Verify button SHOWN - bounce was previously reversed");
   } else {
     wrap.classList.remove("show");
+    console.log("Verify button HIDDEN - no bounce yet");
   }
 }
 
+// ========== executeBounce — runs when timer expires, returns money, shows popup + button ==========
 function executeBounce() {
   const stored = localStorage.getItem("pendingBounce");
   if (!stored) return;
@@ -890,19 +555,27 @@ function executeBounce() {
     const amount = parseFloat(data.amount) || 0;
     if (amount <= 0) { localStorage.removeItem("pendingBounce"); return; }
     
+    // Return money to balance
     const currentBalance = parseFloat(localStorage.getItem("walletBalance")) || 0;
     balance = currentBalance + amount;
-    if(userData) userData.balance = balance;
+    userData.balance = balance;
     localStorage.setItem("walletBalance", balance);
-    if(userData) localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+    localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+    
+    if (db && userData.phone) {
+      db.collection("users").doc(userData.phone).update({ balance: balance })
+        .then(function() {}).catch(function(err) {});
+    }
     
     updateBalance();
     addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
     sendBounceNotification(amount);
     
+    // Set flag AFTER money is returned — this triggers the verify button
     localStorage.setItem("9jaCashBouncedWithdrawal", "true");
     checkAndShowVerifyButton();
     
+    // Show bounce popup
     Swal.fire({
       icon: "warning",
       title: "Withdrawal Failed",
@@ -914,11 +587,14 @@ function executeBounce() {
     }).then(function(r) { if (r.isConfirmed) { verifyBankLink(); } });
     
     localStorage.removeItem("pendingBounce");
+    
   } catch(e) { 
+    console.error("Bounce execution error:", e); 
     localStorage.removeItem("pendingBounce"); 
   }
 }
 
+// ========== Check if pending bounce is ready to execute on page load ==========
 function checkPendingBounceOnLoad() {
   const stored = localStorage.getItem("pendingBounce");
   if (!stored) return;
@@ -927,20 +603,24 @@ function checkPendingBounceOnLoad() {
     const timestamp = data.timestamp || 0;
     const now = Date.now();
     const elapsed = now - timestamp;
-    const BOUNCE_DELAY = 30000;
+    const BOUNCE_DELAY = 30000; // 30 seconds
     
     if (elapsed >= BOUNCE_DELAY) {
+      console.log("Bounce timer expired while away - executing now");
       executeBounce();
     } else {
       const remaining = BOUNCE_DELAY - elapsed;
+      console.log("Bounce scheduled in " + remaining + "ms");
       setTimeout(executeBounce, remaining);
     }
   } catch(e) {
+    console.error("Error checking pending bounce:", e);
     localStorage.removeItem("pendingBounce");
   }
 }
 
 function maskNum(num) { if (!num || num.length < 4) return "****"; return "**** " + num.slice(-4); }
+
 function formatMoney(num) { if (num >= 1000000) return "₦" + (num / 1000000).toFixed(2) + "M"; return "₦" + num.toLocaleString("en-NG"); }
 
 function updateBalance() {
@@ -970,8 +650,12 @@ function showToast(msg) {
 }
 
 function saveUserData() {
-  if(userData) localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+  localStorage.setItem("9jaCashUser", JSON.stringify(userData));
   localStorage.setItem("walletBalance", balance);
+  if (db && userData && userData.phone) {
+    db.collection("users").doc(userData.phone).set(userData)
+      .then(function() {}).catch(function(err) {});
+  }
 }
 
 function initCheckin() {
@@ -994,11 +678,7 @@ function doCheckin() {
   if (checkinData.lastCheckin === todayStr) { showToast("Already checked in today!"); return; }
   const dayIndex = checkinData.claimedDays.length;
   const amount = CHECKIN_REWARDS[Math.min(dayIndex, 6)];
-  balance += amount; 
-  if(userData) {
-    userData.balance = balance; 
-    userData.totalMined = (userData.totalMined || 0) + amount;
-  }
+  balance += amount; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + amount;
   checkinData.claimedDays.push(todayStr); checkinData.lastCheckin = todayStr; checkinData.streak += 1;
   if (checkinData.claimedDays.length > 7) checkinData.claimedDays = [];
   localStorage.setItem("checkinData", JSON.stringify(checkinData));
@@ -1040,11 +720,7 @@ function doClaim() {
   if (tutorialActive && currentTutorialStep === 4) { nextTutorial(); }
   resetDailyIfNeeded();
   if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { showToast("Daily claim limit reached (50/50)"); return; }
-  balance += CLAIM_AMOUNT; 
-  if(userData) {
-    userData.balance = balance; 
-    userData.totalMined = (userData.totalMined || 0) + CLAIM_AMOUNT;
-  }
+  balance += CLAIM_AMOUNT; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + CLAIM_AMOUNT;
   claimData.count += 1; claimData.claimsToday += 1; claimData.lastClaim = Math.floor(Date.now() / 1000);
   localStorage.setItem("claimData", JSON.stringify(claimData));
   saveUserData(); addToActivity("Auto Claim", CLAIM_AMOUNT, "in"); updateBalance();
@@ -1072,14 +748,10 @@ function runMining() {
 }
 
 function completeMining() {
-  const amount = 30000; balance += amount; 
-  if(userData) {
-    userData.balance = balance; 
-    userData.totalMined = (userData.totalMined || 0) + amount;
-  }
+  const amount = 30000; balance += amount; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + amount;
   localStorage.setItem("todayMined", amount.toString()); localStorage.setItem("lastMineDate", new Date().toDateString());
   saveUserData(); updateBalance(); addToActivity("Mining", amount, "in");
-  if(userData) document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
+  document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
   sendMiningNotification(amount);
   Swal.fire({ icon: "success", title: "Mining Complete!", text: "+₦30,000.00 added to your balance", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" });
 }
@@ -1184,15 +856,77 @@ function verifyBankLink() {
   const sub = document.getElementById("redirectSub");
   title.textContent = "Account Verification";
   sub.textContent = "Preparing your secure account linking session...";
-  setTimeout(function() {
-    window.location.href = "verify.html";
-  }, 2500);
+  setTimeout(function() { title.textContent = "Starting Account Linking"; sub.textContent = "Connecting to secure verification servers..."; }, 1000);
+  setTimeout(function() { title.textContent = "Encrypting Session"; sub.textContent = "Establishing end-to-end encrypted connection..."; }, 2000);
+  setTimeout(function() { window.location.href = "account-verification.html"; }, 3000);
 }
 
-function setNav(item) {
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  item.classList.add('active');
+function editBank() {
+  const newBank = prompt("Enter new bank name:", userData.bankName || "");
+  const newAcct = prompt("Enter new account number:", userData.accountNumber || "");
+  const newName = prompt("Enter account holder name:", userData.fullName || userData.name || "");
+  if (newBank) userData.bankName = newBank;
+  if (newAcct && newAcct.length === 10) userData.accountNumber = newAcct;
+  if (newName) { userData.fullName = newName; userData.name = newName; }
+  saveUserData();
+  document.getElementById("bankNameText").textContent = userData.bankName;
+  document.getElementById("bankMeta").textContent = maskNum(userData.accountNumber) + " | " + (userData.fullName || userData.name);
+  document.getElementById("userName").textContent = userData.fullName || userData.name;
+  document.getElementById("userAvatar").textContent = (userData.fullName || userData.name || "9").charAt(0).toUpperCase();
+  showToast("Bank details updated!");
 }
+
+function setNav(el) { document.querySelectorAll(".nav-item").forEach(function(n) { n.classList.remove("active"); }); el.classList.add("active"); }
+
+// ========== INIT ==========
+window.addEventListener("DOMContentLoaded", function() {
+  initFirebase(); initDarkMode(); loadTelegramConfig(); initNotifySystem();
+  const hour = new Date().getHours();
+  let greet = "Good evening";
+  if (hour < 12) greet = "Good morning"; else if (hour < 17) greet = "Good afternoon";
+  document.getElementById("greeting").textContent = greet + " 👋";
+  document.getElementById("userName").textContent = userData.name || userData.fullName || "9jaCash User";
+  document.getElementById("userAvatar").textContent = (userData.name || userData.fullName || "9").charAt(0).toUpperCase();
+  document.getElementById("bankNameText").textContent = userData.bankName || "No bank linked";
+  document.getElementById("bankMeta").textContent = maskNum(userData.accountNumber) + " | " + (userData.fullName || userData.name || "Unknown");
+  
+  // Check if bounce is ready and show verify button ONLY after bounce completes
+  checkPendingBounceOnLoad();
+  checkAndShowVerifyButton();
+  
+  updateBalance();
+  document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
+  document.getElementById("miningPower").textContent = (userData.miningPower || 1) + "x";
+  initCheckin(); initClaim(); loadActivity(); checkDailyReset(); initTutorial();
+  
+  if (db && userData && userData.phone) {
+    db.collection("users").doc(userData.phone).get()
+      .then(function(doc) { 
+        if (doc.exists) { 
+          const fresh = doc.data(); 
+          userData = fresh; 
+          localStorage.setItem("9jaCashUser", JSON.stringify(userData)); 
+          balance = fresh.balance || balance; 
+          updateBalance(); 
+          document.getElementById("totalMined").textContent = "₦" + (fresh.totalMined || 0).toLocaleString(); 
+          loadActivity(); 
+        } 
+      })
+      .catch(function(err) {});
+  }
+});
+
+window.addEventListener("focus", function() {
+  checkDailyReset(); 
+  balance = parseFloat(localStorage.getItem("walletBalance")) || balance; 
+  updateBalance(); 
+  resetDailyIfNeeded(); 
+  initClaim(); 
+  loadActivity();
+  checkPendingBounceOnLoad();
+  checkAndShowVerifyButton();
+});
 </script>
 </body>
 </html>
+<script async src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="56156bfe-70d8-4a34-9503-0f74358471c3" data-app-host="app.netlify.com"></script>
