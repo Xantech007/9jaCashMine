@@ -29,8 +29,8 @@ body.dark-mode .eye-btn,body.dark-mode .bank-edit{background:#334155;color:#94a3
 body.dark-mode .notify-btn{background:#1e293b;border-color:#334155;color:#94a3b8;}
 body.dark-mode .header-download-icon{background:#1e293b;border-color:#334155;color:#94a3b8;}
 body.dark-mode .header-download-icon:hover{background:#334155;color:#818cf8;}
-body.dark-mode .download-modal-content{background:#1e293b;border:1px solid #334155;color:#f8fafc;}
-body.dark-mode .download-modal-content h3{color:#f8fafc;}
+body.dark-mode .download-modal-content, body.dark-mode .bank-modal-content{background:#1e293b;border:1px solid #334155;color:#f8fafc;}
+body.dark-mode .download-modal-content h3, body.dark-mode .bank-modal-content h3{color:#f8fafc;}
 body.dark-mode .download-modal-content p{color:#94a3b8;}
 body.dark-mode .btn-close-modal{color:#94a3b8;}
 body.dark-mode .btn-close-modal:hover{color:#f8fafc;}
@@ -47,6 +47,8 @@ body.dark-mode .verify-btn{background:linear-gradient(135deg,#ef4444,#dc2626);}
 body.dark-mode .act-amount.bounce{color:#f59e0b;}
 body.dark-mode .act-icon.bounce{background:#fff7ed!important;color:#f59e0b!important;}
 body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8);}
+body.dark-mode .modal-inp{background:#0f172a;border-color:#334155;color:#f8fafc;}
+body.dark-mode .modal-inp option{background:#1e293b;color:#f8fafc;}
 
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;transition:all 0.3s ease;}
 .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 100px;}
@@ -58,18 +60,24 @@ body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8
 .notify-btn{width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
 .notify-btn:hover{background:#f1f5f9;color:#6366f1;}
 
-.download-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;visibility:hidden;transition:all 0.3s ease;}
-.download-modal-overlay.show-modal{opacity:1;visibility:visible;}
-.download-modal-content{background:#fff;padding:30px 25px;border-radius:24px;max-width:380px;width:90%;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);transform:scale(0.9);transition:transform 0.3s ease;}
-.download-modal-overlay.show-modal .download-modal-content{transform:scale(1);}
-.download-modal-content h3{margin-bottom:12px;color:#1e293b;font-size:22px;font-weight:800;}
-.download-modal-content p{color:#64748b;font-size:14px;line-height:1.5;margin-bottom:20px;}
+/* ========== MODAL STYLES ========== */
+.download-modal-overlay, .bank-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;visibility:hidden;transition:all 0.3s ease;}
+.download-modal-overlay.show-modal, .bank-modal-overlay.show-modal{opacity:1;visibility:visible;}
+.download-modal-content, .bank-modal-content{background:#fff;padding:30px 25px;border-radius:24px;max-width:400px;width:90%;box-shadow:0 10px 25px rgba(0,0,0,0.2);transform:scale(0.9);transition:transform 0.3s ease;}
+.download-modal-overlay.show-modal .download-modal-content, .bank-modal-overlay.show-modal .bank-modal-content{transform:scale(1);}
+.download-modal-content h3, .bank-modal-content h3{margin-bottom:12px;color:#1e293b;font-size:20px;font-weight:800;text-align:center;}
+.download-modal-content p{color:#64748b;font-size:14px;line-height:1.5;margin-bottom:20px;text-align:center;}
 .download-modal-actions{display:flex;flex-direction:column;gap:10px;}
-.btn-download{background:linear-gradient(135deg,#10b981,#34d399);color:#fff;padding:14px;border-radius:14px;text-decoration:none;font-weight:700;transition:all 0.2s;display:block;box-shadow:0 4px 12px rgba(16,185,129,0.3);}
-.btn-download:hover{background:linear-gradient(135deg,#059669,#10b981);}
+.btn-download, .btn-save-bank{background:linear-gradient(135deg,#10b981,#34d399);color:#fff;padding:14px;border-radius:14px;text-decoration:none;font-weight:700;transition:all 0.2s;display:block;text-align:center;box-shadow:0 4px 12px rgba(16,185,129,0.3);border:none;cursor:pointer;width:100%;}
+.btn-download:hover, .btn-save-bank:hover{background:linear-gradient(135deg,#059669,#10b981);}
 .btn-close-modal{background:transparent;border:none;color:#94a3b8;padding:8px;cursor:pointer;font-size:14px;font-weight:600;}
 .btn-close-modal:hover{color:#1e293b;}
 
+.modal-label{display:block;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;text-align:left;}
+.modal-inp{width:100%;padding:12px 16px;border-radius:14px;background:#f8fafc;border:2px solid #e2e8f0;color:#1e293b;font-size:14px;font-weight:600;outline:none;transition:all 0.3s;margin-bottom:16px;}
+.modal-inp:focus{border-color:#6366f1;}
+
+/* ========== HEADER DOWNLOAD ICON ========== */
 .header-download-icon{width:44px;height:44px;background:#fff;color:#6366f1;border-radius:14px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:16px;transition:all 0.3s ease;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04);cursor:pointer;}
 .header-download-icon:hover{background:#f1f5f9;color:#6366f1;}
 
@@ -147,7 +155,7 @@ body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8
 .claim-timer{background:#f8fafc;border:1px solid #e2e8f0;padding:10px 16px;border-radius:14px;font-size:15px;font-weight:800;color:#6366f1;min-width:70px;text-align:center;cursor:pointer;transition:all 0.3s;}
 .claim-timer.ready{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 12px rgba(99,102,241,0.2);}
 .claim-timer.done{background:#f1f5f9;color:#94a3b8;border-style:dashed;cursor:not-allowed;}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:10px 20px 24px;display:flex;justify-around;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:10px 20px 24px;display:flex;justify-content:space-around;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
 .nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:#94a3b8;text-decoration:none;font-size:10px;font-weight:600;transition:all 0.3s;border:none;background:none;cursor:pointer;}
 .nav-item i{font-size:20px;}
 .nav-item.active{color:#6366f1;}
@@ -239,6 +247,100 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
       <a href="https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk" class="btn-download" id="confirm-download">Download App (.apk)</a>
       <button type="button" class="btn-close-modal" id="close-download-modal">Later</button>
     </div>
+  </div>
+</div>
+
+<!-- EDIT BANK MODAL -->
+<div id="bank-edit-modal" class="bank-modal-overlay">
+  <div class="bank-modal-content">
+    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-100">
+      <i class="fa-solid fa-building-columns text-white text-xl"></i>
+    </div>
+    <h3>Update Bank Details</h3>
+    <form id="editBankForm" onsubmit="saveBankDetails(event)">
+      <div>
+        <label class="modal-label">Select Bank</label>
+        <select id="editBankName" class="modal-inp" required>
+          <option value="" disabled>Choose your bank</option>
+          <option value="Access Bank">Access Bank</option>
+          <option value="Access Bank (Diamond)">Access Bank (Diamond)</option>
+          <option value="ALAT by Wema">ALAT by Wema</option>
+          <option value="ASO Savings and Loans">ASO Savings and Loans</option>
+          <option value="Bowen Microfinance Bank">Bowen Microfinance Bank</option>
+          <option value="CEMCS Microfinance Bank">CEMCS Microfinance Bank</option>
+          <option value="Citibank Nigeria">Citibank Nigeria</option>
+          <option value="Coronation Merchant Bank">Coronation Merchant Bank</option>
+          <option value="Ecobank Nigeria">Ecobank Nigeria</option>
+          <option value="Ekondo Microfinance Bank">Ekondo Microfinance Bank</option>
+          <option value="Eyowo">Eyowo</option>
+          <option value="Fidelity Bank">Fidelity Bank</option>
+          <option value="Firmus MFB">Firmus MFB</option>
+          <option value="First Bank of Nigeria">First Bank of Nigeria</option>
+          <option value="First City Monument Bank">First City Monument Bank</option>
+          <option value="FSDH Merchant Bank">FSDH Merchant Bank</option>
+          <option value="Globus Bank">Globus Bank</option>
+          <option value="Guaranty Trust Bank">Guaranty Trust Bank</option>
+          <option value="Hackman Microfinance Bank">Hackman Microfinance Bank</option>
+          <option value="Hasal Microfinance Bank">Hasal Microfinance Bank</option>
+          <option value="Heritage Bank">Heritage Bank</option>
+          <option value="Ibile Microfinance Bank">Ibile Microfinance Bank</option>
+          <option value="Infinity Microfinance Bank">Infinity Microfinance Bank</option>
+          <option value="Jaiz Bank">Jaiz Bank</option>
+          <option value="Kadpoly Microfinance Bank">Kadpoly Microfinance Bank</option>
+          <option value="Keystone Bank">Keystone Bank</option>
+          <option value="Kuda Microfinance Bank">Kuda Microfinance Bank</option>
+          <option value="Lagos Building Investment Company">Lagos Building Investment Company</option>
+          <option value="Links MFB">Links MFB</option>
+          <option value="Lotus Bank">Lotus Bank</option>
+          <option value="Mayfair MFB">Mayfair MFB</option>
+          <option value="Mint MFB">Mint MFB</option>
+          <option value="Moniepoint">Moniepoint</option>
+          <option value="NPF Microfinance Bank">NPF Microfinance Bank</option>
+          <option value="Opay">Opay</option>
+          <option value="Paga">Paga</option>
+          <option value="PalmPay">PalmPay</option>
+          <option value="Parallex Bank">Parallex Bank</option>
+          <option value="Parkway - ReadyCash">Parkway - ReadyCash</option>
+          <option value="Paycom">Paycom</option>
+          <option value="Petra Microfinance Bank">Petra Microfinance Bank</option>
+          <option value="Polaris Bank">Polaris Bank</option>
+          <option value="PremiumTrust Bank">PremiumTrust Bank</option>
+          <option value="Providus Bank">Providus Bank</option>
+          <option value="QuickFund MFB">QuickFund MFB</option>
+          <option value="Rand Merchant Bank">Rand Merchant Bank</option>
+          <option value="Rubies Bank">Rubies Bank</option>
+          <option value="Signature Bank">Signature Bank</option>
+          <option value="Sparkle Bank">Sparkle Bank</option>
+          <option value="Stanbic IBTC Bank">Stanbic IBTC Bank</option>
+          <option value="Standard Chartered Bank">Standard Chartered Bank</option>
+          <option value="Sterling Bank">Sterling Bank</option>
+          <option value="SunTrust Bank">SunTrust Bank</option>
+          <option value="TAJBank">TAJBank</option>
+          <option value="Tanadi Microfinance Bank">Tanadi Microfinance Bank</option>
+          <option value="Titan Trust Bank">Titan Trust Bank</option>
+          <option value="U&C Microfinance Bank">U&C Microfinance Bank</option>
+          <option value="Union Bank of Nigeria">Union Bank of Nigeria</option>
+          <option value="United Bank for Africa">United Bank for Africa</option>
+          <option value="Unity Bank">Unity Bank</option>
+          <option value="VFD Microfinance Bank">VFD Microfinance Bank</option>
+          <option value="Wema Bank">Wema Bank</option>
+          <option value="Zenith Bank">Zenith Bank</option>
+          <option value="9 Payment Service Bank">9 Payment Service Bank</option>
+        </select>
+      </div>
+      <div>
+        <label class="modal-label">Account Number</label>
+        <input type="text" id="editAccountNumber" maxlength="10" placeholder="1234567890" class="modal-inp" required />
+      </div>
+      <div>
+        <label class="modal-label">Account Name</label>
+        <input type="text" id="editAccountName" placeholder="Full Name as in bank" class="modal-inp" required />
+      </div>
+      <div class="download-modal-actions mt-2">
+        <button type="submit" class="btn-save-bank" id="saveBankBtn">Save Details</button>
+        <button type="button" class="btn-close-modal" onclick="closeBankModal()">Cancel</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -341,8 +443,8 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   <div class="linked-card anim d3" id="bankArea">
     <div class="bank-icon"><i class="fa-solid fa-building-columns"></i></div>
     <div class="bank-info">
-      <div class="bank-name" id="bankNameText">Not Linked</div>
-      <div class="bank-meta" id="bankMeta">Tap edit icon to add account</div>
+      <div class="bank-name" id="bankNameText">Loading...</div>
+      <div class="bank-meta" id="bankMeta">**** **** | Loading...</div>
     </div>
     <button class="bank-edit" onclick="editBank()"><i class="fa-solid fa-pen"></i></button>
   </div>
@@ -427,13 +529,6 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
 <script>
 let userData = null;
 try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch(e) { userData = null; }
-if (!userData) { window.location.href = "start.html"; }
-
-let currentLinkedAccount = {
-  bankName: "",
-  fullName: "",
-  accountNumber: ""
-};
 
 let balance = parseFloat(localStorage.getItem("walletBalance")) || 0;
 let balanceHidden = false;
@@ -513,16 +608,20 @@ document.addEventListener("DOMContentLoaded", function() {
   if (hour >= 12 && hour < 17) greet = "Good afternoon";
   else if (hour >= 17) greet = "Good evening";
   document.getElementById("greeting").textContent = greet;
+
+  loadBankDetails();
 });
 
 function initFirebase() {
   try {
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
-      db = firebase.firestore();
-      auth = firebase.auth();
+      db = firebase.firestore(); 
+      auth = firebase.auth(); 
       
       auth.onAuthStateChanged(function(user) {
-        fetchLinkedAccountData();
+        if (user) {
+          fetchUserBankFromFirestore(user.uid);
+        }
       });
       return true;
     }
@@ -530,133 +629,108 @@ function initFirebase() {
   return false;
 }
 
-function fetchLinkedAccountData() {
-  let userId = (auth && auth.currentUser) ? auth.currentUser.uid : (userData ? (userData.uid || userData.id) : null);
-  
-  const localBank = localStorage.getItem("9jaCashBankName") || "";
-  const localAcc = localStorage.getItem("9jaCashBankAcc") || "";
-  const localName = localStorage.getItem("9jaCashBankHolder") || (userData && userData.name ? userData.name : "");
+function fetchUserBankFromFirestore(uid) {
+  if (!db) return;
+  db.collection("users").doc(uid).get().then(function(doc) {
+    if (doc.exists) {
+      const data = doc.data();
+      const bName = data.bankName || data.bank || "Wema Bank";
+      const bAcc = data.accountNumber || data.account || "0123456789";
+      const bAccName = data.fullName || data.name || data.accountName || "";
 
-  currentLinkedAccount = { bankName: localBank, accountNumber: localAcc, fullName: localName };
-  updateBankDisplay(currentLinkedAccount);
+      localStorage.setItem("9jaCashBankName", bName);
+      localStorage.setItem("9jaCashBankAcc", bAcc);
+      if(bAccName) localStorage.setItem("9jaCashBankAccName", bAccName);
 
-  if (db && userId) {
-    db.collection("linkedAccounts").doc(userId).get().then(function(doc) {
-      if (doc.exists) {
-        const data = doc.data();
-        currentLinkedAccount.bankName = data.bankName || currentLinkedAccount.bankName;
-        currentLinkedAccount.accountNumber = data.accountNumber || currentLinkedAccount.accountNumber;
-        currentLinkedAccount.fullName = data.fullName || currentLinkedAccount.fullName;
-        
-        localStorage.setItem("9jaCashBankName", currentLinkedAccount.bankName);
-        localStorage.setItem("9jaCashBankAcc", currentLinkedAccount.accountNumber);
-        localStorage.setItem("9jaCashBankHolder", currentLinkedAccount.fullName);
-        
-        updateBankDisplay(currentLinkedAccount);
-      }
-    }).catch(function(err) {
-      console.log("Firestore error or document not initialized yet:", err);
-    });
-  }
+      renderBankDetails(bName, bAcc);
+    }
+  }).catch(function(error) {
+    console.error("Error fetching bank data: ", error);
+  });
 }
 
-function updateBankDisplay(accData) {
-  const bankNameEl = document.getElementById("bankNameText");
-  const bankMetaEl = document.getElementById("bankMeta");
+function loadBankDetails() {
+  const bankName = localStorage.getItem("9jaCashBankName") || "Wema Bank";
+  const bankAcc = localStorage.getItem("9jaCashBankAcc") || "0123456789";
+  renderBankDetails(bankName, bankAcc);
+}
 
-  if (accData.bankName && accData.accountNumber) {
-    bankNameEl.textContent = accData.bankName;
-    bankMetaEl.textContent = maskNum(accData.accountNumber) + " | " + (accData.fullName || "Account Holder");
-  } else {
-    bankNameEl.textContent = "Not Linked";
-    bankMetaEl.textContent = "Tap edit icon to add account";
-  }
+function renderBankDetails(bankName, bankAcc) {
+  document.getElementById("bankNameText").textContent = bankName;
+  document.getElementById("bankMeta").textContent = maskNum(bankAcc) + " | " + bankName;
 }
 
 function editBank() {
-  const isDark = document.body.classList.contains("dark-mode");
-  const bg = isDark ? "#1e293b" : "#fff";
-  const color = isDark ? "#f8fafc" : "#1e293b";
-  const inputBg = isDark ? "#334155" : "#f8fafc";
-  const borderCol = isDark ? "#475569" : "#e2e8f0";
+  const modal = document.getElementById("bank-edit-modal");
+  const bankNameSelect = document.getElementById("editBankName");
+  const accNumInput = document.getElementById("editAccountNumber");
+  const accNameInput = document.getElementById("editAccountName");
 
-  Swal.fire({
-    title: 'Link Account Details',
-    html: `
-      <div style="text-align:left; font-size:13px; margin-top:10px;">
-        <label style="display:block; margin-bottom:4px; font-weight:700; color:${color};">Bank Name</label>
-        <input id="swal-bank-name" class="swal2-input" placeholder="e.g. Access Bank, Opay, Kuda" value="${currentLinkedAccount.bankName || ''}" style="width:100%; margin:0 0 14px 0; background:${inputBg}; color:${color}; border:1px solid ${borderCol}; border-radius:12px; font-size:14px; padding:10px 14px;">
-        
-        <label style="display:block; margin-bottom:4px; font-weight:700; color:${color};">Account Holder Name</label>
-        <input id="swal-full-name" class="swal2-input" placeholder="Full name on bank account" value="${currentLinkedAccount.fullName || (userData ? userData.name || '' : '')}" style="width:100%; margin:0 0 14px 0; background:${inputBg}; color:${color}; border:1px solid ${borderCol}; border-radius:12px; font-size:14px; padding:10px 14px;">
-        
-        <label style="display:block; margin-bottom:4px; font-weight:700; color:${color};">Account Number</label>
-        <input id="swal-account-number" class="swal2-input" type="number" placeholder="10 Digit Account Number" value="${currentLinkedAccount.accountNumber || ''}" style="width:100%; margin:0 0 6px 0; background:${inputBg}; color:${color}; border:1px solid ${borderCol}; border-radius:12px; font-size:14px; padding:10px 14px;">
-      </div>
-    `,
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: 'Save Account',
-    cancelButtonText: 'Cancel',
-    confirmButtonColor: '#6366f1',
-    background: bg,
-    color: color,
-    preConfirm: () => {
-      const bName = document.getElementById('swal-bank-name').value.trim();
-      const fName = document.getElementById('swal-full-name').value.trim();
-      const aNum = document.getElementById('swal-account-number').value.trim();
+  const currentBank = localStorage.getItem("9jaCashBankName") || "";
+  const currentAcc = localStorage.getItem("9jaCashBankAcc") || "";
+  const currentAccName = localStorage.getItem("9jaCashBankAccName") || (userData ? userData.name : "");
 
-      if (!bName || !fName || !aNum) {
-        Swal.showValidationMessage('All fields are required!');
-        return false;
-      }
-      if (aNum.length < 10) {
-        Swal.showValidationMessage('Please enter a valid account number');
-        return false;
-      }
-      return { bankName: bName, fullName: fName, accountNumber: aNum };
-    }
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const updated = result.value;
-      currentLinkedAccount = updated;
+  bankNameSelect.value = currentBank;
+  accNumInput.value = currentAcc;
+  accNameInput.value = currentAccName;
 
-      localStorage.setItem("9jaCashBankName", updated.bankName);
-      localStorage.setItem("9jaCashBankAcc", updated.accountNumber);
-      localStorage.setItem("9jaCashBankHolder", updated.fullName);
+  modal.classList.add("show-modal");
+}
 
-      updateBankDisplay(updated);
+function closeBankModal() {
+  const modal = document.getElementById("bank-edit-modal");
+  modal.classList.remove("show-modal");
+}
 
-      let userId = (auth && auth.currentUser) ? auth.currentUser.uid : (userData ? (userData.uid || userData.id) : null);
+function saveBankDetails(e) {
+  e.preventDefault();
+  const bankName = document.getElementById("editBankName").value;
+  const accountNumber = document.getElementById("editAccountNumber").value;
+  const accountName = document.getElementById("editAccountName").value;
 
-      if (db && userId) {
-        Swal.fire({ title: 'Saving...', text: 'Updating bank details in database', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        
-        const payload = {
-          bankName: updated.bankName,
-          fullName: updated.fullName,
-          accountNumber: updated.accountNumber,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
+  if (!bankName || !accountNumber || !accountName) {
+    showToast("Please fill all bank fields");
+    return;
+  }
 
-        const batch = db.batch();
-        const linkedRef = db.collection("linkedAccounts").doc(userId);
-        const userRef = db.collection("users").doc(userId);
+  const saveBtn = document.getElementById("saveBankBtn");
+  saveBtn.disabled = true;
+  saveBtn.textContent = "Saving...";
 
-        batch.set(linkedRef, payload, { merge: true });
-        batch.set(userRef, { bankDetails: payload }, { merge: true });
+  localStorage.setItem("9jaCashBankName", bankName);
+  localStorage.setItem("9jaCashBankAcc", accountNumber);
+  localStorage.setItem("9jaCashBankAccName", accountName);
 
-        batch.commit().then(() => {
-          Swal.fire({ icon: 'success', title: 'Account Saved', text: 'Bank account details updated successfully!', confirmButtonColor: '#6366f1', background: bg, color: color });
-        }).catch((err) => {
-          console.error("Firestore Error:", err);
-          Swal.fire({ icon: 'warning', title: 'Saved Locally', text: 'Account saved locally, but database sync encountered an error. Ensure Firestore Security Rules allow writes.', confirmButtonColor: '#6366f1', background: bg, color: color });
-        });
-      } else {
-        showToast("Bank details updated locally!");
-      }
-    }
-  });
+  renderBankDetails(bankName, accountNumber);
+
+  const updatePayload = {
+    bankName: bankName,
+    accountNumber: accountNumber,
+    fullName: accountName,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  const user = auth ? auth.currentUser : null;
+  if (user && db) {
+    db.collection("users").doc(user.uid).set(updatePayload, { merge: true })
+      .then(function() {
+        finishBankSave();
+      })
+      .catch(function(err) {
+        console.error("Error updating Firestore: ", err);
+        finishBankSave();
+      });
+  } else {
+    finishBankSave();
+  }
+}
+
+function finishBankSave() {
+  const saveBtn = document.getElementById("saveBankBtn");
+  saveBtn.disabled = false;
+  saveBtn.textContent = "Save Details";
+  closeBankModal();
+  showToast("Bank details updated successfully");
 }
 
 function loadTelegramConfig() {
@@ -789,9 +863,9 @@ function executeBounce() {
     
     const currentBalance = parseFloat(localStorage.getItem("walletBalance")) || 0;
     balance = currentBalance + amount;
-    userData.balance = balance;
+    if(userData) userData.balance = balance;
     localStorage.setItem("walletBalance", balance);
-    localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+    if(userData) localStorage.setItem("9jaCashUser", JSON.stringify(userData));
     
     updateBalance();
     addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
@@ -867,7 +941,7 @@ function showToast(msg) {
 }
 
 function saveUserData() {
-  localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+  if(userData) localStorage.setItem("9jaCashUser", JSON.stringify(userData));
   localStorage.setItem("walletBalance", balance);
 }
 
@@ -891,7 +965,11 @@ function doCheckin() {
   if (checkinData.lastCheckin === todayStr) { showToast("Already checked in today!"); return; }
   const dayIndex = checkinData.claimedDays.length;
   const amount = CHECKIN_REWARDS[Math.min(dayIndex, 6)];
-  balance += amount; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + amount;
+  balance += amount; 
+  if(userData) {
+    userData.balance = balance; 
+    userData.totalMined = (userData.totalMined || 0) + amount;
+  }
   checkinData.claimedDays.push(todayStr); checkinData.lastCheckin = todayStr; checkinData.streak += 1;
   if (checkinData.claimedDays.length > 7) checkinData.claimedDays = [];
   localStorage.setItem("checkinData", JSON.stringify(checkinData));
@@ -933,7 +1011,11 @@ function doClaim() {
   if (tutorialActive && currentTutorialStep === 4) { nextTutorial(); }
   resetDailyIfNeeded();
   if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { showToast("Daily claim limit reached (50/50)"); return; }
-  balance += CLAIM_AMOUNT; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + CLAIM_AMOUNT;
+  balance += CLAIM_AMOUNT; 
+  if(userData) {
+    userData.balance = balance; 
+    userData.totalMined = (userData.totalMined || 0) + CLAIM_AMOUNT;
+  }
   claimData.count += 1; claimData.claimsToday += 1; claimData.lastClaim = Math.floor(Date.now() / 1000);
   localStorage.setItem("claimData", JSON.stringify(claimData));
   saveUserData(); addToActivity("Auto Claim", CLAIM_AMOUNT, "in"); updateBalance();
@@ -961,10 +1043,14 @@ function runMining() {
 }
 
 function completeMining() {
-  const amount = 30000; balance += amount; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + amount;
+  const amount = 30000; balance += amount; 
+  if(userData) {
+    userData.balance = balance; 
+    userData.totalMined = (userData.totalMined || 0) + amount;
+  }
   localStorage.setItem("todayMined", amount.toString()); localStorage.setItem("lastMineDate", new Date().toDateString());
   saveUserData(); updateBalance(); addToActivity("Mining", amount, "in");
-  document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
+  if(userData) document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
   sendMiningNotification(amount);
   Swal.fire({ icon: "success", title: "Mining Complete!", text: "+₦30,000.00 added to your balance", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" });
 }
@@ -1079,6 +1165,5 @@ function setNav(item) {
   item.classList.add('active');
 }
 </script>
-
 </body>
 </html>
