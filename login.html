@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>9jaCash — Login</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b;min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;transition:all 0.3s ease;}
+
+/* Dark mode */
+body.dark-mode{background:#0f172a;color:#f8fafc;}
+body.dark-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.15),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.10),transparent 50%),#0f172a;}
+body.dark-mode .card{background:#1e293b;border-color:#334155;box-shadow:0 4px 24px rgba(0,0,0,0.2);}
+body.dark-mode .inp{background:#0f172a;border-color:#334155;color:#f8fafc;}
+body.dark-mode .inp:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.15);background:#0f172a;}
+body.dark-mode .inp::placeholder{color:#64748b;}
+body.dark-mode .lbl{color:#94a3b8;}
+body.dark-mode .count{color:#64748b;}
+body.dark-mode .header-title{color:#f8fafc;}
+body.dark-mode .header-sub{color:#94a3b8;}
+body.dark-mode .loader-text{color:#f8fafc;}
+body.dark-mode .loader-sub{color:#94a3b8;}
+
+/* Soft background */
+.soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.10),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.07),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;transition:all 0.3s ease;}
+
+/* Floating shapes */
+.shape{position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none;animation:shapeFloat 15s ease-in-out infinite;}
+.shape-1{width:200px;height:200px;background:rgba(99,102,241,0.12);top:5%;right:10%;animation-delay:0s;}
+.shape-2{width:160px;height:160px;background:rgba(16,185,129,0.10);bottom:20%;left:5%;animation-delay:5s;}
+.shape-3{width:120px;height:120px;background:rgba(236,72,153,0.08);top:40%;left:30%;animation-delay:10s;}
+@keyframes shapeFloat{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-20px) scale(1.1);}}
+
+/* Card */
+.card{background:#fff;border-radius:24px;padding:28px;border:1px solid #f1f5f9;box-shadow:0 4px 24px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);transition:all 0.3s ease;width:100%;max-width:420px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899);}
+
+/* Input */
+.inp{width:100%;padding:16px 18px;border-radius:16px;background:#f8fafc;border:2px solid #e2e8f0;color:#1e293b;font-size:15px;font-weight:600;outline:none;transition:all 0.3s;font-family:'Plus Jakarta Sans',sans-serif;}
+.inp:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.1);background:#fff;}
+.inp::placeholder{color:#94a3b8;font-weight:500;}
+
+/* Label & Count */
+.lbl{display:block;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.count{text-align:right;font-size:11px;color:#94a3b8;margin-top:6px;font-weight:500;}
+
+/* Password container toggle */
+.password-wrap{position:relative;}
+.password-toggle{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:#94a3b8;cursor:pointer;padding:4px;transition:color 0.3s;}
+.password-toggle:hover{color:#6366f1;}
+
+/* Buttons */
+.btn-primary{width:100%;padding:18px;border-radius:18px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:16px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 20px rgba(99,102,241,0.3);}
+.btn-primary::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transition:0.5s;}
+.btn-primary:hover::before{left:100%;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(99,102,241,0.4);}
+.btn-primary:active{transform:scale(0.97);}
+.btn-primary:disabled{background:#e2e8f0;color:#94a3b8;box-shadow:none;cursor:not-allowed;transform:none;}
+.btn-primary:disabled::before{display:none;}
+
+.btn-secondary{width:100%;padding:16px;border-radius:18px;background:transparent;color:#6366f1;font-size:15px;font-weight:700;border:2px solid #6366f1;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Plus Jakarta Sans',sans-serif;}
+.btn-secondary:hover{background:rgba(99,102,241,0.08);transform:translateY(-1px);}
+.btn-secondary:active{transform:scale(0.98);}
+body.dark-mode .btn-secondary{color:#818cf8;border-color:#818cf8;}
+body.dark-mode .btn-secondary:hover{background:rgba(129,140,248,0.12);}
+
+/* App container */
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 40px;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+
+/* Animations */
+@keyframes slideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+.s1{animation:slideUp 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;}
+
+/* Loader */
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;}
+.loader-ring{width:56px;height:56px;border:4px solid rgba(99,102,241,0.1);border-top:4px solid #6366f1;border-radius:50%;animation:spin 1s linear infinite;}
+.loader-text{color:#1e293b;font-size:20px;font-weight:800;margin-top:24px;letter-spacing:-0.3px;}
+.loader-sub{color:#94a3b8;font-size:14px;margin-top:8px;font-weight:500;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.hide{display:none !important;}
+
+/* Header */
+.header-title{font-size:20px;font-weight:800;color:#1e293b;transition:color 0.3s;}
+.header-sub{font-size:13px;color:#64748b;font-weight:500;transition:color 0.3s;}
+
+/* Theme toggle */
+.theme-toggle{position:fixed;top:20px;right:20px;width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.theme-toggle:hover{background:#f1f5f9;color:#6366f1;}
+body.dark-mode .theme-toggle{background:#1e293b;border-color:#334155;color:#94a3b8;}
+body.dark-mode .theme-toggle:hover{background:#334155;color:#818cf8;}
+
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:#1e293b;color:#fff;padding:14px 24px;border-radius:16px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;z-index:200;transition:all 0.4s;box-shadow:0 10px 40px rgba(0,0,0,0.15);border:1px solid #334155;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast i{color:#10b981;}
+.toast.error i{color:#ef4444;}
+body.dark-mode .toast{background:#1e293b;border-color:#334155;}
+</style>
+</head>
+<body>
+
+  <div class="soft-bg">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Done</span></div>
+
+  <!-- LOGIN STEP -->
+  <div id="loginStep" class="app">
+    <div class="card s1">
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center shadow-lg shadow-indigo-200">
+          <i class="fa-solid fa-right-to-bracket text-white text-lg"></i>
+        </div>
+        <div>
+          <h1 class="header-title">Welcome Back</h1>
+          <p class="header-sub">Log in to manage your 9jaCash account</p>
+        </div>
+      </div>
+
+      <form id="loginForm" class="space-y-5">
+
+        <!-- Phone Field -->
+        <div>
+          <label class="lbl">Phone Number</label>
+          <input type="tel" id="phone" maxlength="11" placeholder="08012345678" class="inp" autocomplete="tel" />
+          <p id="phoneCount" class="count">0 / 11</p>
+        </div>
+
+        <!-- Password Field -->
+        <div>
+          <label class="lbl">Password</label>
+          <div class="password-wrap">
+            <input type="password" id="password" placeholder="Enter your password" class="inp" style="padding-right:48px;" autocomplete="current-password" />
+            <i class="fa-solid fa-eye password-toggle" id="togglePass" onclick="togglePasswordVisibility()"></i>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-2">
+          <button type="submit" id="loginBtn" class="btn-primary" disabled>
+            <span>Log In</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- Register Direct Access -->
+        <div class="pt-3 text-center border-t border-slate-100 dark:border-slate-800 mt-4">
+          <p class="text-xs text-[#64748b] mb-3">Don't have an account?</p>
+          <button type="button" onclick="goToRegister()" class="btn-secondary">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Link Your Bank / Register</span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loader" class="hide loader">
+    <div class="loader-ring"></div>
+    <div class="loader-text">Verifying details...</div>
+    <div class="loader-sub">Please wait</div>
+  </div>
+
+  <script>
+// ========== NAVIGATION ==========
+function goToRegister() {
+  window.location.href = 'index.html';
+}
+
+// ========== INPUT VALIDATION & UI ==========
+const phoneInput = document.getElementById('phone');
+const passwordInput = document.getElementById('password');
+const loginBtn = document.getElementById('loginBtn');
+
+function validateInputs() {
+  const phone = phoneInput.value.trim();
+  const pass = passwordInput.value.trim();
+
+  const phoneValid = phone.length === 11 && /^\d{11}$/.test(phone);
+  const passValid = pass.length >= 6;
+
+  loginBtn.disabled = !(phoneValid && passValid);
+}
+
+phoneInput.addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g, '');
+  document.getElementById('phoneCount').textContent = this.value.length + ' / 11';
+  validateInputs();
+});
+
+passwordInput.addEventListener('input', validateInputs);
+
+function togglePasswordVisibility() {
+  const passInput = document.getElementById('password');
+  const icon = document.getElementById('togglePass');
+  if (passInput.type === 'password') {
+    passInput.type = 'text';
+    icon.className = 'fa-solid fa-eye-slash password-toggle';
+  } else {
+    passInput.type = 'password';
+    icon.className = 'fa-solid fa-eye password-toggle';
+  }
+}
+
+// ========== FORM SUBMIT ==========
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const phone = phoneInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (phone.length !== 11 || !/^\d{11}$/.test(phone)) {
+    showToast('Phone must be 11 digits', 'error');
+    return;
+  }
+  if (password.length < 6) {
+    showToast('Password must be at least 6 characters', 'error');
+    return;
+  }
+
+  showLoader(true);
+
+  // Attempt authentication via Firebase Firestore
+  if (window._9jaCash && window._9jaCash.db) {
+    const db = window._9jaCash.db;
+
+    db.collection('users').doc(phone).get()
+      .then(function(doc) {
+        if (doc.exists) {
+          const userData = doc.data();
+          if (userData.password === password) {
+            handleLoginSuccess(userData);
+          } else {
+            showLoader(false);
+            showToast('Incorrect password. Try again.', 'error');
+          }
+        } else {
+          // Check local fallback
+          checkLocalFallback(phone, password);
+        }
+      })
+      .catch(function(err) {
+        console.warn('Firebase login error, attempting local check:', err);
+        checkLocalFallback(phone, password);
+      });
+  } else {
+    checkLocalFallback(phone, password);
+  }
+});
+
+function checkLocalFallback(phone, password) {
+  const storedUserRaw = localStorage.getItem('9jaCashUser');
+  if (storedUserRaw) {
+    try {
+      const localUser = JSON.parse(storedUserRaw);
+      if (localUser.phone === phone) {
+        if (localUser.password === password) {
+          handleLoginSuccess(localUser);
+          return;
+        } else {
+          showLoader(false);
+          showToast('Incorrect password.', 'error');
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse local user:', e);
+    }
+  }
+
+  showLoader(false);
+  showToast('Account not found. Please register.', 'error');
+}
+
+function handleLoginSuccess(userData) {
+  localStorage.setItem('9jaCashUser', JSON.stringify(userData));
+  localStorage.setItem('9jaCashOnboard', 'done');
+
+  showToast('Login successful!', 'success');
+  setTimeout(function() {
+    window.location.href = 'dashboard.html';
+  }, 1000);
+}
+
+function showLoader(show) {
+  const loginStep = document.getElementById('loginStep');
+  const loader = document.getElementById('loader');
+
+  if (show) {
+    loginStep.classList.add('hide');
+    loader.classList.remove('hide');
+  } else {
+    loginStep.classList.remove('hide');
+    loader.classList.add('hide');
+  }
+}
+
+// ========== THEME MANAGEMENT ==========
+function initTheme() {
+  const isDark = localStorage.getItem('9jaCashDark') === 'true';
+  if (isDark) {
+    document.body.classList.add('dark-mode');
+    document.getElementById('themeIcon').className = 'fa-solid fa-sun';
+  }
+}
+
+function toggleTheme() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('9jaCashDark', isDark);
+  document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+}
+
+// ========== TOAST COMPONENT ==========
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  const msgEl = document.getElementById('toastMsg');
+  const icon = t.querySelector('i');
+
+  msgEl.textContent = msg;
+  if (type === 'error') {
+    icon.className = 'fa-solid fa-circle-xmark';
+    icon.style.color = '#ef4444';
+  } else {
+    icon.className = 'fa-solid fa-circle-check';
+    icon.style.color = '#10b981';
+  }
+
+  t.classList.add('show');
+  setTimeout(function() {
+    t.classList.remove('show');
+  }, 2500);
+}
+
+// ========== INITIALIZATION ==========
+window.addEventListener('DOMContentLoaded', function() {
+  initTheme();
+
+  // If already logged in, redirect to dashboard directly
+  const user = localStorage.getItem('9jaCashUser');
+  const done = localStorage.getItem('9jaCashOnboard');
+  if (user && done) {
+    window.location.href = 'dashboard.html';
+  }
+});
+</script>
+
+</body>
+</html>
