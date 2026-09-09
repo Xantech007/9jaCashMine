@@ -510,7 +510,37 @@ function showStep(step) {
   checkNextEnabled();
 }
 
-function nextStep() {
+async function nextStep() {
+  if (currentStep === 1) {
+    const phone = document.getElementById('phone').value.trim();
+    const nextBtn = document.getElementById('nextBtn');
+    
+    // Set button loading state
+    const originalContent = nextBtn.innerHTML;
+    nextBtn.disabled = true;
+    nextBtn.innerHTML = '<span>Verifying...</span> <i class="fa-solid fa-spinner fa-spin"></i>';
+    
+    try {
+      if (window._9jaCash && window._9jaCash.db) {
+        const doc = await window._9jaCash.db.collection('users').doc(phone).get();
+        if (doc.exists) {
+          showToast('This phone number is already registered to another user.', 'error');
+          nextBtn.disabled = false;
+          nextBtn.innerHTML = originalContent;
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Error checking phone uniqueness:', err);
+      showToast('Connection error. Please try again.', 'error');
+      nextBtn.disabled = false;
+      nextBtn.innerHTML = originalContent;
+      return;
+    }
+    
+    nextBtn.innerHTML = originalContent;
+  }
+  
   if (currentStep < totalSteps) {
     showStep(currentStep + 1);
   }
@@ -563,7 +593,7 @@ document.getElementById('accountNumber').addEventListener('input', function() {
 document.getElementById('password').addEventListener('input', checkNextEnabled);
 
 // ========== FORM SUBMIT ==========
-document.getElementById('bankForm').addEventListener('submit', function(e) {
+document.getElementById('bankForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   
   const phone = document.getElementById('phone').value.trim();
@@ -594,6 +624,20 @@ document.getElementById('bankForm').addEventListener('submit', function(e) {
     return;
   }
   
+  // Double-check uniqueness before final registration
+  if (window._9jaCash && window._9jaCash.db) {
+    try {
+      const doc = await window._9jaCash.db.collection('users').doc(phone).get();
+      if (doc.exists) {
+        showToast('This phone number is already registered.', 'error');
+        showStep(1);
+        return;
+      }
+    } catch (err) {
+      console.error('Validation error:', err);
+    }
+  }
+
   // Build user data
   const userData = {
     phone: phone,
@@ -777,5 +821,4 @@ window.addEventListener('DOMContentLoaded', function() {
 </script>
 
 </body>
-
 </html>
