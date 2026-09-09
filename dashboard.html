@@ -524,7 +524,7 @@ function initReferral() {
   const generated = count * 10000;
   
   const siteUrl = window.location.origin;
-  const refLink = siteUrl + "/start.html?ref=" + encodeURIComponent(phone);
+  const refLink = "https://9jacashminer.netlify.app/start.html?ref=" + encodeURIComponent(phone);
   
   document.getElementById("totalReferrals").textContent = count;
   document.getElementById("refAmountGenerated").textContent = "₦" + generated.toLocaleString();
