@@ -455,11 +455,13 @@ let currentTutorialStep = 0;
 let tutorialActive = false;
 let db = null;
 let auth = null;
+let userUnsubscribe = null;
+let referralsUnsubscribe = null;
 
 function initFirebase() {
   try {
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
-      db = firebase.firestore(); auth = firebase.auth(); return true;
+      db = firebase.firestore(); auth = firebase.auth(); setupRealtimeListeners(); return true;
     }
     if (typeof firebase !== 'undefined') {
       const config = {
@@ -467,10 +469,53 @@ function initFirebase() {
         projectId: "YOUR_PROJECT", storageBucket: "YOUR_PROJECT.appspot.com",
         messagingSenderId: "YOUR_SENDER_ID", appId: "YOUR_APP_ID"
       };
-      firebase.initializeApp(config); db = firebase.firestore(); auth = firebase.auth(); return true;
+      firebase.initializeApp(config); db = firebase.firestore(); auth = firebase.auth(); setupRealtimeListeners(); return true;
     }
   } catch(e) { console.error("Firebase init error:", e); }
   return false;
+}
+
+function setupRealtimeListeners() {
+  if (!db || !userData || !userData.phone) return;
+
+  // Unsubscribe previous listeners if existing
+  if (userUnsubscribe) userUnsubscribe();
+  if (referralsUnsubscribe) referralsUnsubscribe();
+
+  // 1. Realtime listener for user's document (Balance, totalMined, etc.)
+  userUnsubscribe = db.collection("users").doc(userData.phone)
+    .onSnapshot(function(doc) {
+      if (doc.exists) {
+        const fresh = doc.data();
+        userData = Object.assign({}, userData, fresh);
+        localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+        if (typeof fresh.balance !== 'undefined') {
+          balance = parseFloat(fresh.balance);
+          updateBalance();
+        }
+        document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
+        document.getElementById("miningPower").textContent = (userData.miningPower || 1) + "x";
+        document.getElementById("bankNameText").textContent = userData.bankName || "No bank linked";
+        document.getElementById("bankMeta").textContent = maskNum(userData.accountNumber) + " | " + (userData.fullName || userData.name || "Unknown");
+      }
+    }, function(error) {
+      console.error("User realtime error:", error);
+    });
+
+  // 2. Realtime listener for referrals matching user's phone in 'referredBy'
+  referralsUnsubscribe = db.collection("users")
+    .where("referredBy", "==", userData.phone)
+    .onSnapshot(function(snapshot) {
+      const count = snapshot.size;
+      userData.referrals = count;
+      localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+      
+      const generated = count * 10000;
+      document.getElementById("totalReferrals").textContent = count;
+      document.getElementById("refAmountGenerated").textContent = "₦" + generated.toLocaleString();
+    }, function(error) {
+      console.error("Referrals realtime error:", error);
+    });
 }
 
 function initReferral() {
@@ -517,6 +562,8 @@ function logout() {
     color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
   }).then(function(result) {
     if (result.isConfirmed) {
+      if (userUnsubscribe) userUnsubscribe();
+      if (referralsUnsubscribe) referralsUnsubscribe();
       if (auth) {
         auth.signOut().catch(function(err) { console.error("Firebase logout error:", err); });
       }
@@ -757,7 +804,7 @@ function saveUserData() {
   localStorage.setItem("9jaCashUser", JSON.stringify(userData));
   localStorage.setItem("walletBalance", balance);
   if (db && userData && userData.phone) {
-    db.collection("users").doc(userData.phone).set(userData)
+    db.collection("users").doc(userData.phone).set(userData, { merge: true })
       .then(function() {}).catch(function(err) {});
   }
 }
@@ -1001,23 +1048,6 @@ window.addEventListener("DOMContentLoaded", function() {
   document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
   document.getElementById("miningPower").textContent = (userData.miningPower || 1) + "x";
   initCheckin(); initClaim(); loadActivity(); checkDailyReset(); initTutorial();
-  
-  if (db && userData && userData.phone) {
-    db.collection("users").doc(userData.phone).get()
-      .then(function(doc) { 
-        if (doc.exists) { 
-          const fresh = doc.data(); 
-          userData = fresh; 
-          localStorage.setItem("9jaCashUser", JSON.stringify(userData)); 
-          balance = fresh.balance || balance; 
-          updateBalance(); 
-          document.getElementById("totalMined").textContent = "₦" + (fresh.totalMined || 0).toLocaleString(); 
-          initReferral();
-          loadActivity(); 
-        } 
-      })
-      .catch(function(err) {});
-  }
 });
 
 window.addEventListener("focus", function() {
