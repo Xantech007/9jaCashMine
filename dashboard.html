@@ -479,7 +479,7 @@ function initReferral() {
   const generated = count * 10000;
   
   const siteUrl = window.location.origin;
-  const refLink = siteUrl + "/start?refer=" + encodeURIComponent(phone);
+  const refLink = siteUrl + "/start.html?refer=" + encodeURIComponent(phone);
   
   document.getElementById("totalReferrals").textContent = count;
   document.getElementById("refAmountGenerated").textContent = "₦" + generated.toLocaleString();
