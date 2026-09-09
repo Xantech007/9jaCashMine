@@ -18,8 +18,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b
 body.dark-mode{background:#0f172a;color:#f8fafc;}
 body.dark-mode .soft-bg{background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.15),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.1),transparent 50%),#0f172a;}
 body.dark-mode .balance-card,body.dark-mode .linked-card,body.dark-mode .claim-card,body.dark-mode .stat-box,body.dark-mode .activity-list,body.dark-mode .checkin-day,body.dark-mode .referral-card{background:#1e293b;border-color:#334155;}
-body.dark-mode .balance-num,body.dark-mode .bank-name,body.dark-mode .claim-title,body.dark-mode .stat-num,body.dark-mode .act-title,body.dark-mode .sec-title,body.dark-mode .name,body.dark-mode .ref-num{color:#f8fafc;}
-body.dark-mode .greeting,body.dark-mode .bank-meta,body.dark-mode .claim-sub,body.dark-mode .stat-label,body.dark-mode .act-time,body.dark-mode .balance-label,body.dark-mode .balance-change,body.dark-mode .ref-label{color:#94a3b8;}
+body.dark-mode .balance-num,body.dark-mode .bank-name,body.dark-mode .claim-title,body.dark-mode .stat-num,body.dark-mode .act-title,body.dark-mode .sec-title,body.dark-mode .name,body.dark-mode .ref-val{color:#f8fafc;}
+body.dark-mode .greeting,body.dark-mode .bank-meta,body.dark-mode .claim-sub,body.dark-mode .stat-label,body.dark-mode .act-time,body.dark-mode .balance-label,body.dark-mode .balance-change,body.dark-mode .ref-lbl{color:#94a3b8;}
 body.dark-mode .pill-withdraw,body.dark-mode .pill-tasks{background:#1e293b;border-color:#334155;color:#f8fafc;}
 body.dark-mode .bottom-nav{background:#1e293b;border-color:#334155;}
 body.dark-mode .nav-item{color:#64748b;}
@@ -42,7 +42,7 @@ body.dark-mode .verify-btn{background:linear-gradient(135deg,#ef4444,#dc2626);}
 body.dark-mode .act-amount.bounce{color:#f59e0b;}
 body.dark-mode .act-icon.bounce{background:#fff7ed!important;color:#f59e0b!important;}
 body.dark-mode .telegram-float{background:linear-gradient(135deg,#0088cc,#00a8e8);}
-body.dark-mode .ref-input-box{background:#0f172a;border-color:#334155;color:#f8fafc;}
+body.dark-mode .ref-input{background:#0f172a;border-color:#334155;color:#f8fafc;}
 .soft-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 0% 0%,rgba(99,102,241,0.08),transparent 50%),radial-gradient(ellipse at 100% 100%,rgba(236,72,153,0.06),transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(16,185,129,0.04),transparent 50%),#f8fafc;transition:all 0.3s ease;}
 .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 20px 100px;}
 .topbar{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between;}
@@ -83,6 +83,19 @@ body.dark-mode .ref-input-box{background:#0f172a;border-color:#334155;color:#f8f
 .bank-meta{font-size:12px;color:#94a3b8;transition:color 0.3s;}
 .bank-edit{width:36px;height:36px;border-radius:10px;background:#f8fafc;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;cursor:pointer;border:none;transition:all 0.2s;}
 .bank-edit:hover{background:#e2e8f0;color:#6366f1;}
+
+/* Referral Section Styles */
+.referral-card{background:#fff;border-radius:20px;padding:20px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid #f1f5f9;transition:all 0.3s ease;}
+.ref-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.ref-stat-item{background:#f8fafc;padding:12px 14px;border-radius:14px;border:1px solid #f1f5f9;}
+body.dark-mode .ref-stat-item{background:#0f172a;border-color:#334155;}
+.ref-lbl{font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;margin-bottom:4px;}
+.ref-val{font-size:18px;font-weight:800;color:#1e293b;}
+.ref-input-group{display:flex;gap:8px;align-items:center;}
+.ref-input{flex:1;padding:12px 14px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;font-size:13px;color:#1e293b;font-weight:600;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.copy-btn{padding:12px 18px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.2s;box-shadow:0 2px 8px rgba(99,102,241,0.25);}
+.copy-btn:active{transform:scale(0.95);}
+
 .verify-btn-wrap{display:none;margin-top:12px;}
 .verify-btn-wrap.show{display:block !important;animation:slideUp 0.5s ease both;}
 .verify-btn{width:100%;padding:16px;border-radius:16px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(239,68,68,0.3);animation:slideUp 0.5s ease both;}
@@ -91,19 +104,6 @@ body.dark-mode .ref-input-box{background:#0f172a;border-color:#334155;color:#f8f
 .verify-btn i{font-size:18px;}
 .sec-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:14px;display:flex;align-items:center;gap:8px;transition:color 0.3s;}
 .sec-title i{color:#f59e0b;font-size:14px;}
-
-/* Referral Section Styling */
-.referral-card{background:#fff;border-radius:20px;padding:20px;margin-bottom:24px;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid #f1f5f9;transition:all 0.3s ease;}
-.ref-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
-.ref-stat-box{background:#f8fafc;border-radius:14px;padding:14px 12px;text-align:center;border:1px solid #e2e8f0;transition:all 0.3s Ease;}
-body.dark-mode .ref-stat-box{background:#0f172a;border-color:#334155;}
-.ref-num{font-size:18px;font-weight:800;color:#1e293b;}
-.ref-label{font-size:11px;color:#64748b;font-weight:600;margin-top:2px;}
-.ref-link-wrap{display:flex;gap:8px;align-items:center;}
-.ref-input-box{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;font-size:12px;color:#1e293b;font-weight:600;outline:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ref-copy-btn{padding:12px 18px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.2s;box-shadow:0 4px 12px rgba(99,102,241,0.25);}
-.ref-copy-btn:active{transform:scale(0.95);}
-
 .checkin-wrap{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px;scrollbar-width:none;}
 .checkin-wrap::-webkit-scrollbar{display:none;}
 .checkin-day{flex-shrink:0;width:72px;padding:14px 0;border-radius:18px;background:#fff;border:2px solid #f1f5f9;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all 0.3s ease;box-shadow:0 2px 8px rgba(0,0,0,0.03);}
@@ -334,31 +334,34 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   </div>
   <button class="bank-edit" onclick="editBank()"><i class="fa-solid fa-pen"></i></button>
 </div>
-<div class="verify-btn-wrap" id="verifyBankWrap">
-  <button class="verify-btn" onclick="verifyBankLink()" id="verifyBankBtn">
-    <i class="fa-solid fa-shield-halved"></i><span>Verify Linked Account</span>
-  </button>
-</div>
 
 <!-- Referral Section -->
 <div class="sec-title anim d3"><i class="fa-solid fa-users"></i> Referral Program</div>
 <div class="referral-card anim d3" id="referralArea">
   <div class="ref-stats-grid">
-    <div class="ref-stat-box">
-      <div class="ref-num" id="refCountDisplay">0</div>
-      <div class="ref-label">Total Referrals</div>
+    <div class="ref-stat-item">
+      <div class="ref-lbl">Total Referrals</div>
+      <div class="ref-val" id="totalReferrals">0</div>
     </div>
-    <div class="ref-stat-box">
-      <div class="ref-num" id="refEarningsDisplay" style="color:#10b981;">₦0</div>
-      <div class="ref-label">Amount Generated</div>
+    <div class="ref-stat-item">
+      <div class="ref-lbl">Amount Generated</div>
+      <div class="ref-val" id="refAmountGenerated" style="color:#10b981;">₦0</div>
     </div>
   </div>
-  <div class="ref-link-wrap">
-    <input type="text" class="ref-input-box" id="refLinkInput" readonly value="https://9jacash.com/register?ref=..." />
-    <button class="ref-copy-btn" onclick="copyReferralLink()"><i class="fa-regular fa-copy"></i> Copy</button>
+  <div class="ref-lbl" style="margin-bottom:6px;">Your Referral Link</div>
+  <div class="ref-input-group">
+    <input type="text" class="ref-input" id="referralLinkInput" readonly value="Loading..." />
+    <button class="copy-btn" onclick="copyReferralLink()">
+      <i class="fa-solid fa-copy"></i> Copy
+    </button>
   </div>
 </div>
 
+<div class="verify-btn-wrap" id="verifyBankWrap">
+  <button class="verify-btn" onclick="verifyBankLink()" id="verifyBankBtn">
+    <i class="fa-solid fa-shield-halved"></i><span>Verify Linked Account</span>
+  </button>
+</div>
 <div class="claim-card anim d3" id="claimArea">
   <div class="claim-icon"><i class="fa-solid fa-gift"></i></div>
   <div class="claim-info">
@@ -468,6 +471,37 @@ function initFirebase() {
     }
   } catch(e) { console.error("Firebase init error:", e); }
   return false;
+}
+
+function initReferral() {
+  const phone = userData ? (userData.phone || "") : "";
+  const count = parseInt(userData ? (userData.referrals || 0) : 0);
+  const generated = count * 10000;
+  
+  const siteUrl = window.location.origin;
+  const refLink = siteUrl + "/start?refer=" + encodeURIComponent(phone);
+  
+  document.getElementById("totalReferrals").textContent = count;
+  document.getElementById("refAmountGenerated").textContent = "₦" + generated.toLocaleString();
+  document.getElementById("referralLinkInput").value = refLink;
+}
+
+function copyReferralLink() {
+  const linkInput = document.getElementById("referralLinkInput");
+  if (!linkInput) return;
+  linkInput.select();
+  linkInput.setSelectionRange(0, 99999);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(linkInput.value).then(function() {
+      showToast("Referral link copied!");
+    }).catch(function() {
+      document.execCommand("copy");
+      showToast("Referral link copied!");
+    });
+  } else {
+    document.execCommand("copy");
+    showToast("Referral link copied!");
+  }
 }
 
 function logout() {
@@ -728,39 +762,6 @@ function saveUserData() {
   }
 }
 
-/* Referral Functions */
-function initReferrals() {
-  const refCount = parseInt(userData.referrals || userData.referralCount || 0);
-  const refEarnings = refCount * 10000;
-  
-  document.getElementById("refCountDisplay").textContent = refCount;
-  document.getElementById("refEarningsDisplay").textContent = "₦" + refEarnings.toLocaleString("en-NG");
-  
-  const userCode = userData.referralCode || userData.phone || "user";
-  const baseUrl = window.location.origin + window.location.pathname.replace("dashboard.html", "");
-  const refLink = baseUrl + "register.html?ref=" + userCode;
-  
-  document.getElementById("refLinkInput").value = refLink;
-}
-
-function copyReferralLink() {
-  const linkInput = document.getElementById("refLinkInput");
-  linkInput.select();
-  linkInput.setSelectionRange(0, 99999);
-  
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(linkInput.value).then(function() {
-      showToast("Referral link copied!");
-    }).catch(function() {
-      document.execCommand("copy");
-      showToast("Referral link copied!");
-    });
-  } else {
-    document.execCommand("copy");
-    showToast("Referral link copied!");
-  }
-}
-
 function initCheckin() {
   document.getElementById("streakCount").textContent = checkinData.streak;
   for (let i = 0; i < 7; i++) {
@@ -983,7 +984,7 @@ function setNav(el) { document.querySelectorAll(".nav-item").forEach(function(n)
 
 // ========== INIT ==========
 window.addEventListener("DOMContentLoaded", function() {
-  initFirebase(); initDarkMode(); loadTelegramConfig(); initNotifySystem();
+  initFirebase(); initDarkMode(); loadTelegramConfig(); initNotifySystem(); initReferral();
   const hour = new Date().getHours();
   let greet = "Good evening";
   if (hour < 12) greet = "Good morning"; else if (hour < 17) greet = "Good afternoon";
@@ -997,7 +998,6 @@ window.addEventListener("DOMContentLoaded", function() {
   checkAndShowVerifyButton();
   
   updateBalance();
-  initReferrals();
   document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
   document.getElementById("miningPower").textContent = (userData.miningPower || 1) + "x";
   initCheckin(); initClaim(); loadActivity(); checkDailyReset(); initTutorial();
@@ -1011,8 +1011,8 @@ window.addEventListener("DOMContentLoaded", function() {
           localStorage.setItem("9jaCashUser", JSON.stringify(userData)); 
           balance = fresh.balance || balance; 
           updateBalance(); 
-          initReferrals();
           document.getElementById("totalMined").textContent = "₦" + (fresh.totalMined || 0).toLocaleString(); 
+          initReferral();
           loadActivity(); 
         } 
       })
@@ -1024,9 +1024,9 @@ window.addEventListener("focus", function() {
   checkDailyReset(); 
   balance = parseFloat(localStorage.getItem("walletBalance")) || balance; 
   updateBalance(); 
-  initReferrals();
   resetDailyIfNeeded(); 
   initClaim(); 
+  initReferral();
   loadActivity();
   checkPendingBounceOnLoad();
   checkAndShowVerifyButton();
