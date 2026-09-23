@@ -101,11 +101,22 @@ select.input-field{appearance:none;background-image:url("data:image/svg+xml,%3Cs
 
 .char-count{text-align:right;font-size:11px;color:#94a3b8;margin-top:4px;font-weight:500;}
 
-/* Spinner for dynamic account lookup */
+/* Dynamic verification styles */
 .input-spinner{position:absolute;right:16px;top:42px;width:20px;height:20px;border:2px solid rgba(99,102,241,0.2);border-top:2px solid #6366f1;border-radius:50%;animation:spin 0.8s linear infinite;display:none;}
 .lookup-status{font-size:12px;font-weight:600;margin-top:6px;display:none;}
 .lookup-status.success{color:#10b981;}
 .lookup-status.error{color:#ef4444;}
+.lookup-status.multiple{color:#6366f1;}
+
+.matches-container{margin-top:12px;background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:12px;display:none;}
+.matches-title{font-size:12px;font-weight:700;color:#6366f1;margin-bottom:8px;}
+.match-item{padding:10px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:6px;cursor:pointer;transition:all 0.2s;}
+.match-item:last-child{margin-bottom:0;}
+.match-item:hover{border-color:#6366f1;background:#f8fafc;}
+body.dark-mode .match-item{background:#1e293b;border-color:#334155;}
+body.dark-mode .match-item:hover{background:#334155;border-color:#818cf8;}
+.match-name{font-size:13px;font-weight:700;}
+.match-bank{font-size:11px;color:#64748b;}
 
 .note-box{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:flex-start;gap:10px;transition:all 0.3s;}
 .note-box i{color:#6366f1;font-size:16px;margin-top:2px;flex-shrink:0;}
@@ -226,6 +237,12 @@ body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
       <div class="input-spinner" id="accSpinner"></div>
       <div class="char-count" id="acctCount">0/10</div>
       <div class="lookup-status" id="lookupStatus"></div>
+      
+      <!-- Container for displaying multiple bank matches -->
+      <div class="matches-container" id="matchesContainer">
+        <div class="matches-title">Multiple accounts found. Tap yours below:</div>
+        <div id="matchesList"></div>
+      </div>
     </div>
 
     <div class="input-group">
@@ -320,12 +337,29 @@ banks.forEach(function(b) {
   select.appendChild(opt);
 });
 
-// Auto-verification logic for account lookup
+// Auto-verification logic for account lookup with multiple matches support
 let lookupTimeout = null;
+
+function applySelectedMatch(name, bank) {
+  document.getElementById("accName").value = name;
+  const bankSelect = document.getElementById("bankName");
+  for (let option of bankSelect.options) {
+    if (option.value === bank) {
+      bankSelect.value = option.value;
+      break;
+    }
+  }
+  document.getElementById("matchesContainer").style.display = "none";
+  const status = document.getElementById("lookupStatus");
+  status.className = "lookup-status success";
+  status.textContent = `Selected: ${name} (${bank})`;
+}
 
 async function performAccountLookup(accNum) {
   const spinner = document.getElementById("accSpinner");
   const status = document.getElementById("lookupStatus");
+  const matchesContainer = document.getElementById("matchesContainer");
+  const matchesList = document.getElementById("matchesList");
   const nameInput = document.getElementById("accName");
   const bankSelect = document.getElementById("bankName");
 
@@ -333,28 +367,42 @@ async function performAccountLookup(accNum) {
   status.style.display = "block";
   status.className = "lookup-status";
   status.textContent = "Verifying account details...";
+  matchesContainer.style.display = "none";
+  matchesList.innerHTML = "";
 
   try {
     const res = await fetch(`/.netlify/functions/verify-account?account_number=${accNum}`);
     const data = await res.json();
 
     if (data.status && data.data && data.data.length > 0) {
-      const match = data.data[0];
-      nameInput.value = match.accountName;
-      
-      // Pre-select bank if matched in select list
-      for (let option of bankSelect.options) {
-        if (option.value === match.bankName) {
-          bankSelect.value = option.value;
-          break;
-        }
-      }
+      if (data.data.length === 1) {
+        // Single match found
+        const match = data.data[0];
+        applySelectedMatch(match.accountName, match.bankName);
+      } else {
+        // Multiple matches found
+        status.className = "lookup-status multiple";
+        status.textContent = `Found ${data.data.length} accounts linked to this number:`;
+        
+        // Auto-fill first match as default
+        nameInput.value = data.data[0].accountName;
+        bankSelect.value = data.data[0].bankName;
 
-      status.className = "lookup-status success";
-      status.textContent = `Verified: ${match.accountName} (${match.bankName})`;
+        data.data.forEach(match => {
+          const item = document.createElement("div");
+          item.className = "match-item";
+          item.innerHTML = `<div class="match-name">${match.accountName}</div><div class="match-bank">${match.bankName}</div>`;
+          item.onclick = function() {
+            applySelectedMatch(match.accountName, match.bankName);
+          };
+          matchesList.appendChild(item);
+        });
+
+        matchesContainer.style.display = "block";
+      }
     } else {
       status.className = "lookup-status error";
-      status.textContent = data.message || "Account not found";
+      status.textContent = data.message || "Account not found across supported banks";
     }
   } catch (err) {
     status.className = "lookup-status error";
@@ -370,8 +418,10 @@ document.getElementById("accNumber").addEventListener("input", function(e) {
   document.getElementById("acctCount").textContent = len + "/10";
 
   const status = document.getElementById("lookupStatus");
+  const matchesContainer = document.getElementById("matchesContainer");
   status.style.display = "none";
   status.textContent = "";
+  matchesContainer.style.display = "none";
 
   if (lookupTimeout) clearTimeout(lookupTimeout);
 
