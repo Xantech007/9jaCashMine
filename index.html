@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,15 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>9jaCash — Welcome</title>
 
-
-<!-- Forces a fresh login if the app/browser was actually closed since the
-     last visit (localStorage.9jaCashUser survives a close on its own, so
-     without this, this page — the PWA's start_url, i.e. what reopening the
-     installed app loads — would auto-redirect a "closed" session straight
-     into the dashboard with no re-login). Every other logged-in page already
-     includes this; it was just missing here. -->
-<script src="session-guard.js"></script>
-
+<!-- PWA / Add to Home Screen -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="9jaCash">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="theme-color" content="#6366f1">
+<meta name="mobile-web-app-capable" content="yes">
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -123,20 +123,23 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b
   <div class="shape shape-3"></div>
 </div>
 
-<!-- DOWNLOAD APP BANNER -->
+<!-- ADD TO HOME SCREEN BANNER -->
 <div class="ath-banner" id="athBanner">
   <button class="ath-close" onclick="dismissAth()"><i class="fa-solid fa-xmark"></i></button>
   <div class="ath-header">
-    <div class="ath-icon"><i class="fa-solid fa-download"></i></div>
+    <div class="ath-icon"><i class="fa-solid fa-mobile-screen"></i></div>
     <div>
-      <div class="ath-title" id="athTitle">Download 9jaCash App</div>
-      <div class="ath-sub" id="athSub">Get the official Android app for a faster experience</div>
+      <div class="ath-title" id="athTitle">Install 9jaCash on your phone</div>
+      <div class="ath-sub" id="athSub">Use app version — faster access</div>
     </div>
   </div>
+  <div class="ath-steps" id="athSteps">
+    <!-- Steps injected by JS based on device -->
+  </div>
   <div class="ath-actions">
-    <a href="https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk" class="ath-btn ath-btn-done" download>
-      <i class="fa-solid fa-download"></i> Download APK
-    </a>
+    <button class="ath-btn ath-btn-done" onclick="markAthDone()">
+      <i class="fa-solid fa-check"></i> Done
+    </button>
     <button class="ath-btn ath-btn-later" onclick="dismissAth()">
       Later
     </button>
@@ -378,12 +381,8 @@ function getDeviceInfo() {
 let deferredPrompt = null;
 
 window.addEventListener('beforeinstallprompt', function(e) {
-  // Prevent Chrome's default install prompt banner
   e.preventDefault();
-  // Save the event so it can be triggered later
   deferredPrompt = e;
-  
-  // Show our install banner
   triggerAthBanner(true);
 });
 
@@ -398,40 +397,26 @@ function triggerAthBanner(isPWA = false) {
   const banner = document.getElementById("athBanner");
   
   if (isPWA && deferredPrompt) {
-    // Android/Chrome native PWA install button
     document.getElementById("athTitle").textContent = "Install 9jaCash App";
     document.getElementById("athSub").textContent = "Get the native app experience on your device";
     
     stepsContainer.innerHTML = `
       <div style="padding: 10px 0;">
-        <button id="pwaInstallBtn" class="ath-btn" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; width: 100%; justify-content: center; padding: 14px; border-radius: 12px; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">
+        <a id="pwaInstallBtn" href="https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk" target="_blank" download class="ath-btn" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; width: 100%; justify-content: center; padding: 14px; border-radius: 12px; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); text-decoration: none;">
           <i class="fa-solid fa-cloud-arrow-down"></i> Install Now
-        </button>
+        </a>
       </div>
     `;
     
-    // Bind click
     setTimeout(() => {
       const btn = document.getElementById("pwaInstallBtn");
       if (btn) {
         btn.onclick = function() {
-          if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(function(choiceResult) {
-              if (choiceResult.outcome === 'accepted') {
-                console.log('User accepted the install prompt');
-                markAthDone();
-              } else {
-                console.log('User dismissed the install prompt');
-              }
-              deferredPrompt = null;
-            });
-          }
+          markAthDone();
         };
       }
     }, 100);
   } else {
-    // Regular guide steps
     let stepsHTML = "";
     if (device.isIOS && device.isSafari) {
       stepsHTML = 
@@ -465,15 +450,12 @@ function triggerAthBanner(isPWA = false) {
     stepsContainer.innerHTML = stepsHTML;
   }
   
-  // Show banner
   setTimeout(function() {
     banner.classList.add("show");
   }, 2500);
 }
 
 function initAthBanner() {
-  // If Chrome PWA beforeinstallprompt fires, it will trigger it.
-  // Otherwise, we load standard guide after 3 seconds:
   setTimeout(() => {
     if (!deferredPrompt) {
       triggerAthBanner(false);
@@ -506,9 +488,6 @@ function initNotifyBanner() {
     localStorage.setItem("9jaCashNotifyDecided", "true");
     return;
   }
-  // Deliberately keeps asking on every visit — mobile, desktop, tablet —
-  // for as long as notifications aren't actually on. Dismissing or denying
-  // no longer permanently silences this banner; only actually granting does.
   setTimeout(function() {
     const banner = document.getElementById("notifyBanner");
     banner.classList.add("show");
@@ -522,9 +501,6 @@ function requestNotify() {
   }
 
   Notification.requestPermission().then(function(permission) {
-    // Only a real grant permanently stops the asking — denying here just
-    // hides the banner for this visit; initNotifyBanner() asks again next
-    // time, same as a plain dismiss.
     document.getElementById("notifyBanner").classList.remove("show");
     setTimeout(function() {
       document.getElementById("notifyBanner").classList.add("hidden");
@@ -533,7 +509,6 @@ function requestNotify() {
     if (permission === "granted") {
       localStorage.setItem("9jaCashNotifyDecided", "true");
       showToast("Notifications enabled! You'll get alerts for withdrawals & refunds.");
-      // Register service worker for push notifications
       registerServiceWorker();
     } else {
       showToast("Notifications disabled. Enable later in settings.");
@@ -542,9 +517,6 @@ function requestNotify() {
 }
 
 function dismissNotify() {
-  // Not marked "decided" — this only hides the banner for this visit.
-  // initNotifyBanner() asks again next time, until notifications are
-  // actually turned on.
   document.getElementById("notifyBanner").classList.remove("show");
   setTimeout(function() {
     document.getElementById("notifyBanner").classList.add("hidden");
@@ -566,7 +538,6 @@ function registerServiceWorker() {
 
 // ========== INIT ==========
 window.addEventListener("DOMContentLoaded", function() {
-  // Auto-redirect if already logged in / registered
   const user = localStorage.getItem('9jaCashUser');
   if (user) {
     window.location.href = 'dashboard.html';
@@ -575,7 +546,6 @@ window.addEventListener("DOMContentLoaded", function() {
 
   initAthBanner();
   
-  // Capture referral code if present in URL
   const urlParams = new URLSearchParams(window.location.search);
   const ref = urlParams.get('ref') || urlParams.get('referral');
   if (ref) {
@@ -583,7 +553,6 @@ window.addEventListener("DOMContentLoaded", function() {
     sessionStorage.setItem('9jaCashReferralCode', ref);
     console.log('Referral code captured and saved:', ref);
   } else {
-    // If no ref parameter is present in URL, check sessionStorage to see if they clicked one in the current browser session
     const sessionRef = sessionStorage.getItem('9jaCashReferralCode');
     if (!sessionRef) {
       localStorage.removeItem('9jaCashReferralCode');
