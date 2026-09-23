@@ -226,12 +226,13 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
           <p id="phoneCount" class="count">0 / 11</p>
         </div>
         
-        <!-- Step 2: Full Name -->
-        <div class="s3 hide" id="fieldName">
-          <label class="lbl">Full Name (as in bank)</label>
-          <input type="text" id="fullName" placeholder="Okafor Chukwuemeka John" class="inp" />
+        <!-- Step 2: Account Number -->
+        <div class="s3 hide" id="fieldAccount">
+          <label class="lbl">Account Number</label>
+          <input type="text" id="accountNumber" maxlength="10" placeholder="1234567890" class="inp" />
+          <p id="acctCount" class="count">0 / 10</p>
         </div>
-        
+
         <!-- Step 3: Bank Name -->
         <div class="s4 hide" id="fieldBank">
           <label class="lbl">Select Bank</label>
@@ -303,12 +304,11 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
             <option value="9 Payment Service Bank">9 Payment Service Bank</option>
           </select>
         </div>
-        
-        <!-- Step 4: Account Number -->
-        <div class="s5 hide" id="fieldAccount">
-          <label class="lbl">Account Number</label>
-          <input type="text" id="accountNumber" maxlength="10" placeholder="1234567890" class="inp" />
-          <p id="acctCount" class="count">0 / 10</p>
+
+        <!-- Step 4: Full Name -->
+        <div class="s5 hide" id="fieldName">
+          <label class="lbl">Full Name (as in bank)</label>
+          <input type="text" id="fullName" placeholder="Okafor Chukwuemeka John" class="inp" />
         </div>
         
         <!-- Step 5: Password Creation -->
@@ -508,18 +508,18 @@ let currentStep = 1;
 const totalSteps = 5;
 const stepLabels = [
   "Step 1 of 5 — Phone Number",
-  "Step 2 of 5 — Full Name",
+  "Step 2 of 5 — Account Number",
   "Step 3 of 5 — Bank Selection",
-  "Step 4 of 5 — Account Number",
+  "Step 4 of 5 — Full Name",
   "Step 5 of 5 — Password Creation"
 ];
 
-const fields = ['fieldPhone', 'fieldName', 'fieldBank', 'fieldAccount', 'fieldPassword'];
+const fields = ['fieldPhone', 'fieldAccount', 'fieldBank', 'fieldName', 'fieldPassword'];
 const inputs = {
   1: 'phone',
-  2: 'fullName',
+  2: 'accountNumber',
   3: 'bankName',
-  4: 'accountNumber',
+  4: 'fullName',
   5: 'password'
 };
 
@@ -617,9 +617,9 @@ function checkNextEnabled() {
   const val = input.value.trim();
   
   if (currentStep === 1) valid = val.length === 11 && /^\d{11}$/.test(val);
-  else if (currentStep === 2) valid = val.length > 2;
+  else if (currentStep === 2) valid = val.length === 10 && /^\d{10}$/.test(val);
   else if (currentStep === 3) valid = val !== '';
-  else if (currentStep === 4) valid = val.length === 10 && /^\d{10}$/.test(val);
+  else if (currentStep === 4) valid = val.length > 2;
   else if (currentStep === 5) valid = val.length >= 6;
   
   nextBtn.disabled = !valid;
@@ -658,16 +658,16 @@ document.getElementById('bankForm').addEventListener('submit', async function(e)
     showToast('Phone must be 11 digits', 'error');
     return;
   }
-  if (fullName.length < 3) {
-    showToast('Enter your full name', 'error');
+  if (accountNumber.length !== 10 || !/^\d{10}$/.test(accountNumber)) {
+    showToast('Account number must be 10 digits', 'error');
     return;
   }
   if (!bankName) {
     showToast('Select your bank', 'error');
     return;
   }
-  if (accountNumber.length !== 10 || !/^\d{10}$/.test(accountNumber)) {
-    showToast('Account number must be 10 digits', 'error');
+  if (fullName.length < 3) {
+    showToast('Enter your full name', 'error');
     return;
   }
   if (password.length < 6) {
