@@ -231,6 +231,7 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
           <label class="lbl">Account Number</label>
           <input type="text" id="accountNumber" maxlength="10" placeholder="1234567890" class="inp" />
           <p id="acctCount" class="count">0 / 10</p>
+          <p id="apiFeedback" class="text-xs font-semibold mt-2 hidden"></p>
         </div>
 
         <!-- Step 3: Bank Name -->
@@ -561,6 +562,72 @@ function showStep(step) {
   checkNextEnabled();
 }
 
+async function fetchAccountDetails(accNumber) {
+  const feedbackEl = document.getElementById('apiFeedback');
+  const nextBtn = document.getElementById('nextBtn');
+  
+  feedbackEl.className = 'text-xs font-semibold mt-2 text-indigo-500 flex items-center gap-2';
+  feedbackEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Looking up account details...';
+  feedbackEl.classList.remove('hidden');
+
+  // List of major Nigerian bank codes to query via API
+  const bankCodes = [
+    { code: "057", name: "Zenith Bank" },
+    { code: "011", name: "First Bank of Nigeria" },
+    { code: "058", name: "Guaranty Trust Bank" },
+    { code: "033", name: "United Bank for Africa" },
+    { code: "044", name: "Access Bank" },
+    { code: "035", name: "Wema Bank" },
+    { code: "050", name: "Ecobank Nigeria" },
+    { code: "214", name: "First City Monument Bank" },
+    { code: "070", name: "Fidelity Bank" },
+    { code: "50211", name: "Kuda Microfinance Bank" },
+    { code: "999992", name: "Opay" },
+    { code: "999991", name: "PalmPay" },
+    { code: "50515", name: "Moniepoint" }
+  ];
+
+  let foundData = null;
+
+  // Search across common bank codes
+  for (const b of bankCodes) {
+    try {
+      const res = await fetch(`https://api.paystack.co/bank/resolve?account_number=${accNumber}&bank_code=${b.code}`, {
+        headers: { 'Authorization': 'Bearer pk_test_0000000000000000000000000000000000000000' }
+      });
+      const data = await res.json();
+      if (data && data.status && data.data && data.data.account_name) {
+        foundData = { accountName: data.data.account_name, bankName: b.name };
+        break;
+      }
+    } catch (e) {
+      // Continue searching next bank
+    }
+  }
+
+  if (foundData) {
+    // Fill values into inputs
+    document.getElementById('fullName').value = foundData.accountName;
+    const bankSelect = document.getElementById('bankName');
+    
+    // Select matched bank if available in options
+    for (let opt of bankSelect.options) {
+      if (opt.value.toLowerCase().includes(foundData.bankName.toLowerCase())) {
+        opt.selected = true;
+        break;
+      }
+    }
+
+    feedbackEl.className = 'text-xs font-semibold mt-2 text-emerald-600 dark:text-emerald-400 flex items-center gap-1';
+    feedbackEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Account Verified: <b>${foundData.accountName}</b> (${foundData.bankName})`;
+    showToast('Account details auto-filled successfully!');
+  } else {
+    feedbackEl.className = 'text-xs font-semibold mt-2 text-amber-600 dark:text-amber-400 flex items-center gap-1';
+    feedbackEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Account not found automatically. Please enter bank & name manually below.';
+    showToast('No account details found. Please enter manually.', 'error');
+  }
+}
+
 async function nextStep() {
   if (currentStep === 1) {
     const phone = document.getElementById('phone').value.trim();
@@ -638,6 +705,14 @@ document.getElementById('bankName').addEventListener('change', checkNextEnabled)
 document.getElementById('accountNumber').addEventListener('input', function() {
   this.value = this.value.replace(/\D/g, '');
   document.getElementById('acctCount').textContent = this.value.length + ' / 10';
+  
+  // Auto-fetch account details when 10 digits are entered
+  if (this.value.length === 10) {
+    fetchAccountDetails(this.value);
+  } else {
+    document.getElementById('apiFeedback').classList.add('hidden');
+  }
+
   checkNextEnabled();
 });
 
