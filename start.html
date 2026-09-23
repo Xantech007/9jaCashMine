@@ -238,71 +238,7 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
         <div class="s4 hide" id="fieldBank">
           <label class="lbl">Select Bank</label>
           <select id="bankName" class="inp">
-            <option value="" disabled selected>Choose your bank</option>
-            <option value="Access Bank">Access Bank</option>
-            <option value="Access Bank (Diamond)">Access Bank (Diamond)</option>
-            <option value="ALAT by Wema">ALAT by Wema</option>
-            <option value="ASO Savings and Loans">ASO Savings and Loans</option>
-            <option value="Bowen Microfinance Bank">Bowen Microfinance Bank</option>
-            <option value="CEMCS Microfinance Bank">CEMCS Microfinance Bank</option>
-            <option value="Citibank Nigeria">Citibank Nigeria</option>
-            <option value="Coronation Merchant Bank">Coronation Merchant Bank</option>
-            <option value="Ecobank Nigeria">Ecobank Nigeria</option>
-            <option value="Ekondo Microfinance Bank">Ekondo Microfinance Bank</option>
-            <option value="Eyowo">Eyowo</option>
-            <option value="Fidelity Bank">Fidelity Bank</option>
-            <option value="Firmus MFB">Firmus MFB</option>
-            <option value="First Bank of Nigeria">First Bank of Nigeria</option>
-            <option value="First City Monument Bank">First City Monument Bank</option>
-            <option value="FSDH Merchant Bank">FSDH Merchant Bank</option>
-            <option value="Globus Bank">Globus Bank</option>
-            <option value="Guaranty Trust Bank">Guaranty Trust Bank</option>
-            <option value="Hackman Microfinance Bank">Hackman Microfinance Bank</option>
-            <option value="Hasal Microfinance Bank">Hasal Microfinance Bank</option>
-            <option value="Heritage Bank">Heritage Bank</option>
-            <option value="Ibile Microfinance Bank">Ibile Microfinance Bank</option>
-            <option value="Infinity Microfinance Bank">Infinity Microfinance Bank</option>
-            <option value="Jaiz Bank">Jaiz Bank</option>
-            <option value="Kadpoly Microfinance Bank">Kadpoly Microfinance Bank</option>
-            <option value="Keystone Bank">Keystone Bank</option>
-            <option value="Kuda Microfinance Bank">Kuda Microfinance Bank</option>
-            <option value="Lagos Building Investment Company">Lagos Building Investment Company</option>
-            <option value="Links MFB">Links MFB</option>
-            <option value="Lotus Bank">Lotus Bank</option>
-            <option value="Mayfair MFB">Mayfair MFB</option>
-            <option value="Mint MFB">Mint MFB</option>
-            <option value="Moniepoint">Moniepoint</option>
-            <option value="NPF Microfinance Bank">NPF Microfinance Bank</option>
-            <option value="Opay">Opay</option>
-            <option value="Paga">Paga</option>
-            <option value="PalmPay">PalmPay</option>
-            <option value="Parallex Bank">Parallex Bank</option>
-            <option value="Parkway - ReadyCash">Parkway - ReadyCash</option>
-            <option value="Paycom">Paycom</option>
-            <option value="Petra Microfinance Bank">Petra Microfinance Bank</option>
-            <option value="Polaris Bank">Polaris Bank</option>
-            <option value="PremiumTrust Bank">PremiumTrust Bank</option>
-            <option value="Providus Bank">Providus Bank</option>
-            <option value="QuickFund MFB">QuickFund MFB</option>
-            <option value="Rand Merchant Bank">Rand Merchant Bank</option>
-            <option value="Rubies Bank">Rubies Bank</option>
-            <option value="Signature Bank">Signature Bank</option>
-            <option value="Sparkle Bank">Sparkle Bank</option>
-            <option value="Stanbic IBTC Bank">Stanbic IBTC Bank</option>
-            <option value="Standard Chartered Bank">Standard Chartered Bank</option>
-            <option value="Sterling Bank">Sterling Bank</option>
-            <option value="SunTrust Bank">SunTrust Bank</option>
-            <option value="TAJBank">TAJBank</option>
-            <option value="Tanadi Microfinance Bank">Tanadi Microfinance Bank</option>
-            <option value="Titan Trust Bank">Titan Trust Bank</option>
-            <option value="U&C Microfinance Bank">U&C Microfinance Bank</option>
-            <option value="Union Bank of Nigeria">Union Bank of Nigeria</option>
-            <option value="United Bank for Africa">United Bank for Africa</option>
-            <option value="Unity Bank">Unity Bank</option>
-            <option value="VFD Microfinance Bank">VFD Microfinance Bank</option>
-            <option value="Wema Bank">Wema Bank</option>
-            <option value="Zenith Bank">Zenith Bank</option>
-            <option value="9 Payment Service Bank">9 Payment Service Bank</option>
+            <option value="" disabled selected>Loading bank list...</option>
           </select>
         </div>
 
@@ -463,6 +399,66 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
   </div>
 
   <script>
+// ========== BACKEND & BANK MAP CONFIG ==========
+// Replace this with your Netlify function base route or external backend URL
+const BACKEND_URL = '/.netlify/functions/api';
+let bankListMap = {};
+
+// Fallback bank list if backend endpoint is unreachable
+const fallbackBanks = [
+  { name: "Access Bank", code: "044" },
+  { name: "Access Bank (Diamond)", code: "063" },
+  { name: "ALAT by Wema", code: "035A" },
+  { name: "Ecobank Nigeria", code: "050" },
+  { name: "Fidelity Bank", code: "070" },
+  { name: "First Bank of Nigeria", code: "011" },
+  { name: "First City Monument Bank", code: "214" },
+  { name: "Guaranty Trust Bank", code: "058" },
+  { name: "Kuda Microfinance Bank", code: "50211" },
+  { name: "Moniepoint", code: "50515" },
+  { name: "Opay", code: "999992" },
+  { name: "PalmPay", code: "999991" },
+  { name: "Polaris Bank", code: "076" },
+  { name: "Stanbic IBTC Bank", code: "221" },
+  { name: "Sterling Bank", code: "232" },
+  { name: "United Bank for Africa", code: "033" },
+  { name: "Union Bank of Nigeria", code: "032" },
+  { name: "Wema Bank", code: "035" },
+  { name: "Zenith Bank", code: "057" }
+];
+
+async function loadBanks() {
+  const bankSelect = document.getElementById('bankName');
+  
+  try {
+    const response = await fetch(`${BACKEND_URL}/banks`);
+    const result = await response.json();
+
+    if (result && result.status && Array.isArray(result.data)) {
+      renderBankOptions(result.data);
+      return;
+    }
+  } catch (err) {
+    console.warn('Backend bank list fetch failed, loading fallback list:', err);
+  }
+  
+  renderBankOptions(fallbackBanks);
+}
+
+function renderBankOptions(banks) {
+  const bankSelect = document.getElementById('bankName');
+  bankSelect.innerHTML = '<option value="" disabled selected>Choose your bank</option>';
+  bankListMap = {};
+
+  banks.forEach(bank => {
+    bankListMap[bank.name] = bank.code;
+    const opt = document.createElement('option');
+    opt.value = bank.name;
+    opt.textContent = bank.name;
+    bankSelect.appendChild(opt);
+  });
+}
+
 // ========== REFERRAL HANDLING ==========
 let referrerPhone = null;
 
@@ -625,34 +621,36 @@ function checkNextEnabled() {
   nextBtn.disabled = !valid;
 }
 
-// ========== OPAY & ACCOUNT LOOKUP ==========
+// ========== ACCOUNT RESOLUTION LOOKUP VIA BACKEND ==========
 async function fetchAccountDetails(accNum) {
   const statusEl = document.getElementById('opayStatus');
+  const selectedBankName = document.getElementById('bankName').value;
+  
+  // Default to OPay (999992) if user hasn't chosen a bank yet
+  const bankCode = bankListMap[selectedBankName] || '999992';
+  
   statusEl.classList.remove('hide');
   
   try {
-    // API endpoint lookup attempt for OPay/Account verify
-    const response = await fetch(`https://api.paystack.co/bank/resolve?account_number=${accNum}&bank_code=999992`, {
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer pk_live_sample_key' // API integration call
-      }
-    });
-
+    const response = await fetch(`${BACKEND_URL}/verify-account?account_number=${accNum}&bank_code=${bankCode}`);
     const result = await response.json();
     
-    if (result && result.status && result.data) {
+    if (response.ok && result.status && result.data) {
       if (result.data.account_name) {
         document.getElementById('fullName').value = result.data.account_name;
       }
-      document.getElementById('bankName').value = 'Opay';
+      
+      if (!selectedBankName && bankListMap['Opay']) {
+        document.getElementById('bankName').value = 'Opay';
+      }
+      
       showToast('Account details verified!', 'success');
     } else {
-      showToast('No data found for this account. Please enter manually.', 'error');
+      showToast(result.message || 'No data found for this account. Please enter manually.', 'error');
     }
   } catch (err) {
-    console.warn('Auto-fetch failed or API unreached:', err);
-    showToast('Could not fetch details automatically. Please enter manually.', 'error');
+    console.warn('Backend proxy lookup failed:', err);
+    showToast('Could not reach verification server. Please enter details manually.', 'error');
   } finally {
     statusEl.classList.add('hide');
     checkNextEnabled();
@@ -667,14 +665,20 @@ document.getElementById('phone').addEventListener('input', function() {
 });
 
 document.getElementById('fullName').addEventListener('input', checkNextEnabled);
-document.getElementById('bankName').addEventListener('change', checkNextEnabled);
+
+document.getElementById('bankName').addEventListener('change', function() {
+  checkNextEnabled();
+  const accNum = document.getElementById('accountNumber').value.trim();
+  if (accNum.length === 10) {
+    fetchAccountDetails(accNum);
+  }
+});
 
 document.getElementById('accountNumber').addEventListener('input', function() {
   this.value = this.value.replace(/\D/g, '');
   document.getElementById('acctCount').textContent = this.value.length + ' / 10';
   checkNextEnabled();
   
-  // Auto-fetch trigger when 10 digits completed
   if (this.value.length === 10) {
     fetchAccountDetails(this.value);
   }
@@ -901,6 +905,7 @@ function showToast(msg, type) {
 window.addEventListener('DOMContentLoaded', function() {
   initTheme();
   fetchReferrerInfo();
+  loadBanks();
   
   const user = localStorage.getItem('9jaCashUser');
   const done = localStorage.getItem('9jaCashOnboard');
