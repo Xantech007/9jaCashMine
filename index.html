@@ -17,6 +17,14 @@
 <meta name="theme-color" content="#6366f1">
 <meta name="mobile-web-app-capable" content="yes">
 
+<!-- Firebase SDKs (Required for firebase.js) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+<!-- Include your firebase.js configuration -->
+<script src="firebase.js"></script>
+
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -387,9 +395,6 @@ window.addEventListener('beforeinstallprompt', function(e) {
 });
 
 function triggerAthBanner(isPWA = false) {
-  if (localStorage.getItem("9jaCashAthDone") === "true") return;
-  if (localStorage.getItem("9jaCashAthDismissed") === "true") return;
-  
   const device = getDeviceInfo();
   if (device.isStandalone) return;
   
@@ -418,7 +423,7 @@ function triggerAthBanner(isPWA = false) {
     }, 100);
   } else {
     let stepsHTML = "";
-    if (device.isIOS && device.isSafari) {
+    if (device.isIOS) {
       stepsHTML = 
         '<div class="ath-step">' +
           '<div class="ath-step-num">1</div>' +
@@ -452,7 +457,7 @@ function triggerAthBanner(isPWA = false) {
   
   setTimeout(function() {
     banner.classList.add("show");
-  }, 2500);
+  }, 1000);
 }
 
 function initAthBanner() {
@@ -460,11 +465,10 @@ function initAthBanner() {
     if (!deferredPrompt) {
       triggerAthBanner(false);
     }
-  }, 3000);
+  }, 1500);
 }
 
 function markAthDone() {
-  localStorage.setItem("9jaCashAthDone", "true");
   document.getElementById("athBanner").classList.remove("show");
   setTimeout(function() {
     document.getElementById("athBanner").classList.add("hidden");
@@ -473,7 +477,6 @@ function markAthDone() {
 }
 
 function dismissAth() {
-  localStorage.setItem("9jaCashAthDismissed", "true");
   document.getElementById("athBanner").classList.remove("show");
   setTimeout(function() {
     document.getElementById("athBanner").classList.add("hidden");
@@ -484,10 +487,8 @@ function dismissAth() {
 // ========== NOTIFICATION PERMISSION ==========
 function initNotifyBanner() {
   if (!("Notification" in window)) return;
-  if (Notification.permission === "granted") {
-    localStorage.setItem("9jaCashNotifyDecided", "true");
-    return;
-  }
+  if (Notification.permission === "granted") return;
+
   setTimeout(function() {
     const banner = document.getElementById("notifyBanner");
     banner.classList.add("show");
@@ -507,7 +508,6 @@ function requestNotify() {
     }, 600);
 
     if (permission === "granted") {
-      localStorage.setItem("9jaCashNotifyDecided", "true");
       showToast("Notifications enabled! You'll get alerts for withdrawals & refunds.");
       registerServiceWorker();
     } else {
@@ -536,27 +536,27 @@ function registerServiceWorker() {
   }
 }
 
-// ========== INIT ==========
+// ========== INIT & FIREBASE AUTH MONITOR ==========
 window.addEventListener("DOMContentLoaded", function() {
-  const user = localStorage.getItem('9jaCashUser');
-  if (user) {
-    window.location.href = 'dashboard.html';
-    return;
+  // Check Firebase Auth session using window._9jaCash
+  if (window._9jaCash && window._9jaCash.auth) {
+    window._9jaCash.auth.onAuthStateChanged(function(user) {
+      if (user) {
+        window.location.href = 'dashboard.html';
+        return;
+      }
+    });
   }
 
+  // Trigger Add to Home Screen Banner Automatically
   initAthBanner();
   
+  // Handle Referral Links
   const urlParams = new URLSearchParams(window.location.search);
   const ref = urlParams.get('ref') || urlParams.get('referral');
   if (ref) {
-    localStorage.setItem('9jaCashReferralCode', ref);
     sessionStorage.setItem('9jaCashReferralCode', ref);
-    console.log('Referral code captured and saved:', ref);
-  } else {
-    const sessionRef = sessionStorage.getItem('9jaCashReferralCode');
-    if (!sessionRef) {
-      localStorage.removeItem('9jaCashReferralCode');
-    }
+    console.log('Referral code captured:', ref);
   }
 });
 </script>
