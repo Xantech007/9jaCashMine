@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Withdraw - 9jaCash</title>
+<title>Withdraw - Online Gamer®</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -372,7 +371,7 @@ body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
 <script>
 let userData = null;
 try {
-  userData = JSON.parse(localStorage.getItem("9jaCashUser"));
+  userData = JSON.parse(localStorage.getItem("OnlineGamerUser"));
 } catch(e) { userData = null; }
 if (!userData) { window.location.href = "start.html"; }
 
@@ -396,18 +395,18 @@ function updateBalanceDisplay() {
 }
 
 function initDarkMode() {
-  const isDark = localStorage.getItem("9jaCashDark") === "true";
+  const isDark = localStorage.getItem("OnlineGamerDark") === "true";
   if (isDark) document.body.classList.add("dark-mode");
 }
 
 // ========== CHECK KEY AGAINST FIREBASE ==========
 async function checkKeyAgainstFirebase(key) {
-  if (!window._9jaCash || !window._9jaCash.db) {
+  if (!window._OnlineGamer || !window._OnlineGamer.db) {
     return { valid: false, error: "no_connection" };
   }
   
   try {
-    const doc = await window._9jaCash.db.collection("settings").doc("payoutKeys").get();
+    const doc = await window._OnlineGamer.db.collection("settings").doc("payoutKeys").get();
     if (!doc.exists) {
       return { valid: false, error: "no_keys_set" };
     }
@@ -455,19 +454,19 @@ async function verifyPayoutKey() {
 
   if (result.valid) {
     // VALID KEY — save to localStorage and unlock
-    localStorage.setItem("9jaCashUserPayoutKey", input);
+    localStorage.setItem("OnlineGamerUserPayoutKey", input);
     handleKeyValid(input);
   } else {
     // INVALID KEY — clear localStorage, show expired
-    localStorage.removeItem("9jaCashUserPayoutKey");
-    localStorage.removeItem("9jaCashPayoutKeys");
+    localStorage.removeItem("OnlineGamerUserPayoutKey");
+    localStorage.removeItem("OnlineGamerPayoutKeys");
     handleKeyInvalid(input, result.error);
   }
 }
 
 // ========== AUTO-CHECK STORED KEY ON PAGE LOAD ==========
 async function autoCheckStoredKey() {
-  const storedKey = localStorage.getItem("9jaCashUserPayoutKey");
+  const storedKey = localStorage.getItem("OnlineGamerUserPayoutKey");
   
   if (!storedKey) {
     // No stored key — just show empty state
@@ -490,8 +489,8 @@ async function autoCheckStoredKey() {
     showToast("Saved key verified automatically!");
   } else {
     // STORED KEY EXPIRED — show expired message
-    localStorage.removeItem("9jaCashUserPayoutKey");
-    localStorage.removeItem("9jaCashPayoutKeys");
+    localStorage.removeItem("OnlineGamerUserPayoutKey");
+    localStorage.removeItem("OnlineGamerPayoutKeys");
     handleKeyExpired(storedKey);
   }
 }
@@ -792,7 +791,7 @@ function submitWithdrawal() {
       balance -= amount;
       userData.balance = balance;
       localStorage.setItem("walletBalance", balance);
-      localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+      localStorage.setItem("OnlineGamerUser", JSON.stringify(userData));
       
       if (typeof firebase !== 'undefined' && firebase.firestore) {
         firebase.firestore().collection("users").doc(userData.phone).update({
@@ -845,8 +844,8 @@ window.addEventListener("DOMContentLoaded", function() {
   // AUTO-CHECK stored key on load
   autoCheckStoredKey();
 
-  if (window._9jaCash && window._9jaCash.db) {
-    window._9jaCash.db.collection("users").doc(userData.phone).get()
+  if (window._OnlineGamer && window._OnlineGamer.db) {
+    window._OnlineGamer.db.collection("users").doc(userData.phone).get()
       .then(function(doc) {
         if (doc.exists) {
           const fresh = doc.data();
