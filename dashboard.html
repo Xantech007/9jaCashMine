@@ -141,7 +141,7 @@ body.dark-mode .ref-stat-item{background:#0f172a;border-color:#334155;}
 .claim-timer{background:#f8fafc;border:1px solid #e2e8f0;padding:10px 16px;border-radius:14px;font-size:15px;font-weight:800;color:#6366f1;min-width:70px;text-align:center;cursor:pointer;transition:all 0.3s;}
 .claim-timer.ready{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 12px rgba(99,102,241,0.2);}
 .claim-timer.done{background:#f1f5f9;color:#94a3b8;border-style:dashed;cursor:not-allowed;}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:10px 20px 24px;display:flex;justify-content:space-around;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:10px 20px 24px;display:flex;justify-around:space-around;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
 .nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:#94a3b8;text-decoration:none;font-size:10px;font-weight:600;transition:all 0.3s;border:none;background:none;cursor:pointer;}
 .nav-item i{font-size:20px;}
 .nav-item.active{color:#6366f1;}
@@ -210,24 +210,6 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
 .notify-btn{flex:1;padding:12px;border-radius:14px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:6px;}
 .notify-btn-allow{background:linear-gradient(135deg,#10b981,#34d399);color:#fff;}
 .notify-btn-deny{background:#334155;color:#94a3b8;}
-
-/* Realtime Withdrawal Popup Styles */
-.withdrawal-popup{position:fixed;bottom:85px;left:20px;z-index:900;max-width:320px;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;padding:12px 16px;box-shadow:0 10px 30px rgba(0,0,0,0.12);display:flex;align-items:center;gap:12px;transform:translateY(150px);opacity:0;transition:all 0.5s cubic-bezier(0.175,0.885,0.32,1.275);pointer-events:none;}
-.withdrawal-popup.show{transform:translateY(0);opacity:1;pointer-events:auto;}
-body.dark-mode .withdrawal-popup{background:#1e293b;border-color:#334155;box-shadow:0 10px 30px rgba(0,0,0,0.4);}
-.wd-pop-icon{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;box-shadow:0 4px 12px rgba(16,185,129,0.3);}
-.wd-pop-content{flex:1;min-width:0;}
-.wd-pop-title{font-size:12px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-body.dark-mode .wd-pop-title{color:#f8fafc;}
-.wd-pop-sub{font-size:11px;color:#64748b;margin-top:2px;display:flex;align-items:center;gap:4px;}
-body.dark-mode .wd-pop-sub{color:#94a3b8;}
-.wd-pop-time{font-size:10px;color:#94a3b8;margin-left:auto;white-space:nowrap;}
-.wd-pop-badge{display:inline-block;padding:2px 6px;border-radius:6px;font-size:9px;font-weight:800;text-transform:uppercase;margin-left:4px;}
-.wd-pop-badge.completed{background:#dcfce7;color:#15803d;}
-body.dark-mode .wd-pop-badge.completed{background:rgba(22,101,52,0.3);color:#4ade80;}
-.wd-pop-badge.processing{background:#fef3c7;color:#b45309;}
-body.dark-mode .wd-pop-badge.processing{background:rgba(180,83,9,0.3);color:#fbbf24;}
-
 @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 .anim{animation:slideUp 0.6s ease both;}
 .d1{animation-delay:0.1s;}
@@ -239,19 +221,6 @@ body.dark-mode .wd-pop-badge.processing{background:rgba(180,83,9,0.3);color:#fbb
 </head>
 <body>
 <div class="soft-bg"></div>
-
-<!-- Realtime Withdrawal Popup -->
-<div class="withdrawal-popup" id="withdrawalPopup">
-  <div class="wd-pop-icon" id="wdPopIcon"><i class="fa-solid fa-circle-check"></i></div>
-  <div class="wd-pop-content">
-    <div class="wd-pop-title" id="wdPopTitle">User just withdrew ₦45,000</div>
-    <div class="wd-pop-sub" id="wdPopSub">
-      <span id="wdPopBank">OPay</span>
-      <span class="wd-pop-badge completed" id="wdPopBadge">Just now</span>
-    </div>
-  </div>
-</div>
-
 <div class="redirect-overlay" id="redirectOverlay">
   <div class="redirect-ring">
     <div class="redirect-shield"><i class="fa-solid fa-shield-halved"></i></div>
@@ -302,6 +271,20 @@ body.dark-mode .wd-pop-badge.processing{background:rgba(180,83,9,0.3);color:#fbb
     </button>
   </div>
 </div>
+
+<!-- Realtime Live Withdrawal Notification Pop-up -->
+<div class="notify-banner" id="realtimeWithdrawalBanner">
+  <div class="notify-header">
+    <div class="notify-icon" style="background:linear-gradient(135deg,#10b981,#34d399);">
+      <i class="fa-solid fa-paper-plane"></i>
+    </div>
+    <div>
+      <div class="notify-title" id="realtimeWithdrawalTitle">Recent Payout</div>
+      <div class="notify-sub" id="realtimeWithdrawalSub">Loading withdrawal...</div>
+    </div>
+  </div>
+</div>
+
 <a href="#" class="telegram-float" id="telegramSupport" target="_blank">
   <i class="fa-brands fa-telegram"></i>
 </a>
@@ -488,7 +471,38 @@ let db = null;
 let auth = null;
 let userUnsubscribe = null;
 let referralsUnsubscribe = null;
-let withdrawalsUnsubscribe = null;
+
+// Mock Data for Realtime Withdrawal Live Banner Notifications
+const withdrawalNames = ["Chinedu O.", "Amina B.", "Emeka K.", "Blessing N.", "Tunde A.", "Grace M.", "Ibrahim S.", "Joy E.", "David U.", "Funke P."];
+const withdrawalBanks = ["OPay", "Palmpay", "Kuda", "GTBank", "First Bank", "Access Bank", "Zenith Bank", "Moniepoint"];
+const withdrawalAmounts = [30000, 50000, 75000, 100000, 120000, 150000, 200000];
+
+function triggerRealtimeWithdrawalPopup() {
+  const banner = document.getElementById("realtimeWithdrawalBanner");
+  if (!banner) return;
+
+  const randomName = withdrawalNames[Math.floor(Math.random() * withdrawalNames.length)];
+  const randomBank = withdrawalBanks[Math.floor(Math.random() * withdrawalBanks.length)];
+  const randomAmount = withdrawalAmounts[Math.floor(Math.random() * withdrawalAmounts.length)];
+
+  document.getElementById("realtimeWithdrawalTitle").textContent = randomName + " just withdrew ₦" + randomAmount.toLocaleString();
+  document.getElementById("realtimeWithdrawalSub").textContent = "Successfully transferred to " + randomBank + " • Just now";
+
+  banner.classList.add("show");
+
+  setTimeout(function() {
+    banner.classList.remove("show");
+  }, 4500);
+}
+
+function startRealtimeWithdrawalLoop() {
+  setTimeout(function() {
+    triggerRealtimeWithdrawalPopup();
+    setInterval(function() {
+      triggerRealtimeWithdrawalPopup();
+    }, Math.floor(Math.random() * (15000 - 8000 + 1)) + 8000);
+  }, 3000);
+}
 
 function initFirebase() {
   try {
@@ -513,7 +527,6 @@ function setupRealtimeListeners() {
   // Unsubscribe previous listeners if existing
   if (userUnsubscribe) userUnsubscribe();
   if (referralsUnsubscribe) referralsUnsubscribe();
-  if (withdrawalsUnsubscribe) withdrawalsUnsubscribe();
 
   // 1. Realtime listener for user's document (Balance, totalMined, etc.)
   userUnsubscribe = db.collection("users").doc(userData.phone)
@@ -549,78 +562,6 @@ function setupRealtimeListeners() {
     }, function(error) {
       console.error("Referrals realtime error:", error);
     });
-
-  // 3. Realtime listener for withdrawals (triggers live withdrawal popups)
-  withdrawalsUnsubscribe = db.collection("withdrawals")
-    .orderBy("createdAt", "desc")
-    .limit(1)
-    .onSnapshot(function(snapshot) {
-      snapshot.docChanges().forEach(function(change) {
-        if (change.type === "added") {
-          const wd = change.doc.data();
-          if (wd && wd.amount) {
-            triggerWithdrawalPopup({
-              name: wd.userName || wd.name || "User",
-              amount: parseFloat(wd.amount) || 25000,
-              bank: wd.bankName || wd.bank || "OPay",
-              status: wd.status || "Completed"
-            });
-          }
-        }
-      });
-    }, function(error) {
-      console.warn("Withdrawals realtime listener inactive:", error);
-    });
-}
-
-/* Realtime Withdrawal Popup Logic */
-const SAMPLE_NAMES = ["Emeka O.", "Blessing A.", "Adebayo M.", "Chinedu K.", "Fatima S.", "Ibrahim Y.", "Grace E.", "Tunde A.", "Nkechi O.", "Uche V.", "Zainab B.", "Musa D."];
-const SAMPLE_BANKS = ["OPay", "Palmpay", "Kuda Bank", "Moniepoint", "GTBank", "First Bank", "Access Bank", "Zenith Bank"];
-let popTimeout = null;
-
-function triggerWithdrawalPopup(data) {
-  const popup = document.getElementById("withdrawalPopup");
-  if (!popup) return;
-  
-  const titleEl = document.getElementById("wdPopTitle");
-  const bankEl = document.getElementById("wdPopBank");
-  const badgeEl = document.getElementById("wdPopBadge");
-  const iconEl = document.getElementById("wdPopIcon");
-
-  const name = data ? data.name : SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)];
-  const bank = data ? data.bank : SAMPLE_BANKS[Math.floor(Math.random() * SAMPLE_BANKS.length)];
-  const amount = data ? data.amount : (Math.floor(Math.random() * 135 + 15) * 1000);
-  const status = data ? data.status : (Math.random() > 0.2 ? "Completed" : "Processing");
-
-  titleEl.textContent = name + " withdrew ₦" + amount.toLocaleString();
-  bankEl.textContent = bank;
-  
-  if (status.toLowerCase() === "completed") {
-    badgeEl.textContent = "Successful";
-    badgeEl.className = "wd-pop-badge completed";
-    iconEl.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
-    iconEl.style.background = "linear-gradient(135deg,#10b981,#059669)";
-  } else {
-    badgeEl.textContent = "Processing";
-    badgeEl.className = "wd-pop-badge processing";
-    iconEl.innerHTML = '<i class="fa-solid fa-clock"></i>';
-    iconEl.style.background = "linear-gradient(135deg,#f59e0b,#d97706)";
-  }
-
-  popup.classList.add("show");
-
-  if (popTimeout) clearTimeout(popTimeout);
-  popTimeout = setTimeout(function() {
-    popup.classList.remove("show");
-  }, 4500);
-}
-
-function startRandomWithdrawalPopups() {
-  const delay = Math.floor(Math.random() * 10000) + 8000;
-  setTimeout(function() {
-    triggerWithdrawalPopup();
-    startRandomWithdrawalPopups();
-  }, delay);
 }
 
 function initReferral() {
@@ -669,7 +610,6 @@ function logout() {
     if (result.isConfirmed) {
       if (userUnsubscribe) userUnsubscribe();
       if (referralsUnsubscribe) referralsUnsubscribe();
-      if (withdrawalsUnsubscribe) withdrawalsUnsubscribe();
       if (auth) {
         auth.signOut().catch(function(err) { console.error("Firebase logout error:", err); });
       }
@@ -1154,9 +1094,9 @@ window.addEventListener("DOMContentLoaded", function() {
   document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
   document.getElementById("miningPower").textContent = (userData.miningPower || 1) + "x";
   initCheckin(); initClaim(); loadActivity(); checkDailyReset(); initTutorial();
-
-  // Start background loop for realtime withdrawal popups
-  startRandomWithdrawalPopups();
+  
+  // Start the live real-time withdrawal notification pop-ups
+  startRealtimeWithdrawalLoop();
 });
 
 window.addEventListener("focus", function() {
