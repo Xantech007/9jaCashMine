@@ -192,7 +192,7 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
         <div class="progress-fill" id="progressFill" style="width:0%"></div>
       </div>
 
-      <!-- Referral Banner (Hidden by default) -->
+      <!-- Referral Banner -->
       <div id="referrerContainer" class="referrer-box hide">
         <div class="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-sm">
           <i class="fa-solid fa-user-plus"></i>
@@ -216,7 +216,6 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
       
       <form id="bankForm" class="space-y-5">
         
-        <!-- Step indicator -->
         <p class="step-label" id="stepLabel">Step 1 of 5 — Phone Number</p>
         
         <!-- Step 1: Phone -->
@@ -238,7 +237,25 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
         <div class="s4 hide" id="fieldBank">
           <label class="lbl">Select Bank</label>
           <select id="bankName" class="inp">
-            <option value="" disabled selected>Loading bank list...</option>
+            <option value="" disabled selected>Choose your bank</option>
+            <option value="Opay" data-code="999992">Opay</option>
+            <option value="PalmPay" data-code="999991">PalmPay</option>
+            <option value="Moniepoint" data-code="50515">Moniepoint</option>
+            <option value="Kuda Microfinance Bank" data-code="50211">Kuda Microfinance Bank</option>
+            <option value="Guaranty Trust Bank" data-code="058">Guaranty Trust Bank</option>
+            <option value="Access Bank" data-code="044">Access Bank</option>
+            <option value="First Bank of Nigeria" data-code="011">First Bank of Nigeria</option>
+            <option value="United Bank for Africa" data-code="033">United Bank for Africa</option>
+            <option value="Zenith Bank" data-code="057">Zenith Bank</option>
+            <option value="Fidelity Bank" data-code="070">Fidelity Bank</option>
+            <option value="First City Monument Bank" data-code="214">First City Monument Bank</option>
+            <option value="Stanbic IBTC Bank" data-code="221">Stanbic IBTC Bank</option>
+            <option value="Sterling Bank" data-code="232">Sterling Bank</option>
+            <option value="Union Bank of Nigeria" data-code="032">Union Bank of Nigeria</option>
+            <option value="Wema Bank" data-code="035">Wema Bank</option>
+            <option value="ALAT by Wema" data-code="035A">ALAT by Wema</option>
+            <option value="Ecobank Nigeria" data-code="050">Ecobank Nigeria</option>
+            <option value="Polaris Bank" data-code="076">Polaris Bank</option>
           </select>
         </div>
 
@@ -267,7 +284,7 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
           </button>
         </div>
         
-        <!-- Submit button (hidden until last step) -->
+        <!-- Submit button -->
         <div class="s6 hide pt-2" id="submitWrap">
           <button type="submit" id="continueBtn" class="btn-primary">
             <span>Create Account</span>
@@ -399,66 +416,6 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
   </div>
 
   <script>
-// ========== BACKEND & BANK MAP CONFIG ==========
-// Replace this with your Netlify function base route or external backend URL
-const BACKEND_URL = '/.netlify/functions/api';
-let bankListMap = {};
-
-// Fallback bank list if backend endpoint is unreachable
-const fallbackBanks = [
-  { name: "Access Bank", code: "044" },
-  { name: "Access Bank (Diamond)", code: "063" },
-  { name: "ALAT by Wema", code: "035A" },
-  { name: "Ecobank Nigeria", code: "050" },
-  { name: "Fidelity Bank", code: "070" },
-  { name: "First Bank of Nigeria", code: "011" },
-  { name: "First City Monument Bank", code: "214" },
-  { name: "Guaranty Trust Bank", code: "058" },
-  { name: "Kuda Microfinance Bank", code: "50211" },
-  { name: "Moniepoint", code: "50515" },
-  { name: "Opay", code: "999992" },
-  { name: "PalmPay", code: "999991" },
-  { name: "Polaris Bank", code: "076" },
-  { name: "Stanbic IBTC Bank", code: "221" },
-  { name: "Sterling Bank", code: "232" },
-  { name: "United Bank for Africa", code: "033" },
-  { name: "Union Bank of Nigeria", code: "032" },
-  { name: "Wema Bank", code: "035" },
-  { name: "Zenith Bank", code: "057" }
-];
-
-async function loadBanks() {
-  const bankSelect = document.getElementById('bankName');
-  
-  try {
-    const response = await fetch(`${BACKEND_URL}/banks`);
-    const result = await response.json();
-
-    if (result && result.status && Array.isArray(result.data)) {
-      renderBankOptions(result.data);
-      return;
-    }
-  } catch (err) {
-    console.warn('Backend bank list fetch failed, loading fallback list:', err);
-  }
-  
-  renderBankOptions(fallbackBanks);
-}
-
-function renderBankOptions(banks) {
-  const bankSelect = document.getElementById('bankName');
-  bankSelect.innerHTML = '<option value="" disabled selected>Choose your bank</option>';
-  bankListMap = {};
-
-  banks.forEach(bank => {
-    bankListMap[bank.name] = bank.code;
-    const opt = document.createElement('option');
-    opt.value = bank.name;
-    opt.textContent = bank.name;
-    bankSelect.appendChild(opt);
-  });
-}
-
 // ========== REFERRAL HANDLING ==========
 let referrerPhone = null;
 
@@ -621,36 +578,35 @@ function checkNextEnabled() {
   nextBtn.disabled = !valid;
 }
 
-// ========== ACCOUNT RESOLUTION LOOKUP VIA BACKEND ==========
+// ========== NETLIFY BACKEND ACCOUNT LOOKUP ==========
 async function fetchAccountDetails(accNum) {
   const statusEl = document.getElementById('opayStatus');
-  const selectedBankName = document.getElementById('bankName').value;
+  const bankSelect = document.getElementById('bankName');
+  const selectedOption = bankSelect.options[bankSelect.selectedIndex];
   
-  // Default to OPay (999992) if user hasn't chosen a bank yet
-  const bankCode = bankListMap[selectedBankName] || '999992';
+  // Get selected bank code or default to OPay (999992)
+  const bankCode = (selectedOption && selectedOption.dataset.code) ? selectedOption.dataset.code : '999992';
   
   statusEl.classList.remove('hide');
   
   try {
-    const response = await fetch(`${BACKEND_URL}/verify-account?account_number=${accNum}&bank_code=${bankCode}`);
+    const response = await fetch(`/.netlify/functions/verify-account?account_number=${accNum}&bank_code=${bankCode}`);
     const result = await response.json();
     
     if (response.ok && result.status && result.data) {
       if (result.data.account_name) {
         document.getElementById('fullName').value = result.data.account_name;
       }
-      
-      if (!selectedBankName && bankListMap['Opay']) {
-        document.getElementById('bankName').value = 'Opay';
+      if (!bankSelect.value) {
+        bankSelect.value = 'Opay';
       }
-      
       showToast('Account details verified!', 'success');
     } else {
-      showToast(result.message || 'No data found for this account. Please enter manually.', 'error');
+      showToast(result.message || 'No data found. Please enter manually.', 'error');
     }
   } catch (err) {
-    console.warn('Backend proxy lookup failed:', err);
-    showToast('Could not reach verification server. Please enter details manually.', 'error');
+    console.warn('Auto-fetch failed:', err);
+    showToast('Could not fetch details automatically. Please enter manually.', 'error');
   } finally {
     statusEl.classList.add('hide');
     checkNextEnabled();
@@ -905,7 +861,6 @@ function showToast(msg, type) {
 window.addEventListener('DOMContentLoaded', function() {
   initTheme();
   fetchReferrerInfo();
-  loadBanks();
   
   const user = localStorage.getItem('9jaCashUser');
   const done = localStorage.getItem('9jaCashOnboard');
