@@ -141,8 +141,8 @@ body.dark-mode .ref-stat-item{background:#0f172a;border-color:#334155;}
 .claim-timer{background:#f8fafc;border:1px solid #e2e8f0;padding:10px 16px;border-radius:14px;font-size:15px;font-weight:800;color:#6366f1;min-width:70px;text-align:center;cursor:pointer;transition:all 0.3s;}
 .claim-timer.ready{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 12px rgba(99,102,241,0.2);}
 .claim-timer.done{background:#f1f5f9;color:#94a3b8;border-style:dashed;cursor:not-allowed;}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:10px 20px 24px;display:flex;justify-around:space-around;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
-.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:#94a3b8;text-decoration:none;font-size:10px;font-weight:600;transition:all 0.3s;border:none;background:none;cursor:pointer;}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:8px 12px 16px;display:flex;justify-content:space-around;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#94a3b8;text-decoration:none;font-size:10px;font-weight:600;transition:all 0.3s;border:none;background:none;cursor:pointer;padding:4px 0;}
 .nav-item i{font-size:20px;}
 .nav-item.active{color:#6366f1;}
 .nav-mid{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;margin-top:-20px;box-shadow:0 4px 16px rgba(99,102,241,0.3);border:4px solid #f8fafc;transition:all 0.3s;}
@@ -416,17 +416,17 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
 <div
   class="card anim d4 p-4 mb-4 cursor-pointer hover:border-violet-500/50 transition-all flex items-center justify-between"
   onclick="window.location.href='about.html'"
-  style="background: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.12); margin-top: 12px; border-radius: 16px;">
+  style="background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.15); margin-top: 12px; border-radius: 16px;">
   <div class="flex items-center gap-3">
     <div
-      style="background: rgba(139, 92, 246, 0.08); color: #8b5cf6; font-size: 14px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+      style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; font-size: 14px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
       <i class="fa-solid fa-certificate"></i></div>
     <div style="text-align: left;">
-      <div style="font-size: 13px; font-weight: 700; color: #fff;">Platform Authenticity Dossier</div>
-      <div style="font-size: 11px; color: #94a3b8;">CBN guidelines, CAC, and NDPR credentials</div>
+      <div class="sec-title" style="font-size: 13px; font-weight: 700; margin-bottom: 2px;">Platform Authenticity Dossier</div>
+      <div class="bank-meta" style="font-size: 11px;">CBN guidelines, CAC, and NDPR credentials</div>
     </div>
   </div>
-  <i class="fa-solid fa-chevron-right text-slate-500 text-xs"></i>
+  <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
 </div>
  
 <div class="stats-grid anim d5">
