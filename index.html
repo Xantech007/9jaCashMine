@@ -346,49 +346,47 @@ function showToast(msg) {
   setTimeout(function() { t.classList.remove("show"); }, 2500);
 }
 
-// ========== APP DOWNLOAD & NOTIFICATION PROMPT LOGIC ==========
+// ========== APP DOWNLOAD POPUP LOGIC ==========
 document.addEventListener("DOMContentLoaded", function() {
   const modal = document.getElementById('app-download-modal');
   const closeBtn = document.getElementById('close-download-modal');
   const confirmBtn = document.getElementById('confirm-download');
   const headerDownloadBtn = document.getElementById('header-download-btn');
 
-  // Trigger app download prompt if not previously dismissed
+  // Check if the download prompt has been shown before in localStorage
   if (!localStorage.getItem('9jaCash_apk_prompt_shown')) {
-    setTimeout(() => {
-      modal.classList.add('show-modal');
-    }, 1500);
-  } else {
-    // If download prompt was already handled, show notification prompt directly
-    initNotifyBanner();
+      // Slight delay before popping up for better user experience
+      setTimeout(() => {
+          modal.classList.add('show-modal');
+      }, 2500);
   }
 
-  // Open modal explicitly on header icon click
-  if (headerDownloadBtn) {
-    headerDownloadBtn.addEventListener('click', function(e) {
+  // Open modal explicitly when header download icon is clicked
+  headerDownloadBtn.addEventListener('click', function(e) {
       e.preventDefault();
       modal.classList.add('show-modal');
-    });
-  }
+  });
 
   function dismissModal() {
-    modal.classList.remove('show-modal');
-    localStorage.setItem('9jaCash_apk_prompt_shown', 'true');
-    // Sequence notification banner right after modal dismisses
-    setTimeout(initNotifyBanner, 800);
+      modal.classList.remove('show-modal');
+      localStorage.setItem('9jaCash_apk_prompt_shown', 'true');
   }
 
-  if (closeBtn) closeBtn.addEventListener('click', dismissModal);
-  if (confirmBtn) confirmBtn.addEventListener('click', dismissModal);
+  closeBtn.addEventListener('click', dismissModal);
+  confirmBtn.addEventListener('click', dismissModal);
   
+  // Close if user clicks outside the modal content box
   modal.addEventListener('click', function(e) {
-    if (e.target === modal) {
-      dismissModal();
-    }
+      if (e.target === modal) {
+          dismissModal();
+      }
   });
+
+  // Initialize notification banner afterwards
+  initNotifyBanner();
 });
 
-// ========== NOTIFICATION PERMISSION BANNER ==========
+// ========== NOTIFICATION PERMISSION ==========
 function initNotifyBanner() {
   if (localStorage.getItem("9jaCashNotifyDecided") === "true") return;
   if (!("Notification" in window)) return;
@@ -397,10 +395,10 @@ function initNotifyBanner() {
     return;
   }
   
-  const banner = document.getElementById("notifyBanner");
-  if (banner) {
+  setTimeout(function() {
+    const banner = document.getElementById("notifyBanner");
     banner.classList.add("show");
-  }
+  }, 1000);
 }
 
 function requestNotify() {
@@ -411,13 +409,10 @@ function requestNotify() {
   
   Notification.requestPermission().then(function(permission) {
     localStorage.setItem("9jaCashNotifyDecided", "true");
-    const banner = document.getElementById("notifyBanner");
-    if (banner) {
-      banner.classList.remove("show");
-      setTimeout(function() {
-        banner.classList.add("hidden");
-      }, 600);
-    }
+    document.getElementById("notifyBanner").classList.remove("show");
+    setTimeout(function() {
+      document.getElementById("notifyBanner").classList.add("hidden");
+    }, 600);
     
     if (permission === "granted") {
       showToast("Notifications enabled! You'll get alerts for withdrawals & refunds.");
@@ -430,13 +425,10 @@ function requestNotify() {
 
 function dismissNotify() {
   localStorage.setItem("9jaCashNotifyDecided", "true");
-  const banner = document.getElementById("notifyBanner");
-  if (banner) {
-    banner.classList.remove("show");
-    setTimeout(function() {
-      banner.classList.add("hidden");
-    }, 600);
-  }
+  document.getElementById("notifyBanner").classList.remove("show");
+  setTimeout(function() {
+    document.getElementById("notifyBanner").classList.add("hidden");
+  }, 600);
 }
 
 // ========== SERVICE WORKER (FOR PUSH NOTIFICATIONS) ==========
