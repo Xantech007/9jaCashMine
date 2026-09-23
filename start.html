@@ -589,52 +589,110 @@ function checkNextEnabled() {
   nextBtn.disabled = !valid;
 }
 
-// ========== NETLIFY BACKEND ACCOUNT LOOKUP ==========
+// Global state for detected multi-bank choices
+let matchedBankResults = [];
+
 async function fetchAccountDetails(accNum) {
   const statusEl = document.getElementById('opayStatus');
-  const bankSelect = document.getElementById('bankName');
   const fetchedContainer = document.getElementById('fetchedDetails');
   const fetchedBankEl = document.getElementById('fetchedBankName');
   const fetchedNameEl = document.getElementById('fetchedAccountName');
   
-  const selectedOption = bankSelect.options[bankSelect.selectedIndex];
-  
-  // Get selected bank code or default to OPay (999992)
-  const bankCode = (selectedOption && selectedOption.dataset.code) ? selectedOption.dataset.code : '999992';
-  
   statusEl.classList.remove('hide');
   fetchedContainer.classList.add('hide');
-  
+
   try {
-    const response = await fetch(`/.netlify/functions/verify-account?account_number=${accNum}&bank_code=${bankCode}`);
+    const response = await fetch(`/.netlify/functions/verify-account?account_number=${accNum}`);
     const result = await response.json();
-    
-    if (response.ok && result.status && result.data) {
-      if (result.data.account_name) {
-        document.getElementById('fullName').value = result.data.account_name;
-        fetchedNameEl.textContent = result.data.account_name;
+
+    if (response.ok && result.status && result.data && result.data.length > 0) {
+      matchedBankResults = result.data;
+
+      if (matchedBankResults.length === 1) {
+        // Single result found
+        applySelectedAccount(matchedBankResults[0]);
+        showToast('Account details verified!', 'success');
+      } else {
+        // Multiple matches found across banks
+        showMultiBankSelector(matchedBankResults);
+        showToast(`Found ${matchedBankResults.length} matching banks. Please select yours.`, 'info');
       }
-      if (!bankSelect.value) {
-        bankSelect.value = 'Opay';
-      }
-      
-      const currentBankName = bankSelect.options[bankSelect.selectedIndex]?.text || 'Opay';
-      fetchedBankEl.textContent = currentBankName;
-      fetchedContainer.classList.remove('hide');
-      
-      showToast('Account details verified!', 'success');
     } else {
-      showToast(result.message || 'No data found. Please enter manually.', 'error');
+      showToast(result.message || 'No match found. Please verify details manually.', 'error');
     }
   } catch (err) {
-    console.warn('Auto-fetch failed:', err);
-    showToast('Could not fetch details automatically. Please enter manually.', 'error');
+    console.warn('Auto-search failed:', err);
+    showToast('Could not auto-verify account details.', 'error');
   } finally {
     statusEl.classList.add('hide');
     checkNextEnabled();
   }
 }
 
+// Populate UI with verified payload
+function applySelectedAccount(accountObj) {
+  document.getElementById('fullName').value = accountObj.accountName;
+  document.getElementById('bankName').value = accountObj.bankName;
+
+  document.getElementById('fetchedBankName').textContent = accountObj.bankName;
+  document.getElementById('fetchedAccountName').textContent = accountObj.accountName;
+  document.getElementById('fetchedDetails').classList.remove('hide');
+
+  checkNextEnabled();
+}
+
+// Render dynamic choice UI if multiple banks match
+function showMultiBankSelector(matches) {
+  let selectorContainer = document.getElementById('multiBankSelectWrap');
+  
+  if (!selectorContainer) {
+    selectorContainer = document.createElement('div');
+    selectorContainer.id = 'multiBankSelectWrap';
+    selectorContainer.className = 'mt-3 p-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/50 rounded-xl';
+    
+    const containerParent = document.getElementById('fieldAccount');
+    containerParent.appendChild(selectorContainer);
+  }
+
+  let optionsHTML = `
+    <label class="block text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-2">
+      <i class="fa-solid fa-layer-group mr-1"></i> Multiple Banks Found — Select Yours:
+    </label>
+    <select id="bankMatchPicker" class="inp text-sm">
+      <option value="" disabled selected>-- Select your bank --</option>
+  `;
+
+  matches.forEach((item, index) => {
+    optionsHTML += `<option value="${index}">${item.bankName} (${item.accountName})</option>`;
+  });
+
+  optionsHTML += `</select>`;
+  selectorContainer.innerHTML = optionsHTML;
+  selectorContainer.classList.remove('hide');
+
+  document.getElementById('bankMatchPicker').addEventListener('change', function() {
+    const selectedIdx = parseInt(this.value, 10);
+    if (!isNaN(selectedIdx) && matches[selectedIdx]) {
+      applySelectedAccount(matches[selectedIdx]);
+    }
+  });
+}
+
+// Auto-trigger on 10th digit entry
+document.getElementById('accountNumber').addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g, '');
+  document.getElementById('acctCount').textContent = this.value.length + ' / 10';
+  document.getElementById('fetchedDetails').classList.add('hide');
+  
+  const pickerWrap = document.getElementById('multiBankSelectWrap');
+  if (pickerWrap) pickerWrap.classList.add('hide');
+
+  checkNextEnabled();
+
+  if (this.value.length === 10) {
+    fetchAccountDetails(this.value);
+  }
+});
 // ========== INPUT LISTENERS ==========
 document.getElementById('phone').addEventListener('input', function() {
   this.value = this.value.replace(/\D/g, '');
