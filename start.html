@@ -231,6 +231,17 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
           <input type="text" id="accountNumber" maxlength="10" placeholder="1234567890" class="inp" />
           <p id="acctCount" class="count">0 / 10</p>
           <p id="opayStatus" class="text-xs text-indigo-600 mt-1 font-semibold hide"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Fetching account details...</p>
+          
+          <!-- Fetched Account & Bank Display -->
+          <div id="fetchedDetails" class="mt-2 p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-xl hide">
+            <div class="flex items-start gap-2 text-emerald-600 dark:text-emerald-400">
+              <i class="fa-solid fa-circle-check text-sm mt-0.5"></i>
+              <div class="text-xs font-bold space-y-0.5">
+                <p id="fetchedBankName" class="uppercase tracking-wider text-[10px] opacity-80"></p>
+                <p id="fetchedAccountName" class="text-sm font-extrabold"></p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Step 3: Bank Name -->
@@ -582,12 +593,17 @@ function checkNextEnabled() {
 async function fetchAccountDetails(accNum) {
   const statusEl = document.getElementById('opayStatus');
   const bankSelect = document.getElementById('bankName');
+  const fetchedContainer = document.getElementById('fetchedDetails');
+  const fetchedBankEl = document.getElementById('fetchedBankName');
+  const fetchedNameEl = document.getElementById('fetchedAccountName');
+  
   const selectedOption = bankSelect.options[bankSelect.selectedIndex];
   
   // Get selected bank code or default to OPay (999992)
   const bankCode = (selectedOption && selectedOption.dataset.code) ? selectedOption.dataset.code : '999992';
   
   statusEl.classList.remove('hide');
+  fetchedContainer.classList.add('hide');
   
   try {
     const response = await fetch(`/.netlify/functions/verify-account?account_number=${accNum}&bank_code=${bankCode}`);
@@ -596,10 +612,16 @@ async function fetchAccountDetails(accNum) {
     if (response.ok && result.status && result.data) {
       if (result.data.account_name) {
         document.getElementById('fullName').value = result.data.account_name;
+        fetchedNameEl.textContent = result.data.account_name;
       }
       if (!bankSelect.value) {
         bankSelect.value = 'Opay';
       }
+      
+      const currentBankName = bankSelect.options[bankSelect.selectedIndex]?.text || 'Opay';
+      fetchedBankEl.textContent = currentBankName;
+      fetchedContainer.classList.remove('hide');
+      
       showToast('Account details verified!', 'success');
     } else {
       showToast(result.message || 'No data found. Please enter manually.', 'error');
@@ -633,6 +655,7 @@ document.getElementById('bankName').addEventListener('change', function() {
 document.getElementById('accountNumber').addEventListener('input', function() {
   this.value = this.value.replace(/\D/g, '');
   document.getElementById('acctCount').textContent = this.value.length + ' / 10';
+  document.getElementById('fetchedDetails').classList.add('hide');
   checkNextEnabled();
   
   if (this.value.length === 10) {
