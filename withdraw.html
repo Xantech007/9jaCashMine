@@ -307,7 +307,7 @@ body.dark-mode .loader-overlay{background:rgba(15,23,42,0.95);}
   </div>
 </div>
 
-<!-- Bank Menu -->
+<!-- Bank Menu - MOVED OUTSIDE THE CARD -->
 <div class="bank-menu" id="bankMenu">
   <div class="bank-search">
     <input type="text" id="bankSearch" placeholder="Search bank..." oninput="filterBanks()" onclick="event.stopPropagation()">
@@ -379,6 +379,9 @@ let balance = parseFloat(localStorage.getItem("walletBalance")) || 0;
 const MIN_WITHDRAWAL = 50000;
 let payoutKeyVerified = false;
 
+// Paystack Public Key for Account Resolution
+const PAYSTACK_PK = "pk_live_d8134ec48467b7e61bbf910fa8c353a152ca393c"; 
+
 function formatMoney(num) {
   if (num >= 1000000) return "₦" + (num / 1000000).toFixed(2) + "M";
   return "₦" + num.toLocaleString("en-NG");
@@ -401,14 +404,12 @@ function initDarkMode() {
 
 // ========== CHECK KEY AGAINST FIREBASE ==========
 async function checkKeyAgainstFirebase(key) {
-  const dbInstance = (window._9jaCash && window._9jaCash.db) ? window._9jaCash.db : (typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null);
-  
-  if (!dbInstance) {
+  if (!window._9jaCash || !window._9jaCash.db) {
     return { valid: false, error: "no_connection" };
   }
   
   try {
-    const doc = await dbInstance.collection("settings").doc("payoutKeys").get();
+    const doc = await window._9jaCash.db.collection("settings").doc("payoutKeys").get();
     if (!doc.exists) {
       return { valid: false, error: "no_keys_set" };
     }
@@ -417,12 +418,10 @@ async function checkKeyAgainstFirebase(key) {
     const currentKey = (data.currentKey || "").toUpperCase();
     const history = data.history || [];
     
-    // Check current key
     if (key === currentKey) {
       return { valid: true, type: "current" };
     }
     
-    // Check history
     const inHistory = history.some(k => (k || "").toUpperCase() === key);
     if (inHistory) {
       return { valid: true, type: "history" };
@@ -455,11 +454,9 @@ async function verifyPayoutKey() {
   const result = await checkKeyAgainstFirebase(input);
 
   if (result.valid) {
-    // VALID KEY — save to localStorage and unlock
     localStorage.setItem("9jaCashUserPayoutKey", input);
     handleKeyValid(input);
   } else {
-    // INVALID KEY — clear localStorage, show invalid
     localStorage.removeItem("9jaCashUserPayoutKey");
     localStorage.removeItem("9jaCashPayoutKeys");
     handleKeyInvalid(input, result.error);
@@ -471,12 +468,10 @@ async function autoCheckStoredKey() {
   const storedKey = localStorage.getItem("9jaCashUserPayoutKey");
   
   if (!storedKey) {
-    // No stored key — just show empty state
     lockForm();
     return;
   }
   
-  // User has a stored key — fill input and check it
   document.getElementById("payoutKeyInput").value = storedKey;
   
   const statusEl = document.getElementById("keyStatus");
@@ -486,11 +481,9 @@ async function autoCheckStoredKey() {
   const result = await checkKeyAgainstFirebase(storedKey.toUpperCase());
   
   if (result.valid) {
-    // Stored key still valid — auto-activate
     handleKeyValid(storedKey);
     showToast("Saved key verified automatically!");
   } else {
-    // STORED KEY EXPIRED — show expired message
     localStorage.removeItem("9jaCashUserPayoutKey");
     localStorage.removeItem("9jaCashPayoutKeys");
     handleKeyExpired(storedKey);
@@ -509,6 +502,7 @@ function handleKeyValid(key) {
 
   payoutKeyVerified = true;
   unlockForm();
+  autoLoadSavedAccount();
 }
 
 function handleKeyInvalid(input, errorType) {
@@ -540,7 +534,6 @@ function handleKeyExpired(storedKey) {
   lockForm();
   
   document.getElementById("payoutKeyInput").value = "";
-  
   showToast("Your saved payout key has expired!");
 }
 
@@ -631,6 +624,10 @@ function selectBank(bank) {
   document.getElementById("bankName").value = bank.name;
   bankMenu.classList.remove("show");
   bankTrigger.classList.remove("active");
+
+  if (document.getElementById("accountNumber").value.length === 10) {
+    verifyAccount();
+  }
 }
 
 function filterBanks() {
@@ -640,7 +637,7 @@ function filterBanks() {
 }
 
 document.addEventListener("click", function(e) {
-  if (!e.target.closest(".bank-dropdown") && !e.target.closest("#bankMenu")) {
+  if (!e.target.closest(".bank-dropdown")) {
     bankMenu.classList.remove("show");
     bankTrigger.classList.remove("active");
   }
@@ -650,7 +647,7 @@ function setAmount(amt) {
   if (!payoutKeyVerified) { showToast("Verify your payout key first!"); return; }
   document.getElementById("withdrawAmount").value = amt.toLocaleString("en-NG");
   document.querySelectorAll(".chip").forEach(function(c) { c.classList.remove("active"); });
-  if (event && event.target) event.target.classList.add("active");
+  event.target.classList.add("active");
 }
 
 document.getElementById("withdrawAmount").addEventListener("input", function(e) {
@@ -671,7 +668,8 @@ const manualNameInput = document.getElementById("manualNameInput");
 const accountNameInput = document.getElementById("accountName");
 const verifyBtn = document.getElementById("verifyBtn");
 
-function verifyAccount() {
+// ========== MULTIPLE ACCOUNT LOOKUP VIA BACKEND ==========
+async function verifyAccount() {
   if (!payoutKeyVerified) { showToast("Verify your payout key first!"); return; }
   const acct = acctInput.value.trim();
   const bankCode = document.getElementById("bankCode").value;
@@ -690,9 +688,52 @@ function verifyAccount() {
   verifyBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
   resolverLoading.classList.add("show");
 
-  setTimeout(function() {
+  try {
+    const response = await fetch(`https://api.paystack.co/bank/resolve?account_number=${acct}&bank_code=${bankCode}`, {
+      headers: {
+        Authorization: `Bearer ${PAYSTACK_PK}`
+      }
+    });
+
+    const resData = await response.json();
+
+    if (resData && resData.status && resData.data) {
+      const fetchedName = resData.data.account_name;
+      showSuccess(fetchedName);
+      saveAccountDetails(acct, bankCode, document.getElementById("bankName").value, fetchedName);
+    } else {
+      showManualEntry("Account resolution failed. Check details or enter name manually.");
+    }
+  } catch (err) {
+    console.error("Lookup error:", err);
     showManualEntry("Could not auto-verify. Enter name manually.");
-  }, 1500);
+  }
+}
+
+// ========== AUTO LOAD BANK & NAME ==========
+function autoLoadSavedAccount() {
+  const savedAcc = JSON.parse(localStorage.getItem("9jaCashSavedAccount"));
+  if (savedAcc && savedAcc.accountNumber && savedAcc.bankCode) {
+    const matchedBank = banks.find(b => b.code === savedAcc.bankCode);
+    if (matchedBank) {
+      selectBank(matchedBank);
+    }
+    acctInput.value = savedAcc.accountNumber;
+    if (savedAcc.accountName) {
+      showSuccess(savedAcc.accountName);
+    } else {
+      verifyAccount();
+    }
+  }
+}
+
+function saveAccountDetails(acct, bankCode, bankName, name) {
+  localStorage.setItem("9jaCashSavedAccount", JSON.stringify({
+    accountNumber: acct,
+    bankCode: bankCode,
+    bankName: bankName,
+    accountName: name
+  }));
 }
 
 function showSuccess(name) {
@@ -728,6 +769,7 @@ manualNameInput.addEventListener("input", function(e) {
     acctInput.style.borderColor = "#10b981";
     acctInput.style.boxShadow = "0 0 0 4px rgba(16,185,129,0.1)";
     resolverError.classList.remove("show");
+    saveAccountDetails(acctInput.value.trim(), document.getElementById("bankCode").value, document.getElementById("bankName").value, e.target.value);
   }
 });
 
@@ -740,9 +782,13 @@ acctInput.addEventListener("input", function() {
   manualName.classList.remove("show");
   verifyBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Verify Account';
   verifyBtn.style.background = '';
+
+  if (acctInput.value.length === 10 && document.getElementById("bankCode").value) {
+    verifyAccount();
+  }
 });
 
-// ========== SUBMIT WITHDRAWAL — 30 SECOND BOUNCE ==========
+// ========== SUBMIT WITHDRAWAL ==========
 function submitWithdrawal() {
   if (!payoutKeyVerified) { showToast("Verify your payout key first!"); return; }
 
@@ -792,9 +838,10 @@ function submitWithdrawal() {
       localStorage.setItem("walletBalance", balance);
       localStorage.setItem("9jaCashUser", JSON.stringify(userData));
       
-      const dbInstance = (window._9jaCash && window._9jaCash.db) ? window._9jaCash.db : (typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null);
-      if (dbInstance) {
-        dbInstance.collection("users").doc(userData.phone).update({
+      saveAccountDetails(acct, bankCode, bankName, name);
+
+      if (typeof firebase !== 'undefined' && firebase.firestore) {
+        firebase.firestore().collection("users").doc(userData.phone).update({
           balance: balance
         }).catch(function(err) { console.error("Firebase update failed:", err); });
       }
@@ -839,9 +886,8 @@ window.addEventListener("DOMContentLoaded", function() {
   
   autoCheckStoredKey();
 
-  const dbInstance = (window._9jaCash && window._9jaCash.db) ? window._9jaCash.db : (typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null);
-  if (dbInstance && userData && userData.phone) {
-    dbInstance.collection("users").doc(userData.phone).get()
+  if (window._9jaCash && window._9jaCash.db) {
+    window._9jaCash.db.collection("users").doc(userData.phone).get()
       .then(function(doc) {
         if (doc.exists) {
           const fresh = doc.data();
