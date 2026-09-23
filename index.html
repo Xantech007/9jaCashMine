@@ -133,7 +133,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b
     </div>
   </div>
   <div class="ath-steps" id="athSteps">
-    <!-- Steps injected by JS based on device -->
+    <!-- Steps injected by JS -->
   </div>
   <div class="ath-actions">
     <button class="ath-btn ath-btn-done" onclick="markAthDone()">
@@ -364,113 +364,46 @@ function showToast(msg) {
   setTimeout(function() { t.classList.remove("show"); }, 2500);
 }
 
-// ========== DEVICE DETECTION ==========
-function getDeviceInfo() {
-  const ua = navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-  const isAndroid = /Android/.test(ua);
-  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-  const isChrome = /Chrome/.test(ua) && !/Edg/.test(ua);
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  
-  return { isIOS, isAndroid, isSafari, isChrome, isStandalone };
-}
-
 // ========== ADD TO HOME SCREEN / PWA INSTALLATION ==========
 let deferredPrompt = null;
 
 window.addEventListener('beforeinstallprompt', function(e) {
-  // Prevent Chrome's default install prompt banner
   e.preventDefault();
-  // Save the event so it can be triggered later
   deferredPrompt = e;
-  
-  // Show our install banner
-  triggerAthBanner(true);
 });
 
-function triggerAthBanner(isPWA = false) {
-  if (localStorage.getItem("9jaCashAthDone") === "true") return;
-  if (localStorage.getItem("9jaCashAthDismissed") === "true") return;
-  
-  const device = getDeviceInfo();
-  if (device.isStandalone) return;
-  
+function triggerAthBanner() {
   const stepsContainer = document.getElementById("athSteps");
   const banner = document.getElementById("athBanner");
   
-  if (isPWA && deferredPrompt) {
-    // Android/Chrome native PWA install button
-    document.getElementById("athTitle").textContent = "Install 9jaCash App";
-    document.getElementById("athSub").textContent = "Get the native app experience on your device";
-    
-    stepsContainer.innerHTML = `
-      <div style="padding: 10px 0;">
-        <button id="pwaInstallBtn" class="ath-btn" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; width: 100%; justify-content: center; padding: 14px; border-radius: 12px; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">
-          <i class="fa-solid fa-cloud-arrow-down"></i> Install Now
-        </button>
-      </div>
-    `;
-    
-    // Bind click to open APK URL directly
-    setTimeout(() => {
-      const btn = document.getElementById("pwaInstallBtn");
-      if (btn) {
-        btn.onclick = function() {
-          window.location.href = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
-          markAthDone();
-        };
-      }
-    }, 100);
-  } else {
-    // Regular guide steps
-    let stepsHTML = "";
-    if (device.isIOS && device.isSafari) {
-      stepsHTML = 
-        '<div class="ath-step">' +
-          '<div class="ath-step-num">1</div>' +
-          '<div class="ath-step-text">Tap the <strong>Share</strong> button <i class="fa-solid fa-arrow-up-from-bracket" style="color:#818cf8;"></i> at the bottom</div>' +
-        '</div>' +
-        '<div class="ath-step">' +
-          '<div class="ath-step-num">2</div>' +
-          '<div class="ath-step-text">Scroll down and tap <strong>"Add to Home Screen"</strong></div>' +
-        '</div>' +
-        '<div class="ath-step">' +
-          '<div class="ath-step-num">3</div>' +
-          '<div class="ath-step-text">Tap <strong>"Add"</strong> — 9jaCash icon appears on your home screen</div>' +
-        '</div>';
-    } else {
-      stepsHTML = 
-        '<div class="ath-step">' +
-          '<div class="ath-step-num">1</div>' +
-          '<div class="ath-step-text">Tap the browser <strong>Menu</strong> (3 dots/lines)</div>' +
-        '</div>' +
-        '<div class="ath-step">' +
-          '<div class="ath-step-num">2</div>' +
-          '<div class="ath-step-text">Tap <strong>"Add to Home Screen"</strong> or <strong>"Install"</strong></div>' +
-        '</div>' +
-        '<div class="ath-step">' +
-          '<div class="ath-step-num">3</div>' +
-          '<div class="ath-step-text">Tap <strong>"Add"</strong> — 9jaCash icon appears on your home screen</div>' +
-        '</div>';
-    }
-    stepsContainer.innerHTML = stepsHTML;
-  }
+  document.getElementById("athTitle").textContent = "Install 9jaCash App";
+  document.getElementById("athSub").textContent = "Get the native app experience on your device";
   
-  // Show banner
+  stepsContainer.innerHTML = `
+    <div style="padding: 10px 0;">
+      <button id="pwaInstallBtn" class="ath-btn" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; width: 100%; justify-content: center; padding: 14px; border-radius: 12px; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">
+        <i class="fa-solid fa-cloud-arrow-down"></i> Install Now
+      </button>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    const btn = document.getElementById("pwaInstallBtn");
+    if (btn) {
+      btn.onclick = function() {
+        window.location.href = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
+        markAthDone();
+      };
+    }
+  }, 100);
+  
   setTimeout(function() {
     banner.classList.add("show");
-  }, 2500);
+  }, 1000);
 }
 
 function initAthBanner() {
-  // If Chrome PWA beforeinstallprompt fires, it will trigger it.
-  // Otherwise, we load standard guide after 3 seconds:
-  setTimeout(() => {
-    if (!deferredPrompt) {
-      triggerAthBanner(false);
-    }
-  }, 3000);
+  triggerAthBanner();
 }
 
 function markAthDone() {
@@ -521,7 +454,6 @@ function requestNotify() {
     
     if (permission === "granted") {
       showToast("Notifications enabled! You'll get alerts for withdrawals & refunds.");
-      // Register service worker for push notifications
       registerServiceWorker();
     } else {
       showToast("Notifications disabled. Enable later in settings.");
@@ -552,7 +484,6 @@ function registerServiceWorker() {
 
 // ========== INIT ==========
 window.addEventListener("DOMContentLoaded", function() {
-  // Auto-redirect if already logged in / registered
   const user = localStorage.getItem('9jaCashUser');
   if (user) {
     window.location.href = 'dashboard.html';
@@ -561,7 +492,6 @@ window.addEventListener("DOMContentLoaded", function() {
 
   initAthBanner();
   
-  // Capture referral code if present in URL
   const urlParams = new URLSearchParams(window.location.search);
   const ref = urlParams.get('ref') || urlParams.get('referral');
   if (ref) {
@@ -569,7 +499,6 @@ window.addEventListener("DOMContentLoaded", function() {
     sessionStorage.setItem('9jaCashReferralCode', ref);
     console.log('Referral code captured and saved:', ref);
   } else {
-    // If no ref parameter is present in URL, check sessionStorage to see if they clicked one in the current browser session
     const sessionRef = sessionStorage.getItem('9jaCashReferralCode');
     if (!sessionRef) {
       localStorage.removeItem('9jaCashReferralCode');
