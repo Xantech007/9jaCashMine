@@ -273,50 +273,25 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
 </div>
 
 <!-- LIVE WITHDRAWAL POPUP (PREMIUM CARD REDESIGN matching Image 3) -->
-<div id="liveWithdrawalBanner" class="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[420px] z-[9999] transition-all duration-500 transform -translate-y-32 opacity-0 pointer-events-none">
-  <div class="relative overflow-hidden rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-2xl p-4">
-    <!-- Accent Line Gradient -->
-    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-500"></div>
-    
-    <div class="flex items-center justify-between gap-3">
-      <!-- Icon Container -->
-      <div class="relative flex-shrink-0">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-          <i class="fa-solid fa-bolt text-lg"></i>
-        </div>
-        <span class="absolute -top-1 -right-1 flex h-3 w-3">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-        </span>
-      </div>
-
-      <!-- Main Info -->
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center justify-between gap-2 mb-1">
-          <div class="flex items-center gap-1.5 min-w-0">
-            <span id="popUser" class="font-extrabold text-sm text-slate-800 dark:text-slate-100 truncate"></span>
-            <span id="popBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 flex-shrink-0"></span>
-          </div>
-          <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 flex-shrink-0">Just now</span>
-        </div>
-
-        <div class="flex items-baseline justify-between gap-2">
-          <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">
-            <span class="text-slate-400 dark:text-slate-500">to</span> <span id="popBank" class="text-slate-700 dark:text-slate-300 font-bold"></span>
-          </div>
-          <div id="popAmount" class="text-base font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight flex-shrink-0"></div>
-        </div>
+<div id="liveWithdrawalPopup"
+  style="position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150px); z-index: 10000; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 12px 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 92%; width: 320px; opacity: 0;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <!-- Avatar with initial -->
+    <div id="liveWithdrawalAvatar"
+      style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 16px; flex-shrink: 0; text-transform: uppercase;">
+      M
+    </div>
+    <div style="text-align: left;">
+      <div style="font-size: 14px; font-weight: 800; color: #f8fafc;" id="liveWithdrawalUser">Mustafa</div>
+      <div style="font-size: 12px; font-weight: 500; color: #94a3b8;" id="liveWithdrawalAction">just withdrew ₦30,000
       </div>
     </div>
-
-    <!-- Bottom Status Line -->
-    <div class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
-      <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
-        <i class="fa-solid fa-circle-check text-[10px]"></i>
-        <span>Payout Dispatched via NIBSS</span>
-      </div>
-      <span class="text-slate-400 dark:text-slate-500 text-[10px]">9jaCash Instant</span>
-    </div>
+  </div>
+  <!-- Paid Badge -->
+  <div
+    style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 50px; padding: 4px 10px; font-size: 11px; font-weight: 700; color: #10b981; display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+    <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+    Paid
   </div>
 </div>
 
