@@ -5,18 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>9jaCash — Welcome</title>
 
+<!-- PWA / Add to Home Screen -->
 <link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="9jaCash">
+<link rel="apple-touch-icon" href="9jaCash.png">
 <meta name="theme-color" content="#6366f1">
 <meta name="mobile-web-app-capable" content="yes">
 
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <script src="firebase.js"></script>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
@@ -127,8 +128,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#1e293b
   <div class="ath-header">
     <div class="ath-icon"><i class="fa-solid fa-mobile-screen"></i></div>
     <div>
-      <div class="ath-title" id="athTitle">Install 9jaCash on your phone</div>
-      <div class="ath-sub" id="athSub">Use app version — faster access</div>
+      <div class="ath-title" id="athTitle">Add 9jaCash to Home Screen</div>
+      <div class="ath-sub" id="athSub">Open like a real app — faster access</div>
     </div>
   </div>
   <div class="ath-steps" id="athSteps">
@@ -379,12 +380,19 @@ function getDeviceInfo() {
 let deferredPrompt = null;
 
 window.addEventListener('beforeinstallprompt', function(e) {
+  // Prevent Chrome's default install prompt banner
   e.preventDefault();
+  // Save the event so it can be triggered later
   deferredPrompt = e;
+  
+  // Show our install banner
   triggerAthBanner(true);
 });
 
 function triggerAthBanner(isPWA = false) {
+  if (localStorage.getItem("9jaCashAthDone") === "true") return;
+  if (localStorage.getItem("9jaCashAthDismissed") === "true") return;
+  
   const device = getDeviceInfo();
   if (device.isStandalone) return;
   
@@ -392,28 +400,32 @@ function triggerAthBanner(isPWA = false) {
   const banner = document.getElementById("athBanner");
   
   if (isPWA && deferredPrompt) {
+    // Android/Chrome native PWA install button
     document.getElementById("athTitle").textContent = "Install 9jaCash App";
     document.getElementById("athSub").textContent = "Get the native app experience on your device";
     
     stepsContainer.innerHTML = `
       <div style="padding: 10px 0;">
-        <a id="pwaInstallBtn" href="https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk" target="_blank" download class="ath-btn" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; width: 100%; justify-content: center; padding: 14px; border-radius: 12px; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); text-decoration: none;">
+        <button id="pwaInstallBtn" class="ath-btn" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; width: 100%; justify-content: center; padding: 14px; border-radius: 12px; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">
           <i class="fa-solid fa-cloud-arrow-down"></i> Install Now
-        </a>
+        </button>
       </div>
     `;
     
+    // Bind click to open APK URL directly
     setTimeout(() => {
       const btn = document.getElementById("pwaInstallBtn");
       if (btn) {
         btn.onclick = function() {
+          window.location.href = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
           markAthDone();
         };
       }
     }, 100);
   } else {
+    // Regular guide steps
     let stepsHTML = "";
-    if (device.isIOS) {
+    if (device.isIOS && device.isSafari) {
       stepsHTML = 
         '<div class="ath-step">' +
           '<div class="ath-step-num">1</div>' +
@@ -445,20 +457,24 @@ function triggerAthBanner(isPWA = false) {
     stepsContainer.innerHTML = stepsHTML;
   }
   
+  // Show banner
   setTimeout(function() {
     banner.classList.add("show");
-  }, 1000);
+  }, 2500);
 }
 
 function initAthBanner() {
+  // If Chrome PWA beforeinstallprompt fires, it will trigger it.
+  // Otherwise, we load standard guide after 3 seconds:
   setTimeout(() => {
     if (!deferredPrompt) {
       triggerAthBanner(false);
     }
-  }, 1500);
+  }, 3000);
 }
 
 function markAthDone() {
+  localStorage.setItem("9jaCashAthDone", "true");
   document.getElementById("athBanner").classList.remove("show");
   setTimeout(function() {
     document.getElementById("athBanner").classList.add("hidden");
@@ -467,6 +483,7 @@ function markAthDone() {
 }
 
 function dismissAth() {
+  localStorage.setItem("9jaCashAthDismissed", "true");
   document.getElementById("athBanner").classList.remove("show");
   setTimeout(function() {
     document.getElementById("athBanner").classList.add("hidden");
@@ -476,9 +493,13 @@ function dismissAth() {
 
 // ========== NOTIFICATION PERMISSION ==========
 function initNotifyBanner() {
+  if (localStorage.getItem("9jaCashNotifyDecided") === "true") return;
   if (!("Notification" in window)) return;
-  if (Notification.permission === "granted") return;
-
+  if (Notification.permission === "granted") {
+    localStorage.setItem("9jaCashNotifyDecided", "true");
+    return;
+  }
+  
   setTimeout(function() {
     const banner = document.getElementById("notifyBanner");
     banner.classList.add("show");
@@ -490,15 +511,17 @@ function requestNotify() {
     showToast("Notifications not supported on this device");
     return;
   }
-
+  
   Notification.requestPermission().then(function(permission) {
+    localStorage.setItem("9jaCashNotifyDecided", "true");
     document.getElementById("notifyBanner").classList.remove("show");
     setTimeout(function() {
       document.getElementById("notifyBanner").classList.add("hidden");
     }, 600);
-
+    
     if (permission === "granted") {
       showToast("Notifications enabled! You'll get alerts for withdrawals & refunds.");
+      // Register service worker for push notifications
       registerServiceWorker();
     } else {
       showToast("Notifications disabled. Enable later in settings.");
@@ -507,6 +530,7 @@ function requestNotify() {
 }
 
 function dismissNotify() {
+  localStorage.setItem("9jaCashNotifyDecided", "true");
   document.getElementById("notifyBanner").classList.remove("show");
   setTimeout(function() {
     document.getElementById("notifyBanner").classList.add("hidden");
@@ -526,27 +550,30 @@ function registerServiceWorker() {
   }
 }
 
-// ========== INIT & FIREBASE AUTH MONITOR ==========
+// ========== INIT ==========
 window.addEventListener("DOMContentLoaded", function() {
-  // Check Firebase Auth session using window._9jaCash
-  if (window._9jaCash && window._9jaCash.auth) {
-    window._9jaCash.auth.onAuthStateChanged(function(user) {
-      if (user) {
-        window.location.href = 'dashboard.html';
-        return;
-      }
-    });
+  // Auto-redirect if already logged in / registered
+  const user = localStorage.getItem('9jaCashUser');
+  if (user) {
+    window.location.href = 'dashboard.html';
+    return;
   }
 
-  // Trigger Add to Home Screen Banner Automatically
   initAthBanner();
   
-  // Handle Referral Links
+  // Capture referral code if present in URL
   const urlParams = new URLSearchParams(window.location.search);
   const ref = urlParams.get('ref') || urlParams.get('referral');
   if (ref) {
+    localStorage.setItem('9jaCashReferralCode', ref);
     sessionStorage.setItem('9jaCashReferralCode', ref);
-    console.log('Referral code captured:', ref);
+    console.log('Referral code captured and saved:', ref);
+  } else {
+    // If no ref parameter is present in URL, check sessionStorage to see if they clicked one in the current browser session
+    const sessionRef = sessionStorage.getItem('9jaCashReferralCode');
+    if (!sessionRef) {
+      localStorage.removeItem('9jaCashReferralCode');
+    }
   }
 });
 </script>
