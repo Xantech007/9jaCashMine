@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,9 +13,6 @@
 <link rel="apple-touch-icon" href="9jaCash.png">
 <meta name="theme-color" content="#6366f1">
 <meta name="mobile-web-app-capable" content="yes">
-
-
-
 
 <script src="firebase.js"></script>
 
@@ -416,23 +412,13 @@ function triggerAthBanner(isPWA = false) {
       </div>
     `;
     
-    // Bind click
+    // Bind click to open APK URL directly
     setTimeout(() => {
       const btn = document.getElementById("pwaInstallBtn");
       if (btn) {
         btn.onclick = function() {
-          if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(function(choiceResult) {
-              if (choiceResult.outcome === 'accepted') {
-                console.log('User accepted the install prompt');
-                markAthDone();
-              } else {
-                console.log('User dismissed the install prompt');
-              }
-              deferredPrompt = null;
-            });
-          }
+          window.location.href = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
+          markAthDone();
         };
       }
     }, 100);
