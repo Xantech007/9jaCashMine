@@ -283,8 +283,7 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
     </div>
     <div style="text-align: left;">
       <div style="font-size: 14px; font-weight: 800; color: #f8fafc;" id="liveWithdrawalUser">Mustafa</div>
-      <div style="font-size: 12px; font-weight: 500; color: #94a3b8;" id="liveWithdrawalAction">just withdrew ₦30,000
-      </div>
+      <div style="font-size: 12px; font-weight: 500; color: #94a3b8;" id="liveWithdrawalAction">just withdrew ₦30,000</div>
     </div>
   </div>
   <!-- Paid Badge -->
@@ -502,30 +501,30 @@ let referralsUnsubscribe = null;
 
 // Mock Data for Realtime Withdrawal Live Banner Notifications
 const withdrawalNames = ["Chinedu O.", "Amina B.", "Emeka K.", "Blessing N.", "Tunde A.", "Grace M.", "Ibrahim S.", "Joy E.", "David U.", "Funke P."];
-const withdrawalBanks = ["OPay", "Palmpay", "Kuda", "GTBank", "First Bank", "Access Bank", "Zenith Bank", "Moniepoint"];
 const withdrawalAmounts = [30000, 50000, 75000, 100000, 120000, 150000, 200000];
-const withdrawalBadges = ["PRO MINER", "VIP LEVEL 2", "FREE MINER", "PREMIUM", "VIP MINER"];
 
 function triggerRealtimeWithdrawalPopup() {
-  const banner = document.getElementById("liveWithdrawalBanner");
-  if (!banner) return;
+  const popup = document.getElementById("liveWithdrawalPopup");
+  const userEl = document.getElementById("liveWithdrawalUser");
+  const actionEl = document.getElementById("liveWithdrawalAction");
+  const avatarEl = document.getElementById("liveWithdrawalAvatar");
+  
+  if (!popup || !userEl || !actionEl || !avatarEl) return;
 
   const randomName = withdrawalNames[Math.floor(Math.random() * withdrawalNames.length)];
-  const randomBank = withdrawalBanks[Math.floor(Math.random() * withdrawalBanks.length)];
   const randomAmount = withdrawalAmounts[Math.floor(Math.random() * withdrawalAmounts.length)];
-  const randomBadge = withdrawalBadges[Math.floor(Math.random() * withdrawalBadges.length)];
+  const initial = randomName.charAt(0);
 
-  document.getElementById("popUser").textContent = randomName;
-  document.getElementById("popBadge").textContent = randomBadge;
-  document.getElementById("popBank").textContent = randomBank;
-  document.getElementById("popAmount").textContent = "₦" + randomAmount.toLocaleString();
+  avatarEl.textContent = initial;
+  userEl.textContent = randomName;
+  actionEl.textContent = "just withdrew ₦" + randomAmount.toLocaleString();
 
-  banner.classList.remove("-translate-y-32", "opacity-0", "pointer-events-none");
-  banner.classList.add("translate-y-0", "opacity-100");
+  popup.style.transform = "translate(-50%, 0)";
+  popup.style.opacity = "1";
 
   setTimeout(function() {
-    banner.classList.remove("translate-y-0", "opacity-100");
-    banner.classList.add("-translate-y-32", "opacity-0", "pointer-events-none");
+    popup.style.transform = "translate(-50%, -150px)";
+    popup.style.opacity = "0";
   }, 4500);
 }
 
