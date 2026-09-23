@@ -141,7 +141,7 @@ body.dark-mode .ref-stat-item{background:#0f172a;border-color:#334155;}
 .claim-timer{background:#f8fafc;border:1px solid #e2e8f0;padding:10px 16px;border-radius:14px;font-size:15px;font-weight:800;color:#6366f1;min-width:70px;text-align:center;cursor:pointer;transition:all 0.3s;}
 .claim-timer.ready{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 12px rgba(99,102,241,0.2);}
 .claim-timer.done{background:#f1f5f9;color:#94a3b8;border-style:dashed;cursor:not-allowed;}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:8px 12px 16px;display:flex;justify-content:space-around;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #f1f5f9;padding:8px 12px 16px;display:flex;justify-around:space-around;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.04);transition:all 0.3s ease;}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#94a3b8;text-decoration:none;font-size:10px;font-weight:600;transition:all 0.3s;border:none;background:none;cursor:pointer;padding:4px 0;}
 .nav-item i{font-size:20px;}
 .nav-item.active{color:#6366f1;}
@@ -272,15 +272,50 @@ body.dark-mode .redirect-overlay{background:linear-gradient(135deg,#0f172a 0%,#1
   </div>
 </div>
 
-<!-- Realtime Live Withdrawal Notification Pop-up -->
-<div class="notify-banner" id="realtimeWithdrawalBanner">
-  <div class="notify-header">
-    <div class="notify-icon" style="background:linear-gradient(135deg,#10b981,#34d399);">
-      <i class="fa-solid fa-paper-plane"></i>
+<!-- LIVE WITHDRAWAL POPUP (PREMIUM CARD REDESIGN matching Image 3) -->
+<div id="liveWithdrawalBanner" class="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[420px] z-[9999] transition-all duration-500 transform -translate-y-32 opacity-0 pointer-events-none">
+  <div class="relative overflow-hidden rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-2xl p-4">
+    <!-- Accent Line Gradient -->
+    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-500"></div>
+    
+    <div class="flex items-center justify-between gap-3">
+      <!-- Icon Container -->
+      <div class="relative flex-shrink-0">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-bolt text-lg"></i>
+        </div>
+        <span class="absolute -top-1 -right-1 flex h-3 w-3">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+        </span>
+      </div>
+
+      <!-- Main Info -->
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between gap-2 mb-1">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span id="popUser" class="font-extrabold text-sm text-slate-800 dark:text-slate-100 truncate"></span>
+            <span id="popBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 flex-shrink-0"></span>
+          </div>
+          <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 flex-shrink-0">Just now</span>
+        </div>
+
+        <div class="flex items-baseline justify-between gap-2">
+          <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">
+            <span class="text-slate-400 dark:text-slate-500">to</span> <span id="popBank" class="text-slate-700 dark:text-slate-300 font-bold"></span>
+          </div>
+          <div id="popAmount" class="text-base font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight flex-shrink-0"></div>
+        </div>
+      </div>
     </div>
-    <div>
-      <div class="notify-title" id="realtimeWithdrawalTitle">Recent Payout</div>
-      <div class="notify-sub" id="realtimeWithdrawalSub">Loading withdrawal...</div>
+
+    <!-- Bottom Status Line -->
+    <div class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
+      <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+        <i class="fa-solid fa-circle-check text-[10px]"></i>
+        <span>Payout Dispatched via NIBSS</span>
+      </div>
+      <span class="text-slate-400 dark:text-slate-500 text-[10px]">9jaCash Instant</span>
     </div>
   </div>
 </div>
@@ -494,22 +529,28 @@ let referralsUnsubscribe = null;
 const withdrawalNames = ["Chinedu O.", "Amina B.", "Emeka K.", "Blessing N.", "Tunde A.", "Grace M.", "Ibrahim S.", "Joy E.", "David U.", "Funke P."];
 const withdrawalBanks = ["OPay", "Palmpay", "Kuda", "GTBank", "First Bank", "Access Bank", "Zenith Bank", "Moniepoint"];
 const withdrawalAmounts = [30000, 50000, 75000, 100000, 120000, 150000, 200000];
+const withdrawalBadges = ["PRO MINER", "VIP LEVEL 2", "FREE MINER", "PREMIUM", "VIP MINER"];
 
 function triggerRealtimeWithdrawalPopup() {
-  const banner = document.getElementById("realtimeWithdrawalBanner");
+  const banner = document.getElementById("liveWithdrawalBanner");
   if (!banner) return;
 
   const randomName = withdrawalNames[Math.floor(Math.random() * withdrawalNames.length)];
   const randomBank = withdrawalBanks[Math.floor(Math.random() * withdrawalBanks.length)];
   const randomAmount = withdrawalAmounts[Math.floor(Math.random() * withdrawalAmounts.length)];
+  const randomBadge = withdrawalBadges[Math.floor(Math.random() * withdrawalBadges.length)];
 
-  document.getElementById("realtimeWithdrawalTitle").textContent = randomName + " just withdrew ₦" + randomAmount.toLocaleString();
-  document.getElementById("realtimeWithdrawalSub").textContent = "Successfully transferred to " + randomBank + " • Just now";
+  document.getElementById("popUser").textContent = randomName;
+  document.getElementById("popBadge").textContent = randomBadge;
+  document.getElementById("popBank").textContent = randomBank;
+  document.getElementById("popAmount").textContent = "₦" + randomAmount.toLocaleString();
 
-  banner.classList.add("show");
+  banner.classList.remove("-translate-y-32", "opacity-0", "pointer-events-none");
+  banner.classList.add("translate-y-0", "opacity-100");
 
   setTimeout(function() {
-    banner.classList.remove("show");
+    banner.classList.remove("translate-y-0", "opacity-100");
+    banner.classList.add("-translate-y-32", "opacity-0", "pointer-events-none");
   }, 4500);
 }
 
