@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Payment - 9jaCash</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-<script src="firebase.js"></script>
+
+
+
+<script src="firebase-init.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -246,8 +246,35 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
 
 <div class="notice-box anim d2">
   <div class="notice-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-  <div class="notice-text" id="noticeTextContainer">
+  <div class="notice-text">
     <b>Do NOT use Opay</b> for transfers. Preferred: GTBank, Access, Zenith, UBA, First Bank.
+  </div>
+</div>
+
+<!-- CBN Regulated Payment Card (matching Image 5) -->
+<div class="anim d2" style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: left;">
+  <div style="display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px;">
+    <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(to right, #008751 33%, #ffffff 33%, #ffffff 66%, #008751 66%); border: 2px solid #008751; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,135,81,0.2); flex-shrink: 0;">
+      <i class="fa-solid fa-building-columns" style="font-size: 16px; color: #008751;"></i>
+    </div>
+    <div>
+      <div style="font-size: 14px; font-weight: 800; color: #f8fafc; display: flex; align-items: center; gap: 6px;">
+        CBN Regulated Payment 
+        <i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 14px;"></i>
+      </div>
+      <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; line-height: 1.4;">
+        In compliance with <b>CBN</b> AML/KYC directives, payments are processed through verified Nigerian banks under the <b>NDIC</b> insurance scheme.
+      </div>
+    </div>
+  </div>
+  
+  <div style="background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.12); border-radius: 12px; padding: 12px 14px; font-size: 12px; color: #34d399; line-height: 1.5; font-weight: 500; margin-bottom: 12px;">
+    Transfer exactly <span style="font-weight: 700; color: #10b981;" id="cbnCardAmount">₦0</span> to the account below. This payment confirmation unlocks the requested service.
+  </div>
+  
+  <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">
+    <span style="display: inline-flex; width: 14px; height: 10px; background: linear-gradient(to right, #008751 33%, #ffffff 33%, #ffffff 66%, #008751 66%); border-radius: 1px; border: 1px solid rgba(255,255,255,0.1);"></span>
+    Federal Republic of Nigeria • Authorised Platform
   </div>
 </div>
 
@@ -304,6 +331,20 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
   </div>
 </div>
 
+<!-- Warnings section (matching Image 4) -->
+<div class="anim d5" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 16px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; text-align: left;">
+  <div style="color: #fbbf24; font-size: 18px; flex-shrink: 0;"><i class="fa-solid fa-circle-info"></i></div>
+  <div style="font-size: 13px; color: #f59e0b; line-height: 1.5; font-weight: 500;" id="pendingWarningText">
+    Transfer the exact amount above and upload your receipt below. You can only have one pending payout key 🗝 purchase at a time.
+  </div>
+</div>
+<div class="anim d5" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; text-align: left;">
+  <div style="color: #f87171; font-size: 18px; flex-shrink: 0;"><i class="fa-solid fa-shield-halved"></i></div>
+  <div style="font-size: 13px; color: #f87171; line-height: 1.5; font-weight: 500;">
+    <b style="color: #ef4444; font-weight: 700;">Warning:</b> Only upload your genuine payment receipt. Uploading fake, edited, or unrelated images will result in <b style="color: #ef4444; font-weight: 700;">immediate account suspension.</b>
+  </div>
+</div>
+
 <div class="card anim d5">
   <div class="upload-zone" id="uploadZone" onclick="document.getElementById('receiptUpload').click()">
     <i class="fa-solid fa-cloud-arrow-up" id="uploadIcon"></i>
@@ -334,8 +375,7 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
   <div class="loader-text">Verifying Payment...</div>
   <div class="loader-sub">Please wait • Do not close this page</div>
 </div>
-
-<script>
+ <script>
 // ========== GLOBALS ==========
 let userData = null;
 try {
@@ -343,8 +383,12 @@ try {
 } catch(e) { userData = null; }
 if (!userData) { window.location.href = "start.html"; }
 
+// Module-level API_URL so all functions can access it
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
+
 let receiptUploaded = false;
 let receiptFile = null;
+let receiptBase64 = null;
 let paymentData = null;
 let upgradeData = null;
 let timeLeft = 7 * 60;
@@ -353,15 +397,11 @@ let currentTab = "bank";
 let flowType = "unknown";
 let isProcessing = false;
 
-// Fallback notice HTML snippet
-const FALLBACK_NOTICE = '<b>Do NOT use Opay</b> for transfers. Preferred: GTBank, Access, Zenith, UBA, First Bank.';
-
 // ========== FORMAT MONEY ==========
 function formatMoney(num) {
   if (num === null || num === undefined || num === "") return "₦0";
   let n = parseFloat(num);
   if (isNaN(n)) return "₦0";
-  if (n >= 1000000) return "₦" + (n / 1000000).toFixed(2) + "M";
   return "₦" + n.toLocaleString("en-NG");
 }
 
@@ -392,14 +432,17 @@ function goBack() {
 
 // ========== DETECT FLOW — FIXED ==========
 function detectFlow() {
+  // Reset both
   paymentData = null;
   upgradeData = null;
   flowType = "unknown";
 
+  // 1. Check UPGRADE first (selectedPlan from upgrade.html)
   const storedUpgrade = localStorage.getItem("selectedPlan");
   if (storedUpgrade) {
     try {
       const parsed = JSON.parse(storedUpgrade);
+      // Accept various property names from upgrade.html
       if (parsed && (parsed.name || parsed.planName || parsed.plan)) {
         upgradeData = {
           name: parsed.name || parsed.planName || parsed.plan || "Plan Upgrade",
@@ -407,6 +450,7 @@ function detectFlow() {
           earningLimit: parsed.earningLimit || parsed.limit || parsed.dailyEarning || 0
         };
         flowType = "upgrade";
+        // Don't remove yet — remove after successful redirect
         return;
       }
     } catch(e) {
@@ -414,6 +458,7 @@ function detectFlow() {
     }
   }
 
+  // 2. Check PAYOUT KEY (9jaCashPaymentData from buy.html)
   const storedPayment = localStorage.getItem("9jaCashPaymentData");
   if (storedPayment) {
     try {
@@ -428,6 +473,7 @@ function detectFlow() {
     }
   }
 
+  // 3. Fallback
   flowType = "unknown";
 }
 
@@ -456,7 +502,7 @@ function updateFlowBadge() {
   }
 }
 
-// ========== UPDATE ORDER SUMMARY ==========
+// ========== UPDATE ORDER SUMMARY — FIXED ==========
 function updateOrderSummary() {
   const orderTitle = document.getElementById("orderTitle");
   const orderSub = document.getElementById("orderSub");
@@ -471,6 +517,7 @@ function updateOrderSummary() {
   const orderTotal = document.getElementById("orderTotal");
 
   if (flowType === "upgrade" && upgradeData) {
+    // UPGRADE FLOW
     orderTitle.textContent = "Upgrade Plan";
     orderSub.textContent = "Plan upgrade payment";
     orderItem.textContent = upgradeData.name;
@@ -486,6 +533,7 @@ function updateOrderSummary() {
     document.getElementById("pageTitle").textContent = "Upgrade Payment";
 
   } else if (flowType === "payout_key" && paymentData) {
+    // PAYOUT KEY FLOW
     orderTitle.textContent = "Payout Key";
     orderSub.textContent = "Payout key purchase";
     orderItem.textContent = paymentData.plan || "Payout Key";
@@ -505,6 +553,7 @@ function updateOrderSummary() {
     document.getElementById("pageTitle").textContent = "Payout Key Payment";
 
   } else {
+    // UNKNOWN
     orderItem.textContent = "Unknown";
     orderPrice.textContent = "₦0";
     orderExtraRow.style.display = "none";
@@ -513,7 +562,7 @@ function updateOrderSummary() {
   }
 }
 
-// ========== UPDATE AMOUNT DISPLAY ==========
+// ========== UPDATE AMOUNT DISPLAY — FIXED ==========
 function updateAmountDisplay() {
   let amount = 0;
   
@@ -525,6 +574,7 @@ function updateAmountDisplay() {
 
   const formatted = formatMoney(amount);
   
+  // Big amount display
   const amountDisplay = document.getElementById("payAmountDisplay");
   if (formatted.includes(".")) {
     amountDisplay.innerHTML = formatted.replace(/\.(\d+)$/, '<span>.$1</span>');
@@ -532,8 +582,12 @@ function updateAmountDisplay() {
     amountDisplay.innerHTML = formatted + "<span>.00</span>";
   }
   
+  // Amount in bank panel
   document.getElementById("payAmount2").textContent = formatted;
+  const cbnAmt = document.getElementById("cbnCardAmount");
+  if (cbnAmt) cbnAmt.textContent = formatted;
 
+  // Hint text
   const payHint = document.getElementById("payHint");
   if (flowType === "upgrade" && upgradeData) {
     payHint.innerHTML = '<span>' + upgradeData.name + '</span> • One-time payment';
@@ -543,6 +597,15 @@ function updateAmountDisplay() {
     payHint.innerHTML = '<span>' + (paymentData.plan || "Payout Key") + '</span> • ' + limitText + ' withdrawals';
   } else {
     payHint.textContent = "Complete your payment to proceed";
+  }
+
+  const warningText = document.getElementById("pendingWarningText");
+  if (warningText) {
+    if (flowType === "upgrade") {
+      warningText.innerHTML = "Transfer the exact amount above and upload your receipt below. You can only have one pending account upgrade at a time.";
+    } else {
+      warningText.innerHTML = "Transfer the exact amount above and upload your receipt below. You can only have one pending payout key 🗝 purchase at a time.";
+    }
   }
 }
 
@@ -555,8 +618,62 @@ function switchTab(tab) {
   document.getElementById("panelCrypto").style.display = tab === "crypto" ? "block" : "none";
 }
 
-// ========== LOAD PAYMENT DETAILS & NOTICE FROM FIREBASE ==========
+// ========== LOAD PAYMENT DETAILS ==========
 function loadPaymentDetails() {
+  if (userData && userData.phone) {
+    fetch(API_URL + '/api/user/payment-instructions?phone=' + userData.phone)
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.status && data.useGlobal === false) {
+          // Junior admin direct bank details
+          document.getElementById("accNumber").textContent = data.accNumber || "—";
+          document.getElementById("bankName").textContent = data.bankName || "—";
+          document.getElementById("accName").textContent = data.accName || "—";
+          document.getElementById("cryptoAddr").textContent = "Not available";
+          document.getElementById("cryptoNetwork").textContent = "—";
+          document.getElementById("cryptoAmount").textContent = "—";
+        } else {
+          // Try the get-payment-details endpoint before Firestore fallback
+          loadPaymentDetailsFromBackend();
+        }
+      })
+      .catch(function(err) {
+        console.warn("API payment instructions error:", err);
+        loadPaymentDetailsFromBackend();
+      });
+  } else {
+    loadGlobalPaymentDetails();
+  }
+}
+
+function loadPaymentDetailsFromBackend() {
+  if (userData && userData.phone) {
+    fetch(API_URL + '/api/user/get-payment-details?phone=' + userData.phone)
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.status && data.type === 'junior') {
+          // Display Junior Admin's custom payment details
+          document.getElementById("accNumber").textContent = data.accNumber || "—";
+          document.getElementById("bankName").textContent = data.bank || "—";
+          document.getElementById("accName").textContent = data.accName || "—";
+          document.getElementById("cryptoAddr").textContent = data.cryptoAddress || "Not available";
+          document.getElementById("cryptoNetwork").textContent = data.cryptoNetwork || "—";
+          document.getElementById("cryptoAmount").textContent = "—";
+        } else {
+          // Fallback to central Firestore global settings
+          loadGlobalPaymentDetails();
+        }
+      })
+      .catch(function(err) {
+        console.warn("Error fetching routing details:", err);
+        loadGlobalPaymentDetails();
+      });
+  } else {
+    loadGlobalPaymentDetails();
+  }
+}
+
+function loadGlobalPaymentDetails() {
   if (window._9jaCash && window._9jaCash.db) {
     window._9jaCash.db.collection("settings").doc("payment").get()
       .then(function(doc) {
@@ -568,19 +685,12 @@ function loadPaymentDetails() {
           document.getElementById("cryptoAddr").textContent = data.cryptoAddress || "Not available";
           document.getElementById("cryptoNetwork").textContent = data.cryptoNetwork || "—";
           document.getElementById("cryptoAmount").textContent = data.cryptoAmount ? "$" + data.cryptoAmount : "—";
-          
-          // Dynamic notice fetching with hardcoded text fallback
-          if (data.notice && data.notice.trim() !== "") {
-            document.getElementById("noticeTextContainer").innerHTML = data.notice;
-          } else {
-            document.getElementById("noticeTextContainer").innerHTML = FALLBACK_NOTICE;
-          }
         } else {
           setFallbackDetails();
         }
       })
       .catch(function(err) {
-        console.error("Error loading payment details:", err);
+        console.error("Error loading global payment details:", err);
         setFallbackDetails();
       });
   } else {
@@ -595,7 +705,6 @@ function setFallbackDetails() {
   document.getElementById("cryptoAddr").textContent = "Not available";
   document.getElementById("cryptoNetwork").textContent = "—";
   document.getElementById("cryptoAmount").textContent = "—";
-  document.getElementById("noticeTextContainer").innerHTML = FALLBACK_NOTICE;
 }
 
 // ========== COPY TEXT ==========
@@ -661,6 +770,7 @@ function handleUpload(input) {
   if (file.type.startsWith("image/")) {
     const reader = new FileReader();
     reader.onload = function(ev) {
+      receiptBase64 = ev.target.result;
       document.getElementById("receiptPreview").src = ev.target.result;
       document.getElementById("previewBox").classList.add("show");
     };
@@ -697,13 +807,16 @@ function confirmPayment() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
 
+  // Build receipt data
   let receiptData = {
     userId: userData.phone || userData.uid || "unknown",
     userName: userData.name || userData.fullName || "Unknown",
     flowType: flowType,
     status: "pending_verification",
     date: new Date().toLocaleString(),
+    createdAt: Date.now(),
     receiptUploaded: true,
+    receiptImage: receiptBase64 || null,
     paymentMethod: currentTab
   };
 
@@ -724,6 +837,7 @@ function confirmPayment() {
     };
   }
 
+  // Show loading
   Swal.fire({
     title: "Verifying Payment...",
     html: '<div style="margin-top:16px;"><div style="width:40px;height:40px;border:3px solid #334155;border-top-color:#6366f1;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div><p style="margin-top:12px;color:#64748b;font-size:14px;">Please wait while we verify</p></div>',
@@ -734,45 +848,33 @@ function confirmPayment() {
     color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
   });
 
+  // Try Firebase save
   let savePromise = Promise.resolve();
   if (window._9jaCash && window._9jaCash.db) {
     savePromise = window._9jaCash.db.collection("paymentReceipts").add(receiptData)
-      .then(function() {
-        console.log("Receipt saved to Firebase");
+      .then(function(docRef) {
+        console.log("Receipt saved to Firebase with ID:", docRef.id);
+        localStorage.setItem("latestReceiptDocId", docRef.id);
       })
       .catch(function(err) {
         console.error("Firebase save failed:", err);
       });
   }
 
+  // ALWAYS redirect after 3 seconds
   savePromise.finally(function() {
     setTimeout(function() {
-      // Check status from settings/paymentStatus (success field)
-      if (window._9jaCash && window._9jaCash.db) {
-        window._9jaCash.db.collection("settings").doc("paymentStatus").get()
-          .then(function(doc) {
-            Swal.close();
-            let isSuccess = doc.exists && doc.data().success === true;
-            performRedirect(isSuccess);
-          })
-          .catch(function(err) {
-            console.error("Error fetching paymentStatus:", err);
-            Swal.close();
-            performRedirect(false);
-          });
-      } else {
-        Swal.close();
-        performRedirect(false);
-      }
+      Swal.close();
+      performRedirect();
     }, 3000);
   });
 }
 
-// ========== REDIRECT BASED ON STATUS ==========
-function performRedirect(isSuccess) {
-  const targetPage = isSuccess ? "payment-success.html" : "payment-failed.html";
-
+// ========== REDIRECT TO SUCCESS PAGE — FIXED ==========
+// ========== REDIRECT TO FAILED PAGE — FIXED ==========
+function performRedirect() {
   if (flowType === "upgrade") {
+    // Save upgrade data
     localStorage.setItem("9jaCashUpgradeSuccess", JSON.stringify({
       name: upgradeData.name,
       amount: upgradeData.amount,
@@ -780,6 +882,7 @@ function performRedirect(isSuccess) {
       date: new Date().toLocaleString(),
       type: "upgrade"
     }));
+    // Keep selectedPlan for retry
     localStorage.setItem("selectedPlan", JSON.stringify({
       name: upgradeData.name,
       amount: upgradeData.amount,
@@ -788,9 +891,10 @@ function performRedirect(isSuccess) {
     localStorage.removeItem("9jaCashPaymentData");
     localStorage.removeItem("9jaCashPayoutKeyDetails");
     
-    window.location.href = targetPage;
+    window.location.href = "payment-pending.html";
     
   } else if (flowType === "payout_key") {
+    // Save payout key data
     localStorage.setItem("9jaCashPayoutKeyDetails", JSON.stringify({
       plan: paymentData.plan,
       dailyLimit: paymentData.dailyLimit,
@@ -802,10 +906,10 @@ function performRedirect(isSuccess) {
     localStorage.removeItem("9jaCashUpgradeSuccess");
     localStorage.setItem("9jaCashPaymentData", JSON.stringify(paymentData));
     
-    window.location.href = targetPage;
+    window.location.href = "payment-pending.html";
     
   } else {
-    window.location.href = targetPage;
+    window.location.href = "payment-pending.html";
   }
 }
 
