@@ -1763,6 +1763,25 @@
       </button>
     </div>
   </div>
+  
+  <div class="notify-banner" id="downloadBanner">
+    <div class="notify-header">
+      <div class="notify-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);"><i class="fa-solid fa-mobile-screen-button"></i></div>
+      <div>
+        <div class="notify-title">Download 9jaCash App</div>
+        <div class="notify-sub">Install our Android APK for a faster, smoother experience and instant mining alerts.</div>
+      </div>
+    </div>
+    <div class="notify-actions">
+      <button class="notify-btn notify-btn-allow" onclick="downloadAppAPK()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+        <i class="fa-solid fa-download"></i> Download APK
+      </button>
+      <button class="notify-btn notify-btn-deny" onclick="dismissDownloadPrompt()">
+        Later
+      </button>
+    </div>
+  </div>
+  
   <a href="javascript:void(0)" class="telegram-float" id="telegramSupport" onclick="openCustomerCareModal()"
     style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 20px rgba(99,102,241,0.4);"
     title="Customer Care Support">
@@ -1785,28 +1804,20 @@
   </div>
   <div class="tutorial-progress" id="tutorialProgress"></div>
   <div class="app">
-    <div class="topbar anim d1" id="headerArea">
-      <div class="avatar-wrap" onclick="window.location.href='profile.html'" style="cursor: pointer;">
-        <div class="avatar" id="userAvatar">9</div>
-        <div>
-          <div class="greeting" id="greeting">Good morning</div>
-          <div class="name" id="userName">9jaCash User</div>
-          <div id="planBadge"
-            style="font-size: 10px; font-weight: 800; margin-top: 3px; padding: 2px 8px; border-radius: 6px; display: inline-block;">
-            Free Miner</div>
-        </div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <button class="notify-btn" onclick="openNotificationsModal()" id="notifyBtn" style="position: relative;">
-          <i class="fa-regular fa-bell"></i>
-          <span id="notifBadge"
-            style="position: absolute; top: -2px; right: -2px; background: #ef4444; color: white; border-radius: 50%; width: 15px; height: 15px; font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 1.5px solid #0f172a; display: none;">0</span>
-        </button>
-        <button class="notify-btn" onclick="logoutUser()" title="Logout"
-          style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2);"><i
-            class="fa-solid fa-right-from-bracket"></i></button>
+  <div class="topbar anim d1" id="headerArea">
+    <div class="avatar-wrap">
+      <div class="avatar" id="userAvatar">9</div>
+      <div>
+        <div class="greeting" id="greeting">Good morning</div>
+        <div class="name" id="userName">9jaCash User</div>
       </div>
     </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button class="notify-btn" onclick="showDownloadPrompt()" id="downloadHeaderBtn" title="Download App"><i class="fa-solid fa-download"></i></button>
+      <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
+      <button class="notify-btn logout-btn-head" onclick="logout()" id="logoutBtn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </div>
     <button class="tour-pill anim d1" id="startTourBtn" onclick="startTutorial()">
       <i class="fa-solid fa-route"></i> Start Tour
     </button>
