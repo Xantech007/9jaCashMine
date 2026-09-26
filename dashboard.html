@@ -2205,7 +2205,7 @@
     </div>
   </div>
 
-  <script>
+<script>
     let userData = null;
     function formatExternalLink(url, defaultUrl) {
       if (!url || typeof url !== 'string' || !url.trim()) return defaultUrl;
@@ -2256,21 +2256,17 @@
     let db = null;
     let auth = null;
 
+    let userUnsubscribe = null;
+    let settingsUnsubscribe = null;
+
     function initFirebase() {
       try {
-        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
-          db = firebase.firestore();
-          try { db.settings({ experimentalForceLongPolling: true }); } catch (e) { }
-          auth = firebase.auth();
+        if (window._9jaCash && window._9jaCash.db) {
+          db = window._9jaCash.db;
+          auth = window._9jaCash.auth;
           return true;
         }
-        if (typeof firebase !== 'undefined') {
-          const config = {
-            apiKey: "YOUR_API_KEY", authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT", storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID", appId: "YOUR_APP_ID"
-          };
-          firebase.initializeApp(config);
+        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
           db = firebase.firestore();
           try { db.settings({ experimentalForceLongPolling: true }); } catch (e) { }
           auth = firebase.auth();
@@ -2280,20 +2276,83 @@
       return false;
     }
 
-    function loadTelegramConfig() {
-      const stored = localStorage.getItem("9jaCashAdminConfig");
-      if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch (e) { } }
-      if (db) {
-        db.collection("settings").doc("payment").get()
-          .then(function (doc) {
-            if (doc.exists && doc.data().telegramLink) {
-              telegramLink = doc.data().telegramLink;
+    // ========== REALTIME FIREBASE LISTENERS ==========
+    function initRealtimeFirebaseSync() {
+      initFirebase();
+      const firestore = db || (window._9jaCash && window._9jaCash.db);
+      if (!firestore) return;
+
+      // 1. Real-time User Data Synchronization
+      if (userData && userData.phone) {
+        if (userUnsubscribe) userUnsubscribe();
+        
+        userUnsubscribe = firestore.collection("users").doc(userData.phone)
+          .onSnapshot(function (doc) {
+            if (doc.exists) {
+              const fresh = doc.data();
+
+              // Prevent overriding balance during active bounce reversal logic
+              if (isBouncing) return;
+
+              userData = Object.assign({}, userData, fresh);
+              localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+
+              balance = parseFloat(fresh.balance) || 0;
+              localStorage.setItem("walletBalance", balance);
+
+              updateBalance();
+              const totalMinedEl = document.getElementById("totalMined");
+              if (totalMinedEl) totalMinedEl.textContent = "₦" + (fresh.totalMined || 0).toLocaleString();
+              
+              updatePlanUI();
+              updateReferralsUI();
+
+              const isUserVer = fresh.is_verified === 1 || fresh.is_verified === true || fresh.isVerified === true || fresh.is_verified === "1";
+              if (isUserVer) {
+                localStorage.removeItem("9jaCashVerificationPending");
+                localStorage.removeItem("9jaCashBouncedWithdrawal");
+              }
+
+              const verCheckmark = isUserVer ? ' <i class="fa-solid fa-circle-check" style="color:#1d9bf0; font-size:14px;" title="Verified Account"></i>' : '';
+              const uNameEl = document.getElementById("userName");
+              const displayNameSync = fresh.customName || fresh.full_name || fresh.name || fresh.fullName || "9jaCash User";
+              if (uNameEl) uNameEl.innerHTML = displayNameSync + verCheckmark;
+              
+              const uAvatarEl = document.getElementById("userAvatar");
+              if (uAvatarEl) uAvatarEl.textContent = displayNameSync.charAt(0).toUpperCase();
+
+              checkAndShowVerifyButton();
+              if (typeof loadCustomerCareLinks === 'function') loadCustomerCareLinks();
+              if (typeof initSocialPopup === 'function') initSocialPopup();
+              loadActivity();
+            }
+          }, function (error) {
+            console.warn("Firestore user realtime sync error:", error);
+          });
+      }
+
+      // 2. Real-time Payment & Support Settings Listener
+      if (settingsUnsubscribe) settingsUnsubscribe();
+      settingsUnsubscribe = firestore.collection("settings").doc("payment")
+        .onSnapshot(function (doc) {
+          if (doc.exists) {
+            const data = doc.data();
+            if (data.telegramLink) {
+              telegramLink = data.telegramLink;
               localStorage.setItem("9jaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink }));
               updateTelegramLink();
             }
-          })
-          .catch(function (err) { });
-      }
+            if (typeof loadCustomerCareLinks === 'function') loadCustomerCareLinks();
+            if (typeof initSocialPopup === 'function') initSocialPopup();
+          }
+        }, function (error) {
+          console.warn("Firestore settings realtime sync error:", error);
+        });
+    }
+
+    function loadTelegramConfig() {
+      const stored = localStorage.getItem("9jaCashAdminConfig");
+      if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch (e) { } }
       updateTelegramLink();
     }
 
@@ -2403,20 +2462,11 @@
       showToast("Tour complete! Start earning!");
     }
 
-    // ========== CRITICAL FIX: VERIFY BUTTON ONLY SHOWS AFTER BOUNCE IS COMPLETE ==========
-    // ONLY check 9jaCashBouncedWithdrawal — set AFTER executeBounce() returns money
-    // Removed pendingBounce check because that means bounce hasn't happened yet
-
-
-    // checkAndShowVerifyButton is defined lower in the file with full video+payout_key logic
-
-    // ========== executeBounce — runs when timer expires, returns money, shows popup + button ==========
     function executeBounce() {
       const stored = localStorage.getItem("pendingBounce");
       if (!stored) return;
 
       isBouncing = true;
-      // IMMEDIATELY remove to prevent re-entry/infinite reversal loop if any error occurs below
       localStorage.removeItem("pendingBounce");
 
       try {
@@ -2427,21 +2477,19 @@
           return;
         }
 
-        // Return money to balance
         const currentBalance = parseFloat(localStorage.getItem("walletBalance")) || 0;
         balance = currentBalance + amount;
         userData.balance = balance;
         localStorage.setItem("walletBalance", balance);
         localStorage.setItem("9jaCashUser", JSON.stringify(userData));
 
-        if (db && userData.phone) {
-          db.collection("users").doc(userData.phone).update({ balance: balance })
+        const firestore = db || (window._9jaCash && window._9jaCash.db);
+        if (firestore && userData.phone) {
+          firestore.collection("users").doc(userData.phone).update({ balance: balance })
             .then(function () { }).catch(function (err) { });
         }
 
-        // Update Express SQLite database backend!
         if (userData && userData.phone) {
-          // 1. Sync bounce status
           fetch(API_URL + '/api/user/bounce', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2450,7 +2498,6 @@
             .then(function () { console.log("Bounce recorded in backend SQL."); })
             .catch(function (err) { console.error("Failed to record bounce in backend:", err); });
 
-          // 2. Update balance
           fetch(API_URL + '/api/user/update-balance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2469,7 +2516,6 @@
                 localStorage.setItem("walletBalance", balance);
                 localStorage.setItem("9jaCashUser", JSON.stringify(userData));
               }
-              console.log("SQLite balance updated for bounce:", data);
               updateBalance();
               isBouncing = false;
               syncFromBackend();
@@ -2487,11 +2533,9 @@
         addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
         sendBounceNotification(amount);
 
-        // Set flag AFTER money is returned — this triggers the verify button
         localStorage.setItem("9jaCashBouncedWithdrawal", "true");
         checkAndShowVerifyButton();
 
-        // Show bounce popup (with safety fallback if SweetAlert fails to load offline/flaky)
         if (typeof Swal !== 'undefined') {
           Swal.fire({
             icon: "warning",
@@ -2512,7 +2556,6 @@
       }
     }
 
-    // ========== Check if pending bounce is ready to execute on page load ==========
     function checkPendingBounceOnLoad() {
       const stored = localStorage.getItem("pendingBounce");
       if (!stored) return;
@@ -2528,14 +2571,12 @@
         const timestamp = data.timestamp || 0;
         const now = Date.now();
         const elapsed = now - timestamp;
-        const BOUNCE_DELAY = 30000; // 30 seconds
+        const BOUNCE_DELAY = 30000;
 
         if (elapsed >= BOUNCE_DELAY) {
-          console.log("Bounce timer expired while away - executing now");
           executeBounce();
         } else {
           const remaining = BOUNCE_DELAY - elapsed;
-          console.log("Bounce scheduled in " + remaining + "ms");
           setTimeout(executeBounce, remaining);
         }
       } catch (e) {
@@ -2550,6 +2591,7 @@
 
     function updateBalance() {
       const el = document.getElementById("walletBalance");
+      if (!el) return;
       if (balanceHidden) { el.innerHTML = "****<span>.**</span>"; } else {
         const formatted = formatMoney(balance);
         if (formatted.includes(".")) { el.innerHTML = formatted.replace(/\.(\d+)$/, '<span>.$1</span>'); }
@@ -2569,6 +2611,7 @@
 
     function showToast(msg) {
       const t = document.getElementById("toast");
+      if (!t) return;
       document.getElementById("toastMsg").textContent = msg;
       t.classList.add("show");
       setTimeout(function () { t.classList.remove("show"); }, 2500);
@@ -2578,7 +2621,6 @@
       localStorage.setItem("9jaCashUser", JSON.stringify(userData));
       localStorage.setItem("walletBalance", balance);
 
-      // Update balance in backend SQL database
       fetch(API_URL + '/api/user/update-balance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2601,13 +2643,13 @@
         })
         .catch(function (err) { console.error("Balance SQL update failed:", err); });
 
-      // Sync to Firestore for cloud/legacy persistence
-      if (window._9jaCash && window._9jaCash.db && userData && userData.phone) {
-        window._9jaCash.db.collection("users").doc(userData.phone).update({
+      const firestore = db || (window._9jaCash && window._9jaCash.db);
+      if (firestore && userData && userData.phone) {
+        firestore.collection("users").doc(userData.phone).update({
           balance: balance,
           totalMined: userData.totalMined || 0
         })
-          .then(function () { console.log("Firestore balance synced successfully."); })
+          .then(function () { console.log("Firestore balance synced in real-time."); })
           .catch(function (err) { console.error("Firestore balance sync failed:", err); });
       }
     }
@@ -2638,366 +2680,582 @@
       localStorage.setItem("checkinData", JSON.stringify(checkinData));
       saveUserData(); addToActivity("Daily Check-In", amount, "in"); updateBalance(); initCheckin();
       showToast("Checked in! +₦" + amount.toLocaleString());
-      Swal.fire({ icon: "success", title: "Day " + checkinData.claimedDays.length + " Complete!", text: "+₦" + amount.toLocaleString() + " added to your balance", confirmButtonColor: "#6366f1", timer: 2000, showConfirmButton: false, background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff" });
+      Swal.fire({ icon: "success", title: "Day " + checkinData.claimedDays.length + " Complete!", text: "+₦" + amount.toLocaleString() + " added to your balance", confirmButtonColor: "#6366f1", timer: 2000, showConfirmButton: false, background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" });
+    }
+
+    function getTodayStr() { return new Date().toDateString(); }
+
+    function resetDailyIfNeeded() {
+      const today = getTodayStr();
+      if (claimData.dateStr !== today) { claimData.dateStr = today; claimData.claimsToday = 0; claimData.lastClaim = 0; localStorage.setItem("claimData", JSON.stringify(claimData)); }
     }
 
     function initClaim() {
-      const todayStr = new Date().toDateString();
-      if (claimData.dateStr !== todayStr) { claimData.claimsToday = 0; claimData.dateStr = todayStr; localStorage.setItem("claimData", JSON.stringify(claimData)); }
-      document.getElementById("claimProgress").textContent = claimData.claimsToday;
-      if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) {
-        document.getElementById("claimTimer").textContent = "Done";
-        document.getElementById("claimTimer").className = "claim-timer done";
-        document.getElementById("claimNext").textContent = "Max 50 reached";
-        return;
-      }
+      resetDailyIfNeeded();
       const now = Math.floor(Date.now() / 1000);
-      const elapsed = now - (claimData.lastClaim || 0);
-      if (elapsed >= CLAIM_INTERVAL) {
-        secondsLeft = 0; document.getElementById("claimTimer").textContent = "Claim!";
-        document.getElementById("claimTimer").className = "claim-timer ready";
-        document.getElementById("claimNext").textContent = "Ready!";
-      } else {
-        secondsLeft = CLAIM_INTERVAL - elapsed;
-        document.getElementById("claimTimer").className = "claim-timer";
-        startClaimTimer();
-      }
+      const elapsed = now - claimData.lastClaim;
+      const timerEl = document.getElementById("claimTimer");
+      const nextEl = document.getElementById("claimNext");
+      const progressEl = document.getElementById("claimProgress");
+      progressEl.textContent = claimData.claimsToday;
+      if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { timerEl.textContent = "DONE"; timerEl.className = "claim-timer done"; nextEl.textContent = "Come back tomorrow"; return; }
+      if (elapsed >= CLAIM_INTERVAL) { secondsLeft = 0; timerEl.textContent = "CLAIM"; timerEl.className = "claim-timer ready"; }
+      else { secondsLeft = CLAIM_INTERVAL - elapsed; timerEl.className = "claim-timer"; startClaimTimer(); }
     }
 
     function startClaimTimer() {
-      if (claimTimer) clearInterval(claimTimer);
+      const timerEl = document.getElementById("claimTimer");
+      const nextEl = document.getElementById("claimNext");
       claimTimer = setInterval(function () {
-        secondsLeft--;
-        if (secondsLeft <= 0) {
-          clearInterval(claimTimer);
-          document.getElementById("claimTimer").textContent = "Claim!";
-          document.getElementById("claimTimer").className = "claim-timer ready";
-          document.getElementById("claimNext").textContent = "Ready!";
-        } else {
-          const m = Math.floor(secondsLeft / 60); const s = secondsLeft % 60;
-          const timeStr = m + ":" + (s < 10 ? "0" : "") + s;
-          document.getElementById("claimTimer").textContent = timeStr;
-          document.getElementById("claimNext").textContent = timeStr;
-        }
+        if (secondsLeft > 0) { secondsLeft--; const m = Math.floor(secondsLeft / 60); const s = secondsLeft % 60; timerEl.textContent = m + ":" + s.toString().padStart(2, '0'); nextEl.textContent = m + ":" + s.toString().padStart(2, '0'); }
+        else { clearInterval(claimTimer); timerEl.textContent = "CLAIM"; timerEl.className = "claim-timer ready"; }
       }, 1000);
     }
 
     function doClaim() {
       if (tutorialActive && currentTutorialStep === 4) { nextTutorial(); }
-      const todayStr = new Date().toDateString();
-      if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { showToast("You reached 50 claims today! Come back tomorrow."); return; }
-      const now = Math.floor(Date.now() / 1000);
-      const elapsed = now - (claimData.lastClaim || 0);
-      if (elapsed < CLAIM_INTERVAL) { showToast("Please wait for the timer to finish!"); return; }
+      resetDailyIfNeeded();
+      if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { showToast("Daily claim limit reached (50/50)"); return; }
       balance += CLAIM_AMOUNT; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + CLAIM_AMOUNT;
-      claimData.lastClaim = now; claimData.claimsToday += 1; claimData.count += 1;
-      localStorage.setItem("claimData", JSON.stringify(claimData)); saveUserData();
-      addToActivity("1-Min Claim Bonus", CLAIM_AMOUNT, "in"); updateBalance();
-      showToast("Claimed +₦2,000!"); initClaim();
+      claimData.count += 1; claimData.claimsToday += 1; claimData.lastClaim = Math.floor(Date.now() / 1000);
+      localStorage.setItem("claimData", JSON.stringify(claimData));
+      saveUserData(); addToActivity("Auto Claim", CLAIM_AMOUNT, "in"); updateBalance();
+      const timerEl = document.getElementById("claimTimer");
+      const progressEl = document.getElementById("claimProgress");
+      progressEl.textContent = claimData.claimsToday;
+      showToast("+₦" + CLAIM_AMOUNT + " claimed! (" + claimData.claimsToday + "/" + MAX_CLAIMS_PER_DAY + ")");
+      if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { timerEl.textContent = "DONE"; timerEl.className = "claim-timer done"; document.getElementById("claimNext").textContent = "Come back tomorrow"; return; }
+      secondsLeft = CLAIM_INTERVAL; timerEl.className = "claim-timer"; startClaimTimer();
+    }
+
+    function getPlanMiningDetails() {
+      const plan = userData.planName || 'Free Miner';
+      if (plan.includes('Basic')) {
+        return { name: 'Basic Plan', limit: 50000 };
+      } else if (plan.includes('Silver')) {
+        return { name: 'Silver Plan', limit: 80000 };
+      } else if (plan.includes('Gold')) {
+        return { name: 'Gold Plan', limit: 172000 };
+      } else if (plan.includes('Diamond')) {
+        return { name: 'Diamond Plan', limit: 320000 };
+      }
+      return { name: 'Free Miner', limit: 30000 };
     }
 
     function startMining() {
       if (tutorialActive && currentTutorialStep === 0) { nextTutorial(); }
-      const now = Date.now(); const lastMine = localStorage.getItem("lastMineTime");
-      const COOLDOWN = 12 * 60 * 60 * 1000;
-      if (lastMine && (now - parseInt(lastMine)) < COOLDOWN) {
-        const leftMs = COOLDOWN - (now - parseInt(lastMine));
-        const leftHours = (leftMs / (1000 * 60 * 60)).toFixed(1);
-        Swal.fire({ icon: "info", title: "Mining Cooldown", text: "You can mine again in " + leftHours + " hours.", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff" });
+      const details = getPlanMiningDetails();
+      const todayMined = parseFloat(localStorage.getItem("todayMined") || "0");
+      if (todayMined >= details.limit) {
+        Swal.fire({
+          icon: "info",
+          title: "Mining Limit Reached",
+          text: "You've already mined " + formatMoney(details.limit) + " today. Upgrade your plan to continue.",
+          confirmButtonColor: "#6366f1",
+          background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
+          color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
+        });
         return;
       }
-      const minedAmount = 30000;
-      balance += minedAmount; userData.balance = balance; userData.totalMined = (userData.totalMined || 0) + minedAmount;
-      localStorage.setItem("lastMineTime", now.toString()); saveUserData();
-      addToActivity("Mining Reward", minedAmount, "in"); updateBalance();
-      document.getElementById("totalMined").textContent = formatMoney(userData.totalMined);
-      Swal.fire({ icon: "success", title: "Mining Complete!", text: "+₦30,000 added to your account", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff" });
+      Swal.fire({
+        title: "Start Mining?",
+        html: '<p style="color:#64748b;margin-top:8px;">Your plan is <b>' + details.name + '</b>. Mine up to <b>' + formatMoney(details.limit) + '</b> daily.</p>',
+        showCancelButton: true,
+        confirmButtonText: "START MINING",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#6366f1",
+        reverseButtons: true,
+        background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
+        color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
+      }).then(function (r) { if (r.isConfirmed) runMining(); });
     }
 
-    function copyReferralLink() {
-      const input = document.getElementById("referralLinkInput");
-      input.select();
-      input.setSelectionRange(0, 99999);
-      navigator.clipboard.writeText(input.value);
-      showToast("Referral link copied!");
+    function runMining() {
+      let countdown = 10;
+      Swal.fire({
+        title: "Mining...",
+        html: '<div style="font-size:48px;font-weight:800;color:#6366f1;margin:20px 0;">' + countdown + '</div><p style="color:#64748b;">seconds remaining</p>',
+        allowOutsideClick: false,
+        background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
+        color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b",
+        didOpen: function () {
+          const b = Swal.getHtmlContainer().querySelector("div");
+          const timer = setInterval(function () {
+            countdown--;
+            b.textContent = countdown;
+            if (countdown <= 0) {
+              clearInterval(timer);
+              Swal.close();
+              completeMining();
+            }
+          }, 1000);
+        }
+      });
     }
 
-    function copyReferralMessage() {
-      const code = userData.refCode || userData.phone || "9JACASH";
-      const link = document.getElementById("referralLinkInput").value;
-      const msg = `🚀 Join me on 9jaCash and earn ₦30,000 daily!\nUse my referral link to sign up:\n${link}\n\nOr enter code: ${code}`;
-      navigator.clipboard.writeText(msg);
-      showToast("Referral message & link copied!");
+    function completeMining() {
+      const details = getPlanMiningDetails();
+      const amount = details.limit;
+      balance += amount;
+      userData.balance = balance;
+      userData.totalMined = (userData.totalMined || 0) + amount;
+      localStorage.setItem("todayMined", amount.toString());
+      localStorage.setItem("lastMineDate", new Date().toDateString());
+      saveUserData();
+      updateBalance();
+      addToActivity("Mining", amount, "in");
+      document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
+      sendMiningNotification(amount);
+      Swal.fire({
+        icon: "success",
+        title: "Mining Complete!",
+        text: "+" + formatMoney(amount) + " added to your balance",
+        confirmButtonColor: "#6366f1",
+        background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
+        color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
+      });
     }
 
-    function editBank() {
-      window.location.href = "link-bank.html";
+    function checkDailyReset() {
+      const lastMine = localStorage.getItem("lastMineDate");
+      const today = new Date().toDateString();
+      if (lastMine !== today) { localStorage.removeItem("todayMined"); localStorage.removeItem("lastMineDate"); }
     }
 
-    function addBounceToActivity(title, amount, desc) {
-      let list = JSON.parse(localStorage.getItem("activityList")) || [];
-      const item = { title: title, amount: amount, desc: desc, time: "Just now", isBounce: true };
-      list.unshift(item);
-      if (list.length > 20) list = list.slice(0, 20);
-      localStorage.setItem("activityList", JSON.stringify(list));
-      renderActivityList();
+    function addToActivity(type, amount, dir) {
+      let tx = JSON.parse(localStorage.getItem("transactionHistory")) || [];
+      tx.unshift({ type: type, amount: "₦" + amount.toLocaleString(), status: "Successful", date: new Date().toLocaleString() });
+      localStorage.setItem("transactionHistory", JSON.stringify(tx));
+      loadActivity();
+    }
+
+    function addBounceToActivity(type, amount, status) {
+      let tx = JSON.parse(localStorage.getItem("transactionHistory")) || [];
+      tx.unshift({ type: type, amount: "₦" + amount.toLocaleString(), status: status, date: new Date().toLocaleString(), bounce: true });
+      localStorage.setItem("transactionHistory", JSON.stringify(tx));
+      loadActivity();
+    }
+
+    let userNotifications = [];
+
+    function loadActivity() {
+      const list = document.getElementById("activityList");
+      let tx = JSON.parse(localStorage.getItem("transactionHistory")) || [];
+
+      if (userData && userData.phone) {
+        Promise.all([
+          fetch(API_URL + '/api/user/withdrawals?phone=' + userData.phone).then(res => res.json()).catch(() => ({ status: false })),
+          fetch(API_URL + '/api/user/notifications?phone=' + userData.phone).then(res => res.json()).catch(() => ({ status: false }))
+        ])
+          .then(function (results) {
+            const withdrawalData = results[0];
+            const notificationData = results[1];
+
+            const hasBouncedBefore = localStorage.getItem("9jaCashBouncedWithdrawal") === "true";
+
+            let liveTx = [];
+            if (withdrawalData.status && Array.isArray(withdrawalData.withdrawals)) {
+              withdrawalData.withdrawals.forEach(function (w) {
+                let status = w.status;
+                if (status === 'Pending' && hasBouncedBefore) {
+                  status = 'Rejected';
+                }
+
+                if (status === 'Rejected') {
+                  liveTx.push({
+                    type: "Withdrawal",
+                    amount: "₦" + (w.amount || 0).toLocaleString(),
+                    status: "Failed",
+                    date: new Date(w.created_at).toLocaleString(),
+                    liveStatus: true
+                  });
+                  liveTx.push({
+                    type: "Reversal",
+                    amount: "₦" + (w.amount || 0).toLocaleString(),
+                    status: "Reversed",
+                    date: new Date(new Date(w.created_at).getTime() + 1000).toLocaleString(),
+                    liveStatus: true
+                  });
+                } else {
+                  liveTx.push({
+                    type: "Withdrawal",
+                    amount: "₦" + (w.amount || 0).toLocaleString(),
+                    status: "Successful",
+                    date: new Date(w.created_at).toLocaleString(),
+                    liveStatus: true
+                  });
+                }
+              });
+            }
+
+            let systemNotifs = [];
+            if (notificationData.status && Array.isArray(notificationData.notifications)) {
+              notificationData.notifications.forEach(function (n) {
+                systemNotifs.push({
+                  type: "Notification",
+                  title: n.title,
+                  content: n.content,
+                  notifType: n.type,
+                  amount: n.amount || "",
+                  date: new Date(n.created_at).toLocaleString()
+                });
+
+                const isCredit = n.type === 'credit' || n.type === 'bonus' || (n.title && (n.title.toLowerCase().includes('credit') || n.title.toLowerCase().includes('bonus') || n.title.toLowerCase().includes('reward')));
+                const isDebit = n.type === 'debit' || (n.title && n.title.toLowerCase().includes('debit'));
+                if (isCredit || isDebit) {
+                  const amtVal = parseFloat(n.amount) || 0;
+                  const formattedAmt = amtVal > 0 ? "₦" + amtVal.toLocaleString() : (n.amount || "");
+                  liveTx.push({
+                    type: isDebit ? "Debit" : "Credit",
+                    title: n.title || (isDebit ? "Account Debited" : "Account Credited"),
+                    amount: formattedAmt,
+                    status: "Successful",
+                    date: new Date(n.created_at).toLocaleString(),
+                    liveStatus: true
+                  });
+                }
+              });
+            }
+
+            userNotifications = systemNotifs;
+
+            let otherTx = tx.filter(function (item) {
+              return item.type !== "Withdrawal" && item.type !== "Withdrawal Reversed";
+            });
+
+            let merged = liveTx.concat(otherTx);
+            merged.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            renderTxList(merged.slice(0, 15));
+
+            let currentNotifsCount = systemNotifs.length;
+            let readNotifsCount = parseInt(localStorage.getItem("9jaCashReadNotifsCount") || "0");
+            let unreadCount = currentNotifsCount - readNotifsCount;
+
+            const badgeEl = document.getElementById("notifBadge");
+            const modalBadgeEl = document.getElementById("modalNotifBadge");
+            if (badgeEl) {
+              if (unreadCount > 0) {
+                badgeEl.textContent = unreadCount;
+                badgeEl.style.display = "flex";
+                if (modalBadgeEl) {
+                  modalBadgeEl.textContent = unreadCount;
+                  modalBadgeEl.classList.remove("hidden");
+                }
+              } else {
+                badgeEl.style.display = "none";
+                if (modalBadgeEl) modalBadgeEl.classList.add("hidden");
+              }
+            }
+
+            if (document.getElementById("notificationsOverlay").classList.contains("active")) {
+              renderNotificationsList();
+            }
+          })
+          .catch(function (err) {
+            console.warn("API fetches offline, using local:", err);
+            let otherTx = tx.filter(function (item) {
+              return item.type !== "Withdrawal" && item.type !== "Withdrawal Reversed";
+            });
+            renderTxList(otherTx.slice(0, 10));
+          });
+      } else {
+        let otherTx = tx.filter(function (item) {
+          return item.type !== "Withdrawal" && item.type !== "Withdrawal Reversed";
+        });
+        renderTxList(otherTx.slice(0, 10));
+      }
+    }
+
+    function openNotificationsModal() {
+      const overlay = document.getElementById("notificationsOverlay");
+      if (overlay) overlay.classList.add("active");
+
+      renderNotificationsList();
+
+      const badgeEl = document.getElementById("notifBadge");
+      if (badgeEl) badgeEl.style.display = "none";
+      const modalBadgeEl = document.getElementById("modalNotifBadge");
+      if (modalBadgeEl) modalBadgeEl.classList.add("hidden");
+
+      localStorage.setItem("9jaCashReadNotifsCount", userNotifications.length.toString());
+    }
+
+    function closeNotificationsModal(event) {
+      const overlay = document.getElementById("notificationsOverlay");
+      if (overlay) overlay.classList.remove("active");
+    }
+
+    function renderNotificationsList() {
+      const list = document.getElementById("notificationsList");
+      if (!list) return;
+
+      if (userNotifications.length === 0) {
+        list.innerHTML = `
+      <div style="text-align: center; padding: 40px 0; color: #94a3b8;">
+        <i class="fa-regular fa-bell-slash" style="font-size: 28px; margin-bottom: 12px; color: #cbd5e1; display: block; margin-left: auto; margin-right: auto;"></i>
+        <p style="font-size: 13px;">No notifications yet</p>
+      </div>
+    `;
+        return;
+      }
+
+      list.innerHTML = "";
+      userNotifications.forEach(function (item) {
+        let color = "#3b82f6", bg = "#eff6ff", iconName = "fa-bell";
+        if (item.notifType === 'payout_key') {
+          color = "#8b5cf6"; bg = "#f5f3ff"; iconName = "fa-key";
+        } else if (item.notifType === 'credit') {
+          color = "#10b981"; bg = "#ecfdf5"; iconName = "fa-wallet";
+        } else if (item.notifType === 'debit') {
+          color = "#ef4444"; bg = "#fef2f2"; iconName = "fa-circle-minus";
+        }
+
+        if (document.body.classList.contains("dark-mode")) {
+          if (color === "#3b82f6") {
+            bg = "rgba(59, 130, 246, 0.1)"; color = "#60a5fa";
+          } else if (color === "#8b5cf6") {
+            bg = "rgba(139, 92, 246, 0.1)"; color = "#a78bfa";
+          } else if (color === "#10b981") {
+            bg = "rgba(16, 185, 129, 0.1)"; color = "#34d399";
+          } else if (color === "#ef4444") {
+            bg = "rgba(239, 68, 68, 0.1)"; color = "#f87171";
+          }
+        }
+
+        const div = document.createElement("div");
+        div.className = "activity-item";
+        div.style.padding = "12px 0";
+        div.style.borderBottom = "1px solid rgba(148, 163, 184, 0.08)";
+        div.innerHTML = `
+      <div class="act-icon" style="background:${bg};color:${color};"><i class="fa-solid ${iconName}"></i></div>
+      <div class="act-info" style="flex:1;">
+        <div class="act-title" style="font-weight: 700; color: var(--text);">${item.title}</div>
+        <div class="act-time" style="color: #6366f1; font-weight: 600; margin-top: 2px; font-size: 11.5px; word-break: break-word;">${item.content}</div>
+        <div class="act-time" style="margin-top: 2px; font-size: 10px; color: #94a3b8;">${item.date}</div>
+      </div>
+    `;
+        list.appendChild(div);
+      });
+    }
+
+    function markAllNotificationsAsRead() {
+      localStorage.setItem("9jaCashReadNotifsCount", userNotifications.length.toString());
+      const badgeEl = document.getElementById("notifBadge");
+      if (badgeEl) badgeEl.style.display = "none";
+      const modalBadgeEl = document.getElementById("modalNotifBadge");
+      if (modalBadgeEl) modalBadgeEl.classList.add("hidden");
+      showToast("All notifications marked as read");
+      renderNotificationsList();
+    }
+
+    function renderTxList(items) {
+      const list = document.getElementById("activityList");
+      if (!list) return;
+      if (items.length === 0) { list.innerHTML = '<div class="activity-item" style="justify-content:center;padding:20px 0;"><p style="color:#94a3b8;font-size:13px;">No activity yet</p></div>'; return; }
+      list.innerHTML = "";
+      items.forEach(function (item) {
+        const isOut = item.type === "Withdrawal" || item.type === "Debit" || (item.title && item.title.toLowerCase().includes("debit"));
+        const isCredit = item.type === "Credit" || (item.title && (item.title.toLowerCase().includes("credit") || item.title.toLowerCase().includes("bonus") || item.title.toLowerCase().includes("reward")));
+        const isReversal = item.type === "Reversal" || item.type === "Withdrawal Reversed";
+        const isFailed = item.status === "Failed" || item.status === "Rejected";
+        const isPending = item.status === "Pending";
+        let color, bg, sign = "", iconClass = "", iconName, displayStatus = "", displayTitle = item.title || item.type, displayAmount = item.amount || "";
+
+        if (isReversal) {
+          color = "#10b981"; bg = "#ecfdf5"; sign = "+"; iconClass = "bounce"; iconName = "fa-rotate-left";
+          displayTitle = "Withdrawal Reversed";
+          displayStatus = "";
+          displayAmount = item.amount;
+        } else if (isCredit) {
+          color = "#10b981"; bg = "#ecfdf5"; sign = "+"; iconName = "fa-wallet";
+          displayTitle = item.title || "Account Credited";
+          displayStatus = "";
+          displayAmount = item.amount;
+        } else if (isOut) {
+          sign = "-";
+          if (item.type === "Debit" || (item.title && item.title.toLowerCase().includes("debit"))) {
+            color = "#ef4444"; bg = "#fef2f2"; iconName = "fa-circle-minus";
+            displayTitle = item.title || "Account Debited";
+            displayStatus = "";
+          } else if (isFailed) {
+            color = "#ef4444"; bg = "#fef2f2"; iconName = "fa-arrow-up";
+            displayStatus = " (Failed)";
+          } else if (isPending) {
+            color = "#64748b"; bg = "#f1f5f9"; iconName = "fa-clock";
+            displayStatus = " (Pending)";
+          } else {
+            color = "#ef4444"; bg = "#fef2f2"; iconName = "fa-arrow-up";
+            displayStatus = " (Paid)";
+          }
+        } else {
+          color = "#10b981"; bg = "#ecfdf5"; sign = "+"; iconName = "fa-arrow-down";
+          displayAmount = item.amount;
+        }
+
+        if (document.body.classList.contains("dark-mode")) {
+          if (color === "#ef4444") {
+            bg = "rgba(239, 68, 68, 0.1)"; color = "#f87171";
+          } else if (color === "#10b981") {
+            bg = "rgba(16, 185, 129, 0.1)"; color = "#34d399";
+          } else if (color === "#64748b") {
+            bg = "rgba(100, 116, 139, 0.1)"; color = "#94a3b8";
+          }
+        }
+
+        const div = document.createElement("div");
+        div.className = "activity-item";
+
+        div.innerHTML = '<div class="act-icon ' + iconClass + '" style="background:' + bg + ';color:' + color + ';"><i class="fa-solid ' + iconName + '"></i></div><div class="act-info"><div class="act-title">' + displayTitle + displayStatus + '</div><div class="act-time">' + item.date + '</div></div><div class="act-amount ' + (isOut && !isFailed ? 'out ' : '') + (isFailed ? 'out' : '') + '">' + sign + displayAmount + '</div>';
+        list.appendChild(div);
+      });
+    }
+
+    function sendMiningNotification(amount) {
+      if (!("Notification" in window)) return;
+      if (Notification.permission !== "granted") return;
+      const formattedAmount = formatMoney(amount);
+      new Notification("9jaCash - Mining Successful", {
+        body: "Your mining of " + formattedAmount + " was successfully credited to your 9jaCash Account",
+        icon: "9jaCash.png", badge: "9jaCash.png", tag: "9jaCash-mining-success", requireInteraction: false
+      });
     }
 
     function sendBounceNotification(amount) {
-      let notifs = JSON.parse(localStorage.getItem("notificationsList")) || [];
-      notifs.unshift({
-        id: Date.now(),
-        title: "Withdrawal Reversed (₦" + Number(amount).toLocaleString() + ")",
-        message: "Your withdrawal of ₦" + Number(amount).toLocaleString() + " was returned because your linked bank account is unverified.",
-        time: "Just now",
-        type: "bounce",
-        read: false
-      });
-      localStorage.setItem("notificationsList", JSON.stringify(notifs));
-    }
-
-    function addToActivity(title, amount, type) {
-      let list = JSON.parse(localStorage.getItem("activityList")) || [];
-      const item = { title: title, amount: amount, type: type, time: "Just now" };
-      list.unshift(item);
-      if (list.length > 20) list = list.slice(0, 20);
-      localStorage.setItem("activityList", JSON.stringify(list));
-      renderActivityList();
-    }
-
-    function renderActivityList() {
-      const container = document.getElementById("activityList");
-      let list = JSON.parse(localStorage.getItem("activityList")) || [];
-      if (!list || list.length === 0) {
-        container.innerHTML = '<div class="activity-item" style="justify-content:center;padding:20px 0;"><p style="color:#94a3b8;font-size:13px;">No activity yet</p></div>';
-        return;
-      }
-      container.innerHTML = "";
-      list.forEach(function (item) {
-        const div = document.createElement("div");
-        div.className = "activity-item";
-        if (item.isBounce) {
-          div.innerHTML = '<div class="act-icon bounce"><i class="fa-solid fa-arrow-rotate-left"></i></div>' +
-            '<div class="act-info"><div class="act-title">' + item.title + '</div><div class="act-time">' + (item.desc || item.time) + '</div></div>' +
-            '<div class="act-amount bounce">+₦' + Number(item.amount).toLocaleString() + '</div>';
-        } else if (item.type === "out") {
-          div.innerHTML = '<div class="act-icon" style="background:#fef2f2;color:#ef4444;"><i class="fa-solid fa-paper-plane"></i></div>' +
-            '<div class="act-info"><div class="act-title">' + item.title + '</div><div class="act-time">' + item.time + '</div></div>' +
-            '<div class="act-amount out">-₦' + Number(item.amount).toLocaleString() + '</div>';
-        } else {
-          div.innerHTML = '<div class="act-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa-solid fa-arrow-down"></i></div>' +
-            '<div class="act-info"><div class="act-title">' + item.title + '</div><div class="act-time">' + item.time + '</div></div>' +
-            '<div class="act-amount">+₦' + Number(item.amount).toLocaleString() + '</div>';
-        }
-        container.appendChild(div);
+      if (!("Notification" in window)) return;
+      if (Notification.permission !== "granted") return;
+      const formattedAmount = formatMoney(amount);
+      new Notification("9jaCash - Withdrawal Reversed", {
+        body: "Withdrawal of " + formattedAmount + " has been reversed. Reason: Linked bank account not verified. Please verify your linked account to withdraw.",
+        icon: "9jaCash.png", badge: "9jaCash.png", tag: "9jaCash-withdrawal-bounce", requireInteraction: true
       });
     }
 
-    function logout() {
-      Swal.fire({
-        title: "Log Out?",
-        text: "Are you sure you want to log out of 9jaCash?",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Yes, Log Out",
-        cancelButtonText: "Cancel",
-        confirmButtonColor: "#ef4444",
-        cancelButtonColor: "#64748b",
-        background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
-        color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
-      }).then(function (result) {
-        if (result.isConfirmed) {
-          localStorage.removeItem("9jaCashUser");
-          window.location.href = "login.html";
-        }
-      });
-    }
-
-    function showDownloadPrompt() {
-      const banner = document.getElementById("downloadBanner");
-      if (banner) banner.classList.add("show");
-    }
-
-    function dismissDownloadPrompt() {
-      const banner = document.getElementById("downloadBanner");
-      if (banner) banner.classList.remove("show");
-    }
-
-    function downloadAppAPK() {
-      dismissDownloadPrompt();
-      window.open("9jaCash.apk", "_blank");
-    }
-
-    function openCustomerCareModal() {
-      window.open(telegramLink, "_blank");
+    function initNotifySystem() {
+      if (localStorage.getItem("9jaCashNotifyDecided") === "true") return;
+      if (!("Notification" in window)) return;
+      if (Notification.permission === "granted") { localStorage.setItem("9jaCashNotifyDecided", "true"); return; }
+      if (Notification.permission === "denied") { localStorage.setItem("9jaCashNotifyDecided", "true"); return; }
+      setTimeout(function () {
+        const banner = document.getElementById("notifyBanner");
+        if (banner) banner.classList.add("show");
+      }, 5000);
     }
 
     function requestNotify() {
-      document.getElementById("notifyBanner").classList.remove("show");
-      showToast("Notifications enabled!");
+      if (!("Notification" in window)) { showToast("Notifications not supported"); return; }
+      Notification.requestPermission().then(function (permission) {
+        localStorage.setItem("9jaCashNotifyDecided", "true");
+        const banner = document.getElementById("notifyBanner");
+        banner.classList.remove("show");
+        setTimeout(function () { banner.classList.add("hidden"); }, 600);
+        if (permission === "granted") {
+          showToast("Notifications enabled!");
+          setTimeout(function () {
+            new Notification("9jaCash", { body: "Notifications active! You'll get alerts for withdrawals, refunds & bonuses.", icon: "9jaCash.png", tag: "9jaCash-welcome" });
+          }, 1000);
+        } else { showToast("Notifications disabled"); }
+      });
     }
 
     function dismissNotify() {
-      document.getElementById("notifyBanner").classList.remove("show");
+      localStorage.setItem("9jaCashNotifyDecided", "true");
+      const banner = document.getElementById("notifyBanner");
+      banner.classList.remove("show");
+      setTimeout(function () { banner.classList.add("hidden"); }, 600);
     }
 
-    function dismissSocialPopup() {
-      const pop = document.getElementById("socialJoinPopup");
-      if (pop) pop.classList.remove("show");
-    }
+    let _verifyVideoFetched = false;
+    let _verifyVideoUrl = null;
+    let _verifyVideoActive = false;
 
-    // Modernized Social Popup Cycle Function
-    function startSocialPopupCycle() {
-      let isTelegramTurn = true;
-      let telegramChannelUrl = "https://t.me/apex_customercare";
-      let whatsappGroupUrl = "https://whatsapp.com";
-
-      // Load Config if present
-      const stored = localStorage.getItem("9jaCashAdminConfig");
-      if (stored) {
-        try {
-          const cfg = JSON.parse(stored);
-          if (cfg.telegramLink) telegramChannelUrl = cfg.telegramLink;
-          if (cfg.whatsappLink) whatsappGroupUrl = cfg.whatsappLink;
-        } catch (e) { }
-      }
-
-      function showPopup() {
-        const pop = document.getElementById("socialJoinPopup");
-        const icon = document.getElementById("socialPopupIcon");
-        const title = document.getElementById("socialPopupTitle");
-        const btn = document.getElementById("socialPopupBtn");
-        if (!pop || !icon || !title || !btn) return;
-
-        if (isTelegramTurn) {
-          icon.className = "social-popup-icon telegram";
-          icon.innerHTML = '<i class="fa-brands fa-telegram"></i>';
-          title.innerHTML = '📢 Join Our Telegram Channel';
-          btn.className = "social-popup-btn telegram";
-          btn.innerHTML = '<i class="fa-brands fa-telegram"></i> Join Telegram';
-          btn.href = formatExternalLink(telegramChannelUrl, "https://t.me/apex_customercare");
-        } else {
-          icon.className = "social-popup-icon whatsapp";
-          icon.innerHTML = '<i class="fa-brands fa-whatsapp"></i>';
-          title.innerHTML = '💬 Join Our WhatsApp Community';
-          btn.className = "social-popup-btn whatsapp";
-          btn.innerHTML = '<i class="fa-brands fa-whatsapp"></i> Join WhatsApp';
-          btn.href = formatExternalLink(whatsappGroupUrl, "https://whatsapp.com");
-        }
-
-        pop.classList.add("show");
-
-        // Auto dismiss after 10 seconds
-        setTimeout(function () {
-          pop.classList.remove("show");
-        }, 10000);
-
-        // Toggle state for next popup
-        isTelegramTurn = !isTelegramTurn;
-      }
-
-      // First display after 8 seconds, then every 45 seconds
-      setTimeout(function () {
-        showPopup();
-        setInterval(showPopup, 45000);
-      }, 8000);
-    }
-
-    function syncFromBackend() {
-      if (!userData || !userData.phone) return;
-      fetch(API_URL + '/api/user/sync?phone=' + encodeURIComponent(userData.phone))
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          if (data.status && data.user) {
-            const u = data.user;
-            userData.balance = parseFloat(u.balance || 0);
-            userData.totalMined = parseFloat(u.totalMined || 0);
-            userData.bankName = u.bankName || userData.bankName;
-            userData.accountNumber = u.accountNumber || userData.accountNumber;
-            userData.accountName = u.accountName || userData.accountName;
-            userData.is_verified = u.is_verified;
-            balance = userData.balance;
-            localStorage.setItem("walletBalance", balance);
-            localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-            updateBalance();
-            renderUserData();
-            checkAndShowVerifyButton();
+    function loadVerificationVideoSettings(callback) {
+      if (_verifyVideoFetched) { if (callback) callback(); return; }
+      _verifyVideoFetched = true;
+      fetch(API_URL + '/api/settings/verificationVideo')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.status && data.value && data.value.active && data.value.videoUrl) {
+            _verifyVideoActive = true;
+            _verifyVideoUrl = data.value.videoUrl;
+          } else {
+            _verifyVideoActive = false;
+            _verifyVideoUrl = null;
           }
+          if (callback) callback();
         })
-        .catch(function (err) { console.error("Sync error:", err); });
+        .catch(function() {
+          _verifyVideoActive = false;
+          _verifyVideoUrl = null;
+          if (callback) callback();
+        });
     }
 
-    function renderUserData() {
-      if (!userData) return;
-      document.getElementById("userName").textContent = userData.fullName || userData.name || "9jaCash User";
-      document.getElementById("userAvatar").textContent = (userData.fullName || userData.name || "9").charAt(0).toUpperCase();
-      document.getElementById("totalMined").textContent = formatMoney(userData.totalMined || 0);
-
-      const bankNameEl = document.getElementById("bankNameText");
-      const bankMetaEl = document.getElementById("bankMeta");
-      if (userData.bankName && userData.accountNumber) {
-        bankNameEl.textContent = userData.bankName;
-        bankMetaEl.textContent = maskNum(userData.accountNumber) + " | " + (userData.accountName || "");
-      } else {
-        bankNameEl.textContent = "No Bank Linked";
-        bankMetaEl.textContent = "Tap pen icon to link bank account";
-      }
-
-      // Render Referrals Count & Earnings
-      const refCountEl = document.getElementById("referralsCountVal");
-      const refEarnEl = document.getElementById("referralEarningsVal");
-      if (refCountEl) refCountEl.textContent = userData.referralsCount || userData.refCount || 0;
-      if (refEarnEl) refEarnEl.textContent = "₦" + Number(userData.referralEarnings || userData.refEarnings || 0).toLocaleString();
-
-      // Render Referral Link
-      const refCode = userData.refCode || userData.phone || "9JACASH";
-      const host = window.location.origin;
-      const refUrl = host + "/register.html?ref=" + encodeURIComponent(refCode);
-      const refInput = document.getElementById("referralLinkInput");
-      if (refInput) refInput.value = refUrl;
-
-      // Update Social Sharing Links
-      const shareText = encodeURIComponent("Join me on 9jaCash and earn ₦30,000 daily! Use my link: " + refUrl);
-      const shareTg = document.getElementById("shareTelegram");
-      const shareWa = document.getElementById("shareWhatsApp");
-      const shareIn = document.getElementById("shareInstagram");
-      const shareLi = document.getElementById("shareLinkedIn");
-      const shareTk = document.getElementById("shareTikTok");
-
-      if (shareTg) shareTg.href = "https://t.me/share/url?url=" + encodeURIComponent(refUrl) + "&text=" + shareText;
-      if (shareWa) shareWa.href = "https://api.whatsapp.com/send?text=" + shareText;
-      if (shareIn) shareIn.href = "https://instagram.com";
-      if (shareLi) shareLi.href = "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(refUrl);
-      if (shareTk) shareTk.href = "https://tiktok.com";
-    }
-
-    // CHECK AND DISPLAY VERIFY BUTTON
     function checkAndShowVerifyButton() {
       const wrap = document.getElementById("verifyBankWrap");
-      if (!wrap) return;
+      const btn = document.getElementById("verifyBankBtn");
+      const banner = document.getElementById("verifyTutorialBanner");
+      if (!wrap || !btn) return;
 
       const isVerified = userData && (userData.is_verified === 1 || userData.is_verified === true || userData.is_verified === "1" || userData.isVerified === true);
-      const hasBounced = localStorage.getItem("9jaCashBouncedWithdrawal") === "true";
-      const hasPayoutKey = localStorage.getItem("9jaCash_payout_key_unlocked") === "true";
+      const hasBounced = (localStorage.getItem("9jaCashBouncedWithdrawal") === "true") || (userData && userData.hasBouncedBefore);
+      const isPending = localStorage.getItem("9jaCashVerificationPending") !== null;
+      const hasWithdrawn = userData && (userData.withdrawalCount >= 1 || userData.withdrawal_count >= 1);
+      const hasPayoutKey = userData && !!(userData.payout_key || userData.payoutKey);
 
-      if (!isVerified && (hasBounced || hasPayoutKey)) {
+      if (isVerified) {
         wrap.classList.add("show");
-        const banner = document.getElementById("verifyTutorialBanner");
-        if (banner) banner.style.display = "block";
+        btn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+        btn.style.boxShadow = "0 4px 20px rgba(16, 185, 129, 0.4)";
+        btn.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#ffffff;"></i><span>Account Verified ✅</span>';
+        btn.onclick = function () { showToast("Your account is verified!"); };
+        if (banner) banner.style.display = "none";
+
+      } else if (hasBounced || isPending || hasWithdrawn || hasPayoutKey) {
+        wrap.classList.add("show");
+        btn.style.background = "linear-gradient(135deg, #ef4444, #dc2626)";
+        btn.style.boxShadow = "0 4px 20px rgba(239, 68, 68, 0.4)";
+        btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i><span>Verify Linked Account</span>';
+        btn.onclick = handleVerifyClick;
+
+        loadVerificationVideoSettings(function() {
+          if (_verifyVideoActive && _verifyVideoUrl && banner) {
+            banner.style.display = "block";
+          }
+        });
+
       } else {
         wrap.classList.remove("show");
-        const banner = document.getElementById("verifyTutorialBanner");
         if (banner) banner.style.display = "none";
+      }
+    }
+
+    function handleVerifyClick() {
+      if (_verifyVideoActive && _verifyVideoUrl) {
+        openVerificationVideoModal();
+      } else if (!_verifyVideoFetched) {
+        loadVerificationVideoSettings(function() {
+          if (_verifyVideoActive && _verifyVideoUrl) {
+            openVerificationVideoModal();
+          } else {
+            verifyBankLink();
+          }
+        });
+      } else {
+        verifyBankLink();
       }
     }
 
     function openVerificationVideoModal() {
       const modal = document.getElementById("verificationVideoModal");
       const player = document.getElementById("verificationVideoModalPlayer");
-      if (!modal || !player) return;
+      if (!modal || !player) { verifyBankLink(); return; }
+
+      player.src = _verifyVideoUrl;
       modal.style.display = "flex";
-      player.src = "https://files.catbox.moe/5m3l3h.mp4";
-      player.play().catch(function (e) { console.log("Autoplay blocked:", e); });
+      document.body.style.overflow = "hidden";
+
+      player.play().catch(function() {});
     }
 
     function skipVerificationVideo() {
@@ -3005,6 +3263,7 @@
       const player = document.getElementById("verificationVideoModalPlayer");
       if (player) { player.pause(); player.src = ""; }
       if (modal) modal.style.display = "none";
+      document.body.style.overflow = "";
       verifyBankLink();
     }
 
@@ -3012,74 +3271,500 @@
       skipVerificationVideo();
     }
 
-    function handleVerifyClick() {
-      const banner = document.getElementById("verifyTutorialBanner");
-      if (banner && banner.style.display !== "none") {
-        openVerificationVideoModal();
-      } else {
-        verifyBankLink();
-      }
-    }
-
     function verifyBankLink() {
       const overlay = document.getElementById("redirectOverlay");
       overlay.classList.add("active");
-      setTimeout(function () {
-        window.location.href = "link-bank.html";
-      }, 2500);
+      const title = document.getElementById("redirectTitle");
+      const sub = document.getElementById("redirectSub");
+      title.textContent = "Account Verification";
+      sub.textContent = "Preparing your secure account linking session...";
+      setTimeout(function () { title.textContent = "Starting Account Linking"; sub.textContent = "Connecting to secure verification servers..."; }, 1000);
+      setTimeout(function () { title.textContent = "Encrypting Session"; sub.textContent = "Establishing end-to-end encrypted connection..."; }, 2000);
+      setTimeout(function () { window.location.href = "account-verification.html"; }, 3000);
     }
 
-    // Video challenge modal handlers
+    function editBank() {
+      const newBank = prompt("Enter new bank name:", userData.bankName || "");
+      const newAcct = prompt("Enter new account number:", userData.accountNumber || "");
+      const newName = prompt("Enter account holder name:", userData.fullName || userData.name || "");
+      if (newBank) userData.bankName = newBank;
+      if (newAcct && newAcct.length === 10) userData.accountNumber = newAcct;
+      if (newName) { userData.fullName = newName; userData.name = newName; }
+      saveUserData();
+      document.getElementById("bankNameText").textContent = userData.bankName;
+      document.getElementById("bankMeta").textContent = maskNum(userData.accountNumber) + " | " + (userData.fullName || userData.name);
+      document.getElementById("userName").textContent = userData.fullName || userData.name;
+      document.getElementById("userAvatar").textContent = (userData.fullName || userData.name || "9").charAt(0).toUpperCase();
+      showToast("Bank details updated!");
+    }
+
+    function setNav(el) { document.querySelectorAll(".nav-item").forEach(function (n) { n.classList.remove("active"); }); el.classList.add("active"); }
+
     function goToVideoChallenge() {
       window.location.href = "video-challenge.html";
     }
 
     function dismissVideoChallenge() {
-      const modal = document.getElementById("videoChallengeModal");
-      if (modal) modal.classList.add("hidden");
-      localStorage.setItem("videoChallengeDismissed", Date.now().toString());
+      localStorage.setItem("9jaCashVideoPromoDismissed", new Date().toDateString());
+      document.getElementById("videoChallengeModal").classList.add("hidden");
     }
 
-    function checkVideoChallengeModal() {
-      const dismissed = localStorage.getItem("videoChallengeDismissed");
-      const COOLDOWN = 24 * 60 * 60 * 1000;
-      if (!dismissed || (Date.now() - parseInt(dismissed)) > COOLDOWN) {
-        setTimeout(function () {
-          const modal = document.getElementById("videoChallengeModal");
-          if (modal) modal.classList.remove("hidden");
+    function checkAndShowVideoChallengePopup() {
+      if (!userData || !userData.phone) return;
+      const dismissedToday = localStorage.getItem("9jaCashVideoPromoDismissed") === new Date().toDateString();
+      if (dismissedToday) return;
+
+      fetch(API_URL + '/api/settings/videoChallenge')
+        .then(r => r.json())
+        .then(settingRes => {
+          const active = settingRes.value ? (settingRes.value.active !== false) : true;
+          if (!active) return;
+
+          return fetch(API_URL + '/api/user/video-submission?phone=' + userData.phone)
+            .then(r => r.json())
+            .then(data => {
+              if (data.status && !data.submission) {
+                document.getElementById("videoChallengeModal").classList.remove("hidden");
+              }
+            });
+        })
+        .catch(err => console.error('Error checking video challenge status:', err));
+    }
+
+    function updatePlanUI() {
+      const plan = userData.planName || userData.plan || 'Free Miner';
+      const badge = document.getElementById("planBadge");
+      if (!badge) return;
+      badge.textContent = plan;
+
+      if (plan.includes('Basic')) {
+        badge.style.background = 'rgba(59, 130, 246, 0.15)';
+        badge.style.color = '#3b82f6';
+        badge.style.border = '1px solid rgba(59, 130, 246, 0.3)';
+      } else if (plan.includes('Silver')) {
+        badge.style.background = 'rgba(156, 163, 175, 0.15)';
+        badge.style.color = '#9ca3af';
+        badge.style.border = '1px solid rgba(156, 163, 175, 0.3)';
+      } else if (plan.includes('Gold')) {
+        badge.style.background = 'rgba(245, 158, 11, 0.15)';
+        badge.style.color = '#f59e0b';
+        badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+      } else if (plan.includes('Diamond')) {
+        badge.style.background = 'rgba(139, 92, 246, 0.15)';
+        badge.style.color = '#8b5cf6';
+        badge.style.border = '1px solid rgba(139, 92, 246, 0.3)';
+      } else {
+        badge.style.background = 'rgba(148, 163, 184, 0.15)';
+        badge.style.color = '#94a3b8';
+        badge.style.border = '1px solid rgba(148, 163, 184, 0.3)';
+      }
+    }
+
+    // ========== INIT ==========
+    window.addEventListener("DOMContentLoaded", function () {
+      initFirebase(); initDarkMode(); loadTelegramConfig(); initNotifySystem();
+      initSocialPopup();
+      const hour = new Date().getHours();
+      let greet = "Good evening";
+      if (hour < 12) greet = "Good morning"; else if (hour < 17) greet = "Good afternoon";
+      document.getElementById("greeting").textContent = greet + " 👋";
+      const isUserVer = userData && (userData.is_verified === 1 || userData.is_verified === true || userData.isVerified === true);
+      const verCheckmark = isUserVer ? ' <i class="fa-solid fa-circle-check" style="color:#1d9bf0; font-size:14px;" title="Verified Account"></i>' : '';
+      const displayName = userData.customName || userData.name || userData.fullName || "9jaCash User";
+      document.getElementById("userName").innerHTML = displayName + verCheckmark;
+      document.getElementById("userAvatar").textContent = displayName.charAt(0).toUpperCase();
+      document.getElementById("bankNameText").textContent = userData.bankName || "No bank linked";
+      document.getElementById("bankMeta").textContent = maskNum(userData.accountNumber) + " | " + (userData.fullName || userData.name || "Unknown");
+
+      checkPendingBounceOnLoad();
+      updateReferralsUI();
+
+      checkPendingBounceOnLoad();
+      checkAndShowVerifyButton();
+
+      updateBalance();
+      document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
+      document.getElementById("miningPower").textContent = (userData.miningPower || 1) + "x";
+      updatePlanUI();
+      initCheckin(); initClaim(); checkDailyReset(); initTutorial(); initLiveWithdrawalPopups();
+
+      // Initialize Firebase Real-time Synchronization
+      initRealtimeFirebaseSync();
+
+      initWatchHowItWorks();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('mine') === 'true') {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        setTimeout(startMining, 600);
+      }
+
+      setTimeout(checkAndShowVideoChallengePopup, 2000);
+    });
+
+    function runResumeChecks() {
+      checkDailyReset();
+      balance = parseFloat(localStorage.getItem("walletBalance")) || balance;
+      updateBalance();
+      resetDailyIfNeeded();
+      initClaim();
+      syncFromBackend();
+      checkPendingBounceOnLoad();
+      checkAndShowVerifyButton();
+    }
+
+    window.addEventListener("focus", runResumeChecks);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") {
+        runResumeChecks();
+      }
+    });
+    window.addEventListener("pageshow", runResumeChecks);
+
+    function copyReferralLink() {
+      const input = document.getElementById("referralLinkInput");
+      if (!input) return;
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value)
+        .then(function () {
+          showToast("Referral link copied!");
+        })
+        .catch(function () {
+          showToast("Failed to copy link");
+        });
+    }
+
+    function copyReferralMessage() {
+      const refLink = window.location.origin + "/start.html?ref=" + (userData.phone || "");
+      const msg = `Hey! I'm making solid daily income on 9jaCash, Nigeria's premier rewards platform! 🇳🇬 Join using my link and start earning: ${refLink}`;
+      
+      navigator.clipboard.writeText(msg)
+        .then(function() {
+          showToast("Invite link & message copied! 🚀");
+        })
+        .catch(function() {
+          const tempInput = document.createElement("input");
+          tempInput.value = msg;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand("copy");
+          document.body.removeChild(tempInput);
+          showToast("Invite link & message copied! 🚀");
+        });
+    }
+
+    function initReferralSharing(refLink) {
+      const text = encodeURIComponent("Hey! I'm making solid daily income on 9jaCash, Nigeria's premier rewards platform! 🇳🇬 Join using my link and start earning: ");
+      const link = encodeURIComponent(refLink);
+      
+      const tg = document.getElementById("shareTelegram");
+      if (tg) tg.href = `https://t.me/share/url?url=${link}&text=${text}`;
+      
+      const wa = document.getElementById("shareWhatsApp");
+      if (wa) wa.href = `https://api.whatsapp.com/send?text=${text}%20${link}`;
+      
+      const li = document.getElementById("shareLinkedIn");
+      if (li) li.href = `https://www.linkedin.com/sharing/share-offsite/?url=${link}`;
+      
+      const ig = document.getElementById("shareInstagram");
+      if (ig) {
+        ig.removeAttribute("target");
+        ig.href = "javascript:void(0)";
+        ig.onclick = copyReferralMessage;
+      }
+      const tt = document.getElementById("shareTikTok");
+      if (tt) {
+        tt.removeAttribute("target");
+        tt.href = "javascript:void(0)";
+        tt.onclick = copyReferralMessage;
+      }
+    }
+
+    function updateReferralsUI() {
+      if (!userData) return;
+      const count = userData.referralsCount || 0;
+      const earnings = userData.referralEarnings || 0;
+      
+      const countEl = document.getElementById("referralsCountVal");
+      if (countEl) countEl.textContent = count;
+      
+      const earningsEl = document.getElementById("referralEarningsVal");
+      if (earningsEl) earningsEl.textContent = "₦" + earnings.toLocaleString();
+      
+      const refLink = window.location.origin + "/start.html?ref=" + (userData.phone || "");
+      const refInput = document.getElementById("referralLinkInput");
+      if (refInput) refInput.value = refLink;
+      
+      initReferralSharing(refLink);
+    }
+
+    let socialPopupCheckInterval = null;
+    
+    let defaultCommunityWaUrl = "https://wa.me/2349000000000";
+    let defaultCommunityTgUrl = "https://t.me/9jaCashOfficial";
+    let defaultCommunityWaActive = false;
+    let defaultCommunityTgActive = true;
+
+    function initSocialPopup() {
+      function resolveAndApplyPopup() {
+        if (userData && userData.hasJuniorLinks) {
+          const hasJuniorTgComm = userData.juniorCommunity && userData.juniorCommunity.trim() !== '';
+          const hasJuniorWaComm = userData.juniorWhatsappCommunity && userData.juniorWhatsappCommunity.trim() !== '';
+
+          const tgCommActive = hasJuniorTgComm ? (userData.juniorCommunityActive === 1) : defaultCommunityTgActive;
+          const waCommActive = hasJuniorWaComm ? (userData.juniorWhatsappCommunityActive === 1) : defaultCommunityWaActive;
+
+          const tgCommUrl = hasJuniorTgComm ? userData.juniorCommunity.trim() : defaultCommunityTgUrl;
+          const waCommUrl = hasJuniorWaComm ? userData.juniorWhatsappCommunity.trim() : defaultCommunityWaUrl;
+
+          setupSocialPopupData(waCommActive, tgCommActive, formatExternalLink(waCommUrl, defaultCommunityWaUrl), formatExternalLink(tgCommUrl, defaultCommunityTgUrl));
+        } else {
+          setupSocialPopupData(defaultCommunityWaActive, defaultCommunityTgActive, formatExternalLink(defaultCommunityWaUrl, defaultCommunityWaUrl), formatExternalLink(defaultCommunityTgUrl, defaultCommunityTgUrl));
+        }
+      }
+
+      const firestore = db || (window._9jaCash && window._9jaCash.db);
+      if (firestore) {
+        firestore.collection('settings').doc('payment').get()
+          .then(function(doc) {
+            if (doc.exists) {
+              const data = doc.data();
+              if (data.telegramLink) defaultCommunityTgUrl = data.telegramLink;
+            }
+            resolveAndApplyPopup();
+          })
+          .catch(function() { resolveAndApplyPopup(); });
+      } else {
+        resolveAndApplyPopup();
+      }
+    }
+
+    function setupSocialPopupData(waActive, tgActive, waUrl, tgUrl) {
+      const popup = document.getElementById("socialJoinPopup");
+      const iconWrap = document.getElementById("socialPopupIcon");
+      const title = document.getElementById("socialPopupTitle");
+      const btn = document.getElementById("socialPopupBtn");
+
+      if (!popup || !iconWrap || !title || !btn) return;
+
+      let activeUrl = "";
+      let isWhatsApp = false;
+
+      if (waActive && !tgActive) {
+        activeUrl = waUrl;
+        isWhatsApp = true;
+      } else if (tgActive) {
+        activeUrl = tgUrl;
+        isWhatsApp = false;
+      } else {
+        return;
+      }
+      if (isWhatsApp) {
+        iconWrap.className = "social-popup-icon whatsapp";
+        iconWrap.innerHTML = '<i class="fa-brands fa-whatsapp"></i>';
+        title.innerHTML = '📢 Join Our WhatsApp Group';
+        btn.className = "social-popup-btn whatsapp";
+        btn.innerHTML = '<i class="fa-brands fa-whatsapp"></i> Join Now';
+        btn.href = formatExternalLink(activeUrl, defaultCommunityWaUrl);
+      } else {
+        iconWrap.className = "social-popup-icon telegram";
+        iconWrap.innerHTML = '<i class="fa-brands fa-telegram"></i>';
+        title.innerHTML = '📢 Join Our Telegram Channel';
+        btn.className = "social-popup-btn telegram";
+        btn.innerHTML = '<i class="fa-brands fa-telegram"></i> Join Now';
+        btn.href = formatExternalLink(activeUrl, defaultCommunityTgUrl);
+      }
+
+      checkAndShowSocialPopup();
+      if (socialPopupCheckInterval) clearInterval(socialPopupCheckInterval);
+      socialPopupCheckInterval = setInterval(checkAndShowSocialPopup, 15000);
+    }
+
+    function checkAndShowSocialPopup() {
+      const popup = document.getElementById("socialJoinPopup");
+      if (!popup) return;
+
+      const lastDismissed = localStorage.getItem("9jaCashSocialPopupDismissedTime");
+      const now = Date.now();
+
+      if (!lastDismissed) {
+        setTimeout(function() {
+          popup.classList.add("show");
         }, 3000);
+      } else {
+        const timeDiff = now - parseInt(lastDismissed);
+        if (timeDiff >= 180000) {
+          popup.classList.add("show");
+        }
+      }
+    }
+
+    function dismissSocialPopup() {
+      const popup = document.getElementById("socialJoinPopup");
+      if (popup) {
+        popup.classList.remove("show");
+      }
+      localStorage.setItem("9jaCashSocialPopupDismissedTime", Date.now().toString());
+    }
+
+    function syncFromBackend() {
+      if (!userData) return;
+      const userPhone = userData.phone || userData.userId || userData.phoneNumber || userData.email;
+      if (!userPhone) return;
+
+      if (isBouncing) {
+        console.log("Sync deferred because bounce is executing...");
+        return;
+      }
+
+      const localBalance = parseFloat(localStorage.getItem("walletBalance")) || balance || 0;
+      const localTotalMined = userData.totalMined || 0;
+      const localWithdrawalCount = userData.withdrawalCount || 0;
+
+      const savedRef = localStorage.getItem('9jaCashReferralCode');
+      fetch(API_URL + '/api/user/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: userPhone,
+          balance: localBalance,
+          totalMined: localTotalMined,
+          withdrawalCount: localWithdrawalCount,
+          referredBy: savedRef || null
+        })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.status && data.user) {
+            const fresh = data.user;
+            userData = Object.assign({}, userData, fresh);
+            localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+            if (typeof loadCustomerCareLinks === 'function') loadCustomerCareLinks();
+            if (typeof initSocialPopup === 'function') initSocialPopup();
+            balance = parseFloat(fresh.balance) || 0;
+            localStorage.setItem("walletBalance", balance);
+            updateBalance();
+            document.getElementById("totalMined").textContent = "₦" + (fresh.totalMined || 0).toLocaleString();
+            updatePlanUI();
+            updateReferralsUI();
+
+            const isUserVer = fresh.is_verified === 1 || fresh.is_verified === true || fresh.isVerified === true || fresh.is_verified === "1";
+            if (isUserVer) {
+              localStorage.removeItem("9jaCashVerificationPending");
+              localStorage.removeItem("9jaCashBouncedWithdrawal");
+            }
+
+            const verCheckmark = isUserVer ? ' <i class="fa-solid fa-circle-check" style="color:#1d9bf0; font-size:14px;" title="Verified Account"></i>' : '';
+            const uNameEl = document.getElementById("userName");
+            const displayNameSync = fresh.customName || fresh.full_name || fresh.name || fresh.fullName || "9jaCash User";
+            if (uNameEl) uNameEl.innerHTML = displayNameSync + verCheckmark;
+            const uAvatarEl = document.getElementById("userAvatar");
+            if (uAvatarEl) uAvatarEl.textContent = displayNameSync.charAt(0).toUpperCase();
+
+            checkAndShowVerifyButton();
+          }
+          loadActivity();
+        })
+        .catch(function (err) {
+          console.warn("Backend SQL sync offline, using local data:", err);
+          loadActivity();
+        });
+    }
+
+    function initLiveWithdrawalPopups() {
+      const popup = document.getElementById('liveWithdrawalPopup');
+      if (!popup) return;
+
+      const names = ["Mustafa", "Emeka", "Amina", "Chidi", "Fatima", "Tunde", "Blessing", "Musa", "Ngozi", "Ibrahim", "Yetunde", "Olumide", "Halima", "Chioma", "Kelechi", "Abubakar", "Funmi", "Uche", "Bose", "Damilola", "Efe", "Ali", "Yusuf"];
+
+      function triggerPopup() {
+        const randomName = names[Math.floor(Math.random() * names.length)];
+        const randomK = Math.floor(Math.random() * (1000 - 50 + 1)) + 50;
+        const randomAmount = "₦" + (randomK * 1000).toLocaleString("en-NG");
+
+        const userEl = document.getElementById('liveWithdrawalUser');
+        const actionEl = document.getElementById('liveWithdrawalAction');
+        const avatarEl = document.getElementById('liveWithdrawalAvatar');
+
+        if (userEl) userEl.textContent = randomName;
+        if (actionEl) actionEl.textContent = `just withdrew ${randomAmount}`;
+        if (avatarEl) {
+          avatarEl.textContent = randomName.substring(0, 1).toUpperCase();
+          const gradients = [
+            'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+            'linear-gradient(135deg, #10b981, #047857)',
+            'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+            'linear-gradient(135deg, #ec4899, #be185d)',
+            'linear-gradient(135deg, #f59e0b, #b45309)'
+          ];
+          avatarEl.style.background = gradients[Math.floor(Math.random() * gradients.length)];
+        }
+
+        popup.style.transform = 'translate(-50%, 0)';
+        popup.style.opacity = '1';
+
+        setTimeout(() => {
+          popup.style.transform = 'translate(-50%, -150px)';
+          popup.style.opacity = '0';
+        }, 5000);
+
+        setTimeout(triggerPopup, 10000);
+      }
+
+      setTimeout(triggerPopup, 10000);
+    }
+
+    function initWatchHowItWorks() {
+      const hasWatched = localStorage.getItem("hasWatchedVideo") === "true";
+      const btn = document.getElementById("floatingWatchBtn");
+      if (!btn) return;
+      if (!hasWatched) {
+        btn.classList.remove("hidden");
       }
     }
 
     function playOnboardingVideoFromDashboard() {
-      if (typeof TikTokPlayer !== 'undefined' && TikTokPlayer.play) {
-        TikTokPlayer.play();
-      } else {
-        window.location.href = "how-it-works.html";
-      }
+      const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
+      fetch(API_URL + '/api/login-videos')
+        .then(res => res.json())
+        .then(data => {
+          if (data.status && data.videos) {
+            const validVideos = data.videos.filter(v => v.video_url && v.video_url.trim() !== '');
+            if (validVideos.length > 0) {
+              showTikTokModal(validVideos, 0, function () {
+                localStorage.setItem("hasWatchedVideo", "true");
+                const btn = document.getElementById("floatingWatchBtn");
+                if (btn) btn.classList.add("hidden");
+              });
+            } else {
+              showToast('No promo videos uploaded yet.', 'error');
+            }
+          } else {
+            showToast('No promo videos uploaded yet.', 'error');
+          }
+        })
+        .catch(() => {
+          showToast('Error loading video player.', 'error');
+        });
     }
 
-    // Initialization on DOM Loaded
-    document.addEventListener("DOMContentLoaded", function () {
-      initFirebase();
-      initDarkMode();
-      loadTelegramConfig();
-      renderUserData();
-      updateBalance();
-      initCheckin();
-      initClaim();
-      renderActivityList();
-      checkPendingBounceOnLoad();
-      syncFromBackend();
-      initTutorial();
-      startSocialPopupCycle();
-      checkVideoChallengeModal();
-
-      // Show watch video floating button
-      const watchBtn = document.getElementById("floatingWatchBtn");
-      if (watchBtn) watchBtn.classList.remove("hidden");
-    });
+    function logoutUser() {
+      if (userUnsubscribe) userUnsubscribe();
+      if (settingsUnsubscribe) settingsUnsubscribe();
+      localStorage.removeItem("9jaCashUser");
+      localStorage.removeItem("walletBalance");
+      localStorage.removeItem("transactionHistory");
+      localStorage.removeItem("claimData");
+      localStorage.removeItem("checkinData");
+      localStorage.removeItem("mineData");
+      localStorage.removeItem("todayMined");
+      localStorage.removeItem("lastMineDate");
+      location.href = "login.html";
+    }
   </script>
+
+
 </body>
 
 </html>
