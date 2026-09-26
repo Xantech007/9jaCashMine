@@ -8,13 +8,14 @@
 
 
 
-  <script src="firebase-init.js"></script>
+  <!-- Replace firebase-init.js with firebase.js -->
+  <script src="firebase.js"></script>
+  
   <script src="tiktok-player.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet">
+
   <style>
     * {
       margin: 0;
@@ -2574,11 +2575,34 @@
       setTimeout(function () { t.classList.remove("show"); }, 2500);
     }
 
+    let db = null;
+    let auth = null;
+
+    // Updated initFirebase to rely on firebase.js initialization
+    function initFirebase() {
+      try {
+        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
+          db = firebase.firestore();
+          auth = firebase.auth();
+          console.log("Firebase initialized successfully via firebase.js");
+          return true;
+        } else if (window.db && window.auth) {
+          // Fallback if firebase.js exposes db and auth globally
+          db = window.db;
+          auth = window.auth;
+          return true;
+        }
+      } catch (e) { 
+        console.error("Firebase init error:", e); 
+      }
+      return false;
+    }
+
     function saveUserData() {
       localStorage.setItem("9jaCashUser", JSON.stringify(userData));
       localStorage.setItem("walletBalance", balance);
 
-      // Update balance in backend SQL database
+      // 1. Update balance in backend SQL database
       fetch(API_URL + '/api/user/update-balance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2589,28 +2613,41 @@
           totalMined: userData.totalMined || 0
         })
       })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          if (data.status && data.balance !== undefined) {
-            balance = parseFloat(data.balance);
-            userData.balance = balance;
-            localStorage.setItem("walletBalance", balance);
-            localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-            updateBalance();
-          }
-        })
-        .catch(function (err) { console.error("Balance SQL update failed:", err); });
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.status && data.balance !== undefined) {
+          balance = parseFloat(data.balance);
+          userData.balance = balance;
+          localStorage.setItem("walletBalance", balance);
+          localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+          updateBalance();
+        }
+      })
+      .catch(function (err) { console.error("Balance SQL update failed:", err); });
 
-      // Sync to Firestore for cloud/legacy persistence
-      if (window._9jaCash && window._9jaCash.db && userData && userData.phone) {
+      // 2. Sync to Firestore using db from firebase.js
+      if (db && userData && userData.phone) {
+        db.collection("users").doc(userData.phone).update({
+          balance: balance,
+          totalMined: userData.totalMined || 0,
+          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(function () { 
+          console.log("Firestore balance synced successfully via firebase.js."); 
+        })
+        .catch(function (err) { 
+          console.error("Firestore balance sync failed:", err); 
+        });
+      } else if (window._9jaCash && window._9jaCash.db && userData && userData.phone) {
+        // Legacy fallback sync
         window._9jaCash.db.collection("users").doc(userData.phone).update({
           balance: balance,
           totalMined: userData.totalMined || 0
         })
-          .then(function () { console.log("Firestore balance synced successfully."); })
-          .catch(function (err) { console.error("Firestore balance sync failed:", err); });
+        .catch(function (err) { console.error("Legacy Firestore sync failed:", err); });
       }
     }
+
 
     function initCheckin() {
       document.getElementById("streakCount").textContent = checkinData.streak;
