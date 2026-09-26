@@ -3918,6 +3918,27 @@
       }
     }
     setTimeout(loadCustomerCareLinks, 500);
+    
+    function showDownloadPrompt() {
+      const banner = document.getElementById("downloadBanner");
+      if (banner) banner.classList.add("show");
+    }
+    
+    function dismissDownloadPrompt() {
+      const banner = document.getElementById("downloadBanner");
+      if (banner) {
+        banner.classList.remove("show");
+        setTimeout(function() { banner.classList.add("hidden"); }, 600);
+      }
+    }
+    
+    function downloadAppAPK() {
+      dismissDownloadPrompt();
+      showToast("Starting APK download...");
+      const apkUrl = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
+      window.location.href = apkUrl;
+    }  
+    
   </script>
 
 </body>
