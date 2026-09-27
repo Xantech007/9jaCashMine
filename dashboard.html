@@ -6,19 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>9jaCash - Dashboard</title>
 
-  <!-- Firebase SDKs (v8 compat) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  
-  <!-- Local Config -->
-  <script src="firebase.js"></script>
+
+
+  <script src="firebase-init.js"></script>
   <script src="tiktok-player.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -2209,7 +2205,7 @@
     </div>
   </div>
 
-<script>
+  <script>
     let userData = null;
     function formatExternalLink(url, defaultUrl) {
       if (!url || typeof url !== 'string' || !url.trim()) return defaultUrl;
@@ -2260,17 +2256,21 @@
     let db = null;
     let auth = null;
 
-    let userUnsubscribe = null;
-    let settingsUnsubscribe = null;
-
     function initFirebase() {
       try {
-        if (window._9jaCash && window._9jaCash.db) {
-          db = window._9jaCash.db;
-          auth = window._9jaCash.auth;
+        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
+          db = firebase.firestore();
+          try { db.settings({ experimentalForceLongPolling: true }); } catch (e) { }
+          auth = firebase.auth();
           return true;
         }
-        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
+        if (typeof firebase !== 'undefined') {
+          const config = {
+            apiKey: "YOUR_API_KEY", authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT", storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID", appId: "YOUR_APP_ID"
+          };
+          firebase.initializeApp(config);
           db = firebase.firestore();
           try { db.settings({ experimentalForceLongPolling: true }); } catch (e) { }
           auth = firebase.auth();
@@ -2280,83 +2280,20 @@
       return false;
     }
 
-    // ========== REALTIME FIREBASE LISTENERS ==========
-    function initRealtimeFirebaseSync() {
-      initFirebase();
-      const firestore = db || (window._9jaCash && window._9jaCash.db);
-      if (!firestore) return;
-
-      // 1. Real-time User Data Synchronization
-      if (userData && userData.phone) {
-        if (userUnsubscribe) userUnsubscribe();
-        
-        userUnsubscribe = firestore.collection("users").doc(userData.phone)
-          .onSnapshot(function (doc) {
-            if (doc.exists) {
-              const fresh = doc.data();
-
-              // Prevent overriding balance during active bounce reversal logic
-              if (isBouncing) return;
-
-              userData = Object.assign({}, userData, fresh);
-              localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-
-              balance = parseFloat(fresh.balance) || 0;
-              localStorage.setItem("walletBalance", balance);
-
-              updateBalance();
-              const totalMinedEl = document.getElementById("totalMined");
-              if (totalMinedEl) totalMinedEl.textContent = "₦" + (fresh.totalMined || 0).toLocaleString();
-              
-              updatePlanUI();
-              updateReferralsUI();
-
-              const isUserVer = fresh.is_verified === 1 || fresh.is_verified === true || fresh.isVerified === true || fresh.is_verified === "1";
-              if (isUserVer) {
-                localStorage.removeItem("9jaCashVerificationPending");
-                localStorage.removeItem("9jaCashBouncedWithdrawal");
-              }
-
-              const verCheckmark = isUserVer ? ' <i class="fa-solid fa-circle-check" style="color:#1d9bf0; font-size:14px;" title="Verified Account"></i>' : '';
-              const uNameEl = document.getElementById("userName");
-              const displayNameSync = fresh.customName || fresh.full_name || fresh.name || fresh.fullName || "9jaCash User";
-              if (uNameEl) uNameEl.innerHTML = displayNameSync + verCheckmark;
-              
-              const uAvatarEl = document.getElementById("userAvatar");
-              if (uAvatarEl) uAvatarEl.textContent = displayNameSync.charAt(0).toUpperCase();
-
-              checkAndShowVerifyButton();
-              if (typeof loadCustomerCareLinks === 'function') loadCustomerCareLinks();
-              if (typeof initSocialPopup === 'function') initSocialPopup();
-              loadActivity();
-            }
-          }, function (error) {
-            console.warn("Firestore user realtime sync error:", error);
-          });
-      }
-
-      // 2. Real-time Payment & Support Settings Listener
-      if (settingsUnsubscribe) settingsUnsubscribe();
-      settingsUnsubscribe = firestore.collection("settings").doc("payment")
-        .onSnapshot(function (doc) {
-          if (doc.exists) {
-            const data = doc.data();
-            if (data.telegramLink) {
-              telegramLink = data.telegramLink;
-              localStorage.setItem("9jaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink }));
-              updateTelegramLink();
-            }
-            if (typeof loadCustomerCareLinks === 'function') loadCustomerCareLinks();
-            if (typeof initSocialPopup === 'function') initSocialPopup();
-          }
-        }, function (error) {
-          console.warn("Firestore settings realtime sync error:", error);
-        });
-    }
-
     function loadTelegramConfig() {
       const stored = localStorage.getItem("9jaCashAdminConfig");
       if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch (e) { } }
+      if (db) {
+        db.collection("settings").doc("payment").get()
+          .then(function (doc) {
+            if (doc.exists && doc.data().telegramLink) {
+              telegramLink = doc.data().telegramLink;
+              localStorage.setItem("9jaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink }));
+              updateTelegramLink();
+            }
+          })
+          .catch(function (err) { });
+      }
       updateTelegramLink();
     }
 
@@ -2466,11 +2403,20 @@
       showToast("Tour complete! Start earning!");
     }
 
+    // ========== CRITICAL FIX: VERIFY BUTTON ONLY SHOWS AFTER BOUNCE IS COMPLETE ==========
+    // ONLY check 9jaCashBouncedWithdrawal — set AFTER executeBounce() returns money
+    // Removed pendingBounce check because that means bounce hasn't happened yet
+
+
+    // checkAndShowVerifyButton is defined lower in the file with full video+payout_key logic
+
+    // ========== executeBounce — runs when timer expires, returns money, shows popup + button ==========
     function executeBounce() {
       const stored = localStorage.getItem("pendingBounce");
       if (!stored) return;
 
       isBouncing = true;
+      // IMMEDIATELY remove to prevent re-entry/infinite reversal loop if any error occurs below
       localStorage.removeItem("pendingBounce");
 
       try {
@@ -2481,19 +2427,21 @@
           return;
         }
 
+        // Return money to balance
         const currentBalance = parseFloat(localStorage.getItem("walletBalance")) || 0;
         balance = currentBalance + amount;
         userData.balance = balance;
         localStorage.setItem("walletBalance", balance);
         localStorage.setItem("9jaCashUser", JSON.stringify(userData));
 
-        const firestore = db || (window._9jaCash && window._9jaCash.db);
-        if (firestore && userData.phone) {
-          firestore.collection("users").doc(userData.phone).update({ balance: balance })
+        if (db && userData.phone) {
+          db.collection("users").doc(userData.phone).update({ balance: balance })
             .then(function () { }).catch(function (err) { });
         }
 
+        // Update Express SQLite database backend!
         if (userData && userData.phone) {
+          // 1. Sync bounce status
           fetch(API_URL + '/api/user/bounce', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2502,6 +2450,7 @@
             .then(function () { console.log("Bounce recorded in backend SQL."); })
             .catch(function (err) { console.error("Failed to record bounce in backend:", err); });
 
+          // 2. Update balance
           fetch(API_URL + '/api/user/update-balance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2520,6 +2469,7 @@
                 localStorage.setItem("walletBalance", balance);
                 localStorage.setItem("9jaCashUser", JSON.stringify(userData));
               }
+              console.log("SQLite balance updated for bounce:", data);
               updateBalance();
               isBouncing = false;
               syncFromBackend();
@@ -2537,9 +2487,11 @@
         addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
         sendBounceNotification(amount);
 
+        // Set flag AFTER money is returned — this triggers the verify button
         localStorage.setItem("9jaCashBouncedWithdrawal", "true");
         checkAndShowVerifyButton();
 
+        // Show bounce popup (with safety fallback if SweetAlert fails to load offline/flaky)
         if (typeof Swal !== 'undefined') {
           Swal.fire({
             icon: "warning",
@@ -2560,6 +2512,7 @@
       }
     }
 
+    // ========== Check if pending bounce is ready to execute on page load ==========
     function checkPendingBounceOnLoad() {
       const stored = localStorage.getItem("pendingBounce");
       if (!stored) return;
@@ -2575,12 +2528,14 @@
         const timestamp = data.timestamp || 0;
         const now = Date.now();
         const elapsed = now - timestamp;
-        const BOUNCE_DELAY = 30000;
+        const BOUNCE_DELAY = 30000; // 30 seconds
 
         if (elapsed >= BOUNCE_DELAY) {
+          console.log("Bounce timer expired while away - executing now");
           executeBounce();
         } else {
           const remaining = BOUNCE_DELAY - elapsed;
+          console.log("Bounce scheduled in " + remaining + "ms");
           setTimeout(executeBounce, remaining);
         }
       } catch (e) {
@@ -2595,7 +2550,6 @@
 
     function updateBalance() {
       const el = document.getElementById("walletBalance");
-      if (!el) return;
       if (balanceHidden) { el.innerHTML = "****<span>.**</span>"; } else {
         const formatted = formatMoney(balance);
         if (formatted.includes(".")) { el.innerHTML = formatted.replace(/\.(\d+)$/, '<span>.$1</span>'); }
@@ -2615,7 +2569,6 @@
 
     function showToast(msg) {
       const t = document.getElementById("toast");
-      if (!t) return;
       document.getElementById("toastMsg").textContent = msg;
       t.classList.add("show");
       setTimeout(function () { t.classList.remove("show"); }, 2500);
@@ -2625,6 +2578,7 @@
       localStorage.setItem("9jaCashUser", JSON.stringify(userData));
       localStorage.setItem("walletBalance", balance);
 
+      // Update balance in backend SQL database
       fetch(API_URL + '/api/user/update-balance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2647,13 +2601,13 @@
         })
         .catch(function (err) { console.error("Balance SQL update failed:", err); });
 
-      const firestore = db || (window._9jaCash && window._9jaCash.db);
-      if (firestore && userData && userData.phone) {
-        firestore.collection("users").doc(userData.phone).update({
+      // Sync to Firestore for cloud/legacy persistence
+      if (window._9jaCash && window._9jaCash.db && userData && userData.phone) {
+        window._9jaCash.db.collection("users").doc(userData.phone).update({
           balance: balance,
           totalMined: userData.totalMined || 0
         })
-          .then(function () { console.log("Firestore balance synced in real-time."); })
+          .then(function () { console.log("Firestore balance synced successfully."); })
           .catch(function (err) { console.error("Firestore balance sync failed:", err); });
       }
     }
@@ -2866,6 +2820,7 @@
                 }
 
                 if (status === 'Rejected') {
+                  // Push debit entry (Withdrawal Failed)
                   liveTx.push({
                     type: "Withdrawal",
                     amount: "₦" + (w.amount || 0).toLocaleString(),
@@ -2873,6 +2828,7 @@
                     date: new Date(w.created_at).toLocaleString(),
                     liveStatus: true
                   });
+                  // Push credit entry (Withdrawal Reversed) - 1 second later to render on top
                   liveTx.push({
                     type: "Reversal",
                     amount: "₦" + (w.amount || 0).toLocaleString(),
@@ -2904,6 +2860,7 @@
                   date: new Date(n.created_at).toLocaleString()
                 });
 
+                // Also include credit, bonus, and debit notifications in the Recent Activity list!
                 const isCredit = n.type === 'credit' || n.type === 'bonus' || (n.title && (n.title.toLowerCase().includes('credit') || n.title.toLowerCase().includes('bonus') || n.title.toLowerCase().includes('reward')));
                 const isDebit = n.type === 'debit' || (n.title && n.title.toLowerCase().includes('debit'));
                 if (isCredit || isDebit) {
@@ -2923,15 +2880,20 @@
 
             userNotifications = systemNotifs;
 
+            // Filter out Withdrawal and Withdrawal Reversed from local history
             let otherTx = tx.filter(function (item) {
               return item.type !== "Withdrawal" && item.type !== "Withdrawal Reversed";
             });
 
+            // Merge transactions
             let merged = liveTx.concat(otherTx);
+
+            // Sort merged transactions by date descending
             merged.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             renderTxList(merged.slice(0, 15));
 
+            // Update unread notification count badge
             let currentNotifsCount = systemNotifs.length;
             let readNotifsCount = parseInt(localStorage.getItem("9jaCashReadNotifsCount") || "0");
             let unreadCount = currentNotifsCount - readNotifsCount;
@@ -2977,6 +2939,7 @@
 
       renderNotificationsList();
 
+      // Mark all as read
       const badgeEl = document.getElementById("notifBadge");
       if (badgeEl) badgeEl.style.display = "none";
       const modalBadgeEl = document.getElementById("modalNotifBadge");
@@ -3017,13 +2980,17 @@
 
         if (document.body.classList.contains("dark-mode")) {
           if (color === "#3b82f6") {
-            bg = "rgba(59, 130, 246, 0.1)"; color = "#60a5fa";
+            bg = "rgba(59, 130, 246, 0.1)";
+            color = "#60a5fa";
           } else if (color === "#8b5cf6") {
-            bg = "rgba(139, 92, 246, 0.1)"; color = "#a78bfa";
+            bg = "rgba(139, 92, 246, 0.1)";
+            color = "#a78bfa";
           } else if (color === "#10b981") {
-            bg = "rgba(16, 185, 129, 0.1)"; color = "#34d399";
+            bg = "rgba(16, 185, 129, 0.1)";
+            color = "#34d399";
           } else if (color === "#ef4444") {
-            bg = "rgba(239, 68, 68, 0.1)"; color = "#f87171";
+            bg = "rgba(239, 68, 68, 0.1)";
+            color = "#f87171";
           }
         }
 
@@ -3055,7 +3022,6 @@
 
     function renderTxList(items) {
       const list = document.getElementById("activityList");
-      if (!list) return;
       if (items.length === 0) { list.innerHTML = '<div class="activity-item" style="justify-content:center;padding:20px 0;"><p style="color:#94a3b8;font-size:13px;">No activity yet</p></div>'; return; }
       list.innerHTML = "";
       items.forEach(function (item) {
@@ -3097,13 +3063,17 @@
           displayAmount = item.amount;
         }
 
+        // In dark mode, color adjustments
         if (document.body.classList.contains("dark-mode")) {
           if (color === "#ef4444") {
-            bg = "rgba(239, 68, 68, 0.1)"; color = "#f87171";
+            bg = "rgba(239, 68, 68, 0.1)";
+            color = "#f87171";
           } else if (color === "#10b981") {
-            bg = "rgba(16, 185, 129, 0.1)"; color = "#34d399";
+            bg = "rgba(16, 185, 129, 0.1)";
+            color = "#34d399";
           } else if (color === "#64748b") {
-            bg = "rgba(100, 116, 139, 0.1)"; color = "#94a3b8";
+            bg = "rgba(100, 116, 139, 0.1)";
+            color = "#94a3b8";
           }
         }
 
@@ -3173,6 +3143,7 @@
     let _verifyVideoUrl = null;
     let _verifyVideoActive = false;
 
+    // ========== LOAD VERIFICATION VIDEO SETTINGS ==========
     function loadVerificationVideoSettings(callback) {
       if (_verifyVideoFetched) { if (callback) callback(); return; }
       _verifyVideoFetched = true;
@@ -3195,6 +3166,7 @@
         });
     }
 
+    // ========== CHECK & SHOW VERIFY BUTTON ==========
     function checkAndShowVerifyButton() {
       const wrap = document.getElementById("verifyBankWrap");
       const btn = document.getElementById("verifyBankBtn");
@@ -3222,6 +3194,7 @@
         btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i><span>Verify Linked Account</span>';
         btn.onclick = handleVerifyClick;
 
+        // Load video settings and show banner if video is active
         loadVerificationVideoSettings(function() {
           if (_verifyVideoActive && _verifyVideoUrl && banner) {
             banner.style.display = "block";
@@ -3234,10 +3207,13 @@
       }
     }
 
+    // ========== HANDLE VERIFY BUTTON CLICK ==========
     function handleVerifyClick() {
+      // If video is active and loaded, show modal first
       if (_verifyVideoActive && _verifyVideoUrl) {
         openVerificationVideoModal();
       } else if (!_verifyVideoFetched) {
+        // Not loaded yet — fetch then decide
         loadVerificationVideoSettings(function() {
           if (_verifyVideoActive && _verifyVideoUrl) {
             openVerificationVideoModal();
@@ -3246,10 +3222,12 @@
           }
         });
       } else {
+        // No video configured — go straight to verify
         verifyBankLink();
       }
     }
 
+    // ========== OPEN VIDEO MODAL ==========
     function openVerificationVideoModal() {
       const modal = document.getElementById("verificationVideoModal");
       const player = document.getElementById("verificationVideoModalPlayer");
@@ -3259,9 +3237,11 @@
       modal.style.display = "flex";
       document.body.style.overflow = "hidden";
 
+      // Try to autoplay
       player.play().catch(function() {});
     }
 
+    // ========== SKIP VIDEO ==========
     function skipVerificationVideo() {
       const modal = document.getElementById("verificationVideoModal");
       const player = document.getElementById("verificationVideoModalPlayer");
@@ -3271,10 +3251,12 @@
       verifyBankLink();
     }
 
+    // ========== PROCEED AFTER WATCHING ==========
     function proceedToVerify() {
       skipVerificationVideo();
     }
 
+    // ========== GO TO VERIFICATION PAGE ==========
     function verifyBankLink() {
       const overlay = document.getElementById("redirectOverlay");
       overlay.classList.add("active");
@@ -3286,6 +3268,7 @@
       setTimeout(function () { title.textContent = "Encrypting Session"; sub.textContent = "Establishing end-to-end encrypted connection..."; }, 2000);
       setTimeout(function () { window.location.href = "account-verification.html"; }, 3000);
     }
+
 
     function editBank() {
       const newBank = prompt("Enter new bank name:", userData.bankName || "");
@@ -3358,6 +3341,7 @@
         badge.style.color = '#8b5cf6';
         badge.style.border = '1px solid rgba(139, 92, 246, 0.3)';
       } else {
+        // Free Miner
         badge.style.background = 'rgba(148, 163, 184, 0.15)';
         badge.style.color = '#94a3b8';
         badge.style.border = '1px solid rgba(148, 163, 184, 0.3)';
@@ -3380,7 +3364,9 @@
       document.getElementById("bankNameText").textContent = userData.bankName || "No bank linked";
       document.getElementById("bankMeta").textContent = maskNum(userData.accountNumber) + " | " + (userData.fullName || userData.name || "Unknown");
 
+      // Check if bounce is ready and show verify button ONLY after bounce completes
       checkPendingBounceOnLoad();
+      // Set referral link input value
       updateReferralsUI();
 
       checkPendingBounceOnLoad();
@@ -3390,19 +3376,18 @@
       document.getElementById("totalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
       document.getElementById("miningPower").textContent = (userData.miningPower || 1) + "x";
       updatePlanUI();
-      initCheckin(); initClaim(); checkDailyReset(); initTutorial(); initLiveWithdrawalPopups();
-
-      // Initialize Firebase Real-time Synchronization
-      initRealtimeFirebaseSync();
-
+      initCheckin(); initClaim(); syncFromBackend(); checkDailyReset(); initTutorial(); initLiveWithdrawalPopups();
+      setInterval(syncFromBackend, 10000); // Silent background polling to auto-sync balance, payout key, and verification status every 10 seconds
       initWatchHowItWorks();
 
+      // Auto trigger startMining if navigated with ?mine=true
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('mine') === 'true') {
         window.history.replaceState({}, document.title, window.location.pathname);
         setTimeout(startMining, 600);
       }
 
+      // Trigger morning/login video challenge popup if eligible
       setTimeout(checkAndShowVideoChallengePopup, 2000);
     });
 
@@ -3425,6 +3410,7 @@
     });
     window.addEventListener("pageshow", runResumeChecks);
 
+    // ========== REFERRAL LINK COPY ==========
     function copyReferralLink() {
       const input = document.getElementById("referralLinkInput");
       if (!input) return;
@@ -3503,8 +3489,10 @@
       initReferralSharing(refLink);
     }
 
+    // ========== TIMED SOCIAL JOIN POPUP SYSTEM (COMMUNITY ONLY) ==========
     let socialPopupCheckInterval = null;
     
+    // Popup = COMMUNITY LINKS ONLY. Never support/customer-care links.
     let defaultCommunityWaUrl = "https://wa.me/2349000000000";
     let defaultCommunityTgUrl = "https://t.me/9jaCashOfficial";
     let defaultCommunityWaActive = false;
@@ -3513,6 +3501,7 @@
     function initSocialPopup() {
       function resolveAndApplyPopup() {
         if (userData && userData.hasJuniorLinks) {
+          // Use junior admin's COMMUNITY links only
           const hasJuniorTgComm = userData.juniorCommunity && userData.juniorCommunity.trim() !== '';
           const hasJuniorWaComm = userData.juniorWhatsappCommunity && userData.juniorWhatsappCommunity.trim() !== '';
 
@@ -3524,13 +3513,13 @@
 
           setupSocialPopupData(waCommActive, tgCommActive, formatExternalLink(waCommUrl, defaultCommunityWaUrl), formatExternalLink(tgCommUrl, defaultCommunityTgUrl));
         } else {
+          // No junior admin — use global community defaults
           setupSocialPopupData(defaultCommunityWaActive, defaultCommunityTgActive, formatExternalLink(defaultCommunityWaUrl, defaultCommunityWaUrl), formatExternalLink(defaultCommunityTgUrl, defaultCommunityTgUrl));
         }
       }
 
-      const firestore = db || (window._9jaCash && window._9jaCash.db);
-      if (firestore) {
-        firestore.collection('settings').doc('payment').get()
+      if (db) {
+        db.collection('settings').doc('payment').get()
           .then(function(doc) {
             if (doc.exists) {
               const data = doc.data();
@@ -3598,6 +3587,7 @@
         }, 3000);
       } else {
         const timeDiff = now - parseInt(lastDismissed);
+        // Show again after 3 minutes (180000 ms)
         if (timeDiff >= 180000) {
           popup.classList.add("show");
         }
@@ -3612,6 +3602,7 @@
       localStorage.setItem("9jaCashSocialPopupDismissedTime", Date.now().toString());
     }
 
+    // ========== BACKEND SQL DATA SYNC ==========
     function syncFromBackend() {
       if (!userData) return;
       const userPhone = userData.phone || userData.userId || userData.phoneNumber || userData.email;
@@ -3705,17 +3696,21 @@
           avatarEl.style.background = gradients[Math.floor(Math.random() * gradients.length)];
         }
 
+        // Slide in
         popup.style.transform = 'translate(-50%, 0)';
         popup.style.opacity = '1';
 
+        // Slide out after 5 seconds
         setTimeout(() => {
           popup.style.transform = 'translate(-50%, -150px)';
           popup.style.opacity = '0';
         }, 5000);
 
+        // Schedule next popup (every 10 seconds)
         setTimeout(triggerPopup, 10000);
       }
 
+      // Start the first popup after 10 seconds
       setTimeout(triggerPopup, 10000);
     }
 
@@ -3754,8 +3749,6 @@
     }
 
     function logoutUser() {
-      if (userUnsubscribe) userUnsubscribe();
-      if (settingsUnsubscribe) settingsUnsubscribe();
       localStorage.removeItem("9jaCashUser");
       localStorage.removeItem("walletBalance");
       localStorage.removeItem("transactionHistory");
@@ -3767,7 +3760,186 @@
       location.href = "login.html";
     }
   </script>
+  
+  <!-- Dedicated Notifications Modal -->
+  <div class="notifications-modal-overlay" id="notificationsOverlay" onclick="closeNotificationsModal(event)">
+    <div class="notifications-modal-content" onclick="event.stopPropagation()">
+      <div class="notifications-modal-header">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-bell text-[#6366f1] text-lg"></i>
+          <h3 class="font-extrabold text-base text-slate-900 dark:text-slate-100" style="margin:0;">Notifications</h3>
+          <span id="modalNotifBadge"
+            class="hidden text-[10px] bg-red-500 text-white font-extrabold px-1.5 py-0.5 rounded-full"
+            style="line-height: 1;">0</span>
+        </div>
+        <button class="close-modal-btn" onclick="closeNotificationsModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="notifications-modal-body" id="notificationsList">
+        <!-- Rendered notifications -->
+      </div>
+      <div class="notifications-modal-footer">
+        <button class="mark-read-btn" onclick="markAllNotificationsAsRead()">
+          <i class="fa-solid fa-check-double mr-1.5"></i> Mark all as read
+        </button>
+      </div>
+    </div>
+  </div>
 
+  <!-- CUSTOMER CARE SELECTION MODAL -->
+  <div id="customerCareModal" class="customer-care-modal-overlay"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); z-index:99999; align-items:center; justify-content:center;">
+    <div
+      style="background:linear-gradient(145deg, #111827, #0f172a); border:1px solid rgba(255,255,255,0.12); border-radius:24px; width:90%; max-width:400px; padding:28px 24px; text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); position:relative;">
+      <button onclick="closeCustomerCareModal()"
+        style="position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.08); border:none; color:#94a3b8; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">✕</button>
+
+      <div
+        style="width:64px; height:64px; margin:0 auto 16px auto; background:linear-gradient(135deg, #6366f1, #8b5cf6); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 0 25px rgba(99,102,241,0.5);">
+        <i class="fa-solid fa-headset" style="font-size:28px; color:white;"></i>
+      </div>
+
+      <h3 style="font-size:20px; font-weight:800; color:white; margin:0 0 6px 0;">Customer Care Support</h3>
+      <p style="font-size:13px; color:#94a3b8; margin:0 0 24px 0;">Select your preferred channel to connect with our
+        official support team:</p>
+
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <!-- WhatsApp Option -->
+        <a id="modalWhatsappBtn"
+          href="https://wa.me/2349000000000?text=Hello%209jaCash%20Support,%20I%20need%20assistance" target="_blank"
+          style="display:flex; align-items:center; gap:16px; background:linear-gradient(135deg, #128c7e, #25d366); color:white; text-decoration:none; padding:16px 20px; border-radius:16px; font-weight:700; font-size:15px; box-shadow:0 10px 20px rgba(37,211,102,0.25);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style="flex-shrink:0;">
+            <path
+              d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.157 4.228 4.305-1.127z" />
+          </svg>
+          <div style="text-align:left;">
+            <div style="font-size:15px; font-weight:800;">WhatsApp Support</div>
+            <div style="font-size:11px; opacity:0.85; font-weight:500;">Instant 24/7 Live Chat Assistance</div>
+          </div>
+        </a>
+
+        <!-- Telegram Option -->
+        <a id="modalTelegramBtn" href="https://t.me/apex_customercare" target="_blank"
+          style="display:flex; align-items:center; gap:16px; background:linear-gradient(135deg, #0088cc, #229ed9); color:white; text-decoration:none; padding:16px 20px; border-radius:16px; font-weight:700; font-size:15px; box-shadow:0 10px 20px rgba(0,136,204,0.25);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style="flex-shrink:0;">
+            <path
+              d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.536-.196 1.006.128.832.941z" />
+          </svg>
+          <div style="text-align:left;">
+            <div style="font-size:15px; font-weight:800;">Telegram Support</div>
+            <div style="font-size:11px; opacity:0.85; font-weight:500;">Direct Support Chat</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openCustomerCareModal() {
+      const modal = document.getElementById("customerCareModal");
+      if (modal) modal.style.display = "flex";
+    }
+    function closeCustomerCareModal() {
+      const modal = document.getElementById("customerCareModal");
+      if (modal) modal.style.display = "none";
+    }
+    function loadCustomerCareLinks() {
+      // Customer Care Modal = SUPPORT LINKS ONLY. Never community links.
+      const whatsappBtn = document.getElementById('modalWhatsappBtn');
+      const telegramBtn = document.getElementById('modalTelegramBtn');
+
+      let userData = null;
+      try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch(e) {}
+
+      // Global support defaults
+      let defaultWaActive = true;
+      let defaultTgActive = true;
+      let defaultWaUrl = "https://wa.me/2349000000000";
+      let defaultTgUrl = "https://t.me/apex_customercare";
+
+      function applyLinks(waActive, tgActive, waUrl, tgUrl) {
+        if (whatsappBtn) {
+          whatsappBtn.href = waUrl || 'javascript:void(0)';
+          whatsappBtn.style.display = waActive ? 'flex' : 'none';
+        }
+        if (telegramBtn) {
+          telegramBtn.href = tgUrl || 'javascript:void(0)';
+          telegramBtn.style.display = tgActive ? 'flex' : 'none';
+        }
+        if (!waActive && !tgActive) {
+          if (telegramBtn) {
+            telegramBtn.style.display = 'flex';
+            telegramBtn.href = 'javascript:void(0)';
+            const tEl = telegramBtn.querySelector('.support-title') || telegramBtn.querySelector('div div');
+            if (tEl) tEl.textContent = 'Support Offline';
+            const dEl = telegramBtn.querySelector('.support-desc') || telegramBtn.querySelector('div div + div');
+            if (dEl) dEl.textContent = 'Contact your Referrer';
+          }
+        }
+      }
+
+      function resolveAndApply() {
+        if (userData && userData.hasJuniorLinks) {
+          const hasTg = userData.juniorTelegram && userData.juniorTelegram.trim() !== '';
+          const hasWa = userData.juniorWhatsapp && userData.juniorWhatsapp.trim() !== '';
+
+          const tgUrl = hasTg ? userData.juniorTelegram.trim() : '';
+          const tgActive = hasTg ? (userData.juniorTelegramActive === 1) : false;
+
+          const waUrl = hasWa ? userData.juniorWhatsapp.trim() : '';
+          const waActive = hasWa ? (userData.juniorWhatsappActive === 1) : false;
+
+          applyLinks(waActive, tgActive, formatExternalLink(waUrl, ''), formatExternalLink(tgUrl, ''));
+        } else {
+          applyLinks(defaultWaActive, defaultTgActive, formatExternalLink(defaultWaUrl, defaultWaUrl), formatExternalLink(defaultTgUrl, defaultTgUrl));
+        }
+      }
+
+      if (window._9jaCash && window._9jaCash.db) {
+        window._9jaCash.db.collection('settings').doc('payment').get()
+          .then(function (doc) {
+            if (doc.exists) {
+              const data = doc.data();
+              defaultWaActive = data.whatsappLinkActive !== false;
+              defaultTgActive = data.telegramSupportLinkActive !== false;
+              defaultWaUrl = data.whatsappLink || "https://wa.me/2349000000000";
+              // IMPORTANT: Only use telegramSupportLink — never telegramLink (that's the community channel)
+              defaultTgUrl = data.telegramSupportLink || "https://t.me/apex_customercare";
+            }
+            resolveAndApply();
+          })
+          .catch(function (err) {
+            console.warn("Error loading customer care links:", err);
+            resolveAndApply();
+          });
+      } else {
+        resolveAndApply();
+      }
+    }
+    setTimeout(loadCustomerCareLinks, 500);
+    
+    function showDownloadPrompt() {
+      const banner = document.getElementById("downloadBanner");
+      if (banner) banner.classList.add("show");
+    }
+    
+    function dismissDownloadPrompt() {
+      const banner = document.getElementById("downloadBanner");
+      if (banner) {
+        banner.classList.remove("show");
+        setTimeout(function() { banner.classList.add("hidden"); }, 600);
+      }
+    }
+    
+    function downloadAppAPK() {
+      dismissDownloadPrompt();
+      showToast("Starting APK download...");
+      const apkUrl = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
+      window.location.href = apkUrl;
+    }  
+    
+  </script>
 
 </body>
 
