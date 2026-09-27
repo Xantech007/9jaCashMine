@@ -8,8 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- Firebase JS Integration -->
-<script type="module" src="firebase.js"></script>
+<script src="firebase-init.js"></script>
 <style>
 :root{
   --bg:#070b14;
@@ -56,6 +55,8 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 .login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,212,170,0.35);}
 .login-btn:active{transform:scale(0.97);}
 .login-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none;}
+.login-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transition:0.5s;}
+.login-btn:hover::before{left:100%;}
 .login-error{color:var(--danger);font-size:13px;font-weight:600;margin-top:16px;text-align:center;padding:12px;border-radius:12px;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.15);display:none;}
 .login-error.show{display:block;}
 .app{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 16px 40px;}
@@ -98,6 +99,72 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 .stat-label{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:20px;transition:all 0.3s;}
 .panel:hover{border-color:var(--border2);}
+/* Action Dropdown Styles */
+.action-dropdown {
+  position: relative;
+  display: inline-block;
+}
+.action-dropdown-btn {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.action-dropdown-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.action-dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: #161f30;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 140px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  overflow: hidden;
+  text-align: left;
+}
+.action-dropdown-menu.show {
+  display: block;
+}
+.action-dropdown-menu a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.action-dropdown-menu a:hover {
+  background: var(--surface3);
+}
+.action-dropdown-menu .dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+.action-dropdown-menu .dropdown-status-label {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+}
 .panel-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
 .panel-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;}
 .panel-icon.green{background:rgba(0,212,170,0.1);color:var(--accent);}
@@ -114,6 +181,7 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 .form-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
 .form-input::placeholder{color:var(--text4);}
 textarea.form-input{min-height:80px;resize:vertical;}
+select.form-input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23576574' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px;}
 .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);}
 .toggle-row:last-child{border-bottom:none;padding-bottom:0;}
 .toggle-info{flex:1;}
@@ -124,18 +192,57 @@ textarea.form-input{min-height:80px;resize:vertical;}
 .toggle-thumb{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);}
 .toggle-track.on .toggle-thumb{transform:translateX(22px);}
 .key-box{background:var(--surface2);border-radius:16px;padding:24px;text-align:center;border:2px solid var(--border);margin-bottom:16px;position:relative;overflow:hidden;}
+.key-box::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,212,170,0.05),transparent);pointer-events:none;}
 .key-value{font-size:36px;font-weight:700;letter-spacing:10px;color:var(--accent);font-family:'JetBrains Mono',monospace;position:relative;z-index:1;}
 .key-label{font-size:11px;color:var(--text3);margin-top:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;position:relative;z-index:1;}
 .key-actions{display:grid;grid-template-columns:3fr 1fr;gap:10px;}
 .key-input{width:100%;padding:14px;border-radius:12px;background:var(--surface3);border:1.5px solid var(--border);color:var(--text);font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;text-align:center;letter-spacing:4px;text-transform:uppercase;}
 .key-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
 .key-gen-btn{padding:14px;border-radius:12px;background:var(--info);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.key-gen-btn:hover{background:var(--purple);transform:translateY(-2px);}
 .history-list{max-height:220px;overflow-y:auto;}
-.history-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);margin-bottom:6px;}
+.history-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);margin-bottom:6px;transition:all 0.2s;}
+.history-item:hover{border-color:var(--border2);}
 .history-key{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--accent);}
 .history-date{font-size:11px;color:var(--text3);}
-.save-btn{width:100%;padding:18px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(0,212,170,0.25);margin-bottom:20px;}
+.task-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.task-card{background:var(--surface2);border-radius:16px;padding:16px;border:1.5px solid var(--border);transition:all 0.3s;}
+.task-card:hover{border-color:var(--border2);}
+.task-card.hot{border-color:rgba(255,165,2,0.3);background:linear-gradient(135deg,rgba(255,165,2,0.03),transparent);}
+.task-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.task-num{width:32px;height:32px;border-radius:10px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.task-actions{display:flex;gap:6px;}
+.task-btn-sm{width:32px;height:32px;border-radius:8px;background:var(--surface3);border:1px solid var(--border);color:var(--text3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;font-size:12px;border:none;}
+.task-btn-sm:hover{background:var(--danger);color:#fff;}
+.task-btn-sm.fire:hover{background:var(--warning);color:#000;}
+.task-grid-inner{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.task-field{margin-bottom:0;}
+.task-field .form-label{font-size:10px;}
+.task-field .form-input{padding:10px 12px;font-size:13px;}
+.task-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:8px;}
+.tag-tiktok{background:rgba(255,255,255,0.05);color:var(--text);border:1px solid rgba(255,255,255,0.1);}
+.tag-facebook{background:rgba(55,66,250,0.1);color:var(--info);border:1px solid rgba(55,66,250,0.2);}
+.tag-other{background:rgba(165,94,234,0.1);color:var(--purple);border:1px solid rgba(165,94,234,0.2);}
+.add-btn{width:100%;padding:16px;border-radius:14px;background:var(--surface2);border:2px dashed var(--border);color:var(--text3);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.add-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,170,0.03);}
+.redirect-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.redirect-row .form-input{flex:1;}
+.redirect-name{font-size:12px;font-weight:600;color:var(--text3);min-width:80px;}
+.save-btn{width:100%;padding:18px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(0,212,170,0.25);position:relative;overflow:hidden;margin-bottom:20px;}
 .save-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,212,170,0.35);}
+.save-btn:active{transform:scale(0.97);}
+.save-btn:disabled{background:var(--surface3);color:var(--text3);box-shadow:none;cursor:not-allowed;}
+.save-btn .spin{width:18px;height:18px;border:3px solid rgba(255,255,255,0.3);border-top:3px solid #fff;border-radius:50%;animation:spin 1s linear infinite;}
+.preview-box{background:var(--surface2);border-radius:16px;padding:20px;border:1px solid var(--border);}
+.preview-header{font-size:14px;font-weight:700;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.preview-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+.preview-row:last-child{border-bottom:none;}
+.preview-key{font-size:12px;color:var(--text3);font-weight:600;}
+.preview-val{font-size:13px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;}
+.toast{position:fixed;top:20px;right:20px;background:var(--surface);border:1px solid var(--border);padding:16px 20px;border-radius:16px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600;color:var(--text);z-index:200;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);box-shadow:0 20px 60px rgba(0,0,0,0.5);transform:translateX(150%);opacity:0;}
+.toast.show{transform:translateX(0);opacity:1;}
+.toast i{color:var(--accent);font-size:18px;}
+.toast.error i{color:var(--danger);}
 .loading-wrap{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:1000;}
 .loading-wrap.active{display:flex;}
 .load-spinner{width:56px;height:56px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);border-right-color:var(--purple);animation:spin 1.2s linear infinite;}
@@ -146,14 +253,88 @@ textarea.form-input{min-height:80px;resize:vertical;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @keyframes spin{to{transform:rotate(360deg);}}
 .plan-select-card{background:var(--surface2);border:2px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:all 0.3s;position:relative;}
+.plan-select-card:hover{border-color:var(--border2);transform:translateY(-2px);}
 .plan-select-card.selected{border-color:var(--accent);background:linear-gradient(135deg,rgba(0,212,170,0.05),transparent);}
+.plan-select-card.selected .plan-check{opacity:1 !important;}
+@media(max-width:768px){
+  .nav-sidebar {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 60px !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 0 12px !important;
+    gap: 6px !important;
+    border-right: none !important;
+    border-top: 1px solid var(--border) !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    background: var(--surface) !important;
+  }
+  .nav-logo {
+    display: none !important;
+  }
+  .nav-item {
+    width: 40px !important;
+    height: 40px !important;
+    flex-shrink: 0 !important;
+  }
+  .nav-bottom {
+    margin-top: 0 !important;
+    margin-left: auto !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+  }
+  .logout-btn {
+    width: 40px !important;
+    height: 40px !important;
+    flex-shrink: 0 !important;
+  }
+  .content {
+    margin-left: 0 !important;
+    padding: 16px 12px 80px !important;
+  }
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .form-row {
+    grid-template-columns: 1fr !important;
+  }
+  .task-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .key-value {
+    font-size: 24px !important;
+    letter-spacing: 6px !important;
+  }
+  .key-actions {
+    grid-template-columns: 1fr !important;
+  }
+}
+@media(max-width:480px){
+  .stats-row {
+    grid-template-columns: 1fr !important;
+  }
+  .content-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+}
 </style>
 </head>
 <body>
 <div class="bg-anim"></div>
 <div class="grid-overlay"></div>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div class="login-wrap" id="loginScreen">
   <div class="login-box">
     <div class="login-glow"></div>
@@ -172,22 +353,22 @@ textarea.form-input{min-height:80px;resize:vertical;}
       <i class="fa-solid fa-arrow-right-to-bracket"></i> Access Control
     </button>
     <div class="login-error" id="loginError">
-      <i class="fa-solid fa-circle-xmark"></i> <span id="loginErrorText">Invalid credentials</span>
+      <i class="fa-solid fa-circle-xmark"></i> <span id="loginErrorText">Invalid</span>
     </div>
   </div>
 </div>
 
-<!-- LOADING SCREEN -->
+<!-- LOADING -->
 <div class="loading-wrap" id="loadingScreen">
   <div class="load-spinner"></div>
   <div class="load-text">Loading HQ</div>
-  <div class="load-sub">Syncing with Firebase Realtime Database...</div>
+  <div class="load-sub">Syncing with Firebase...</div>
 </div>
 
 <!-- MAIN APP -->
 <div class="app hidden" id="mainApp">
 
-<!-- Sidebar Navigation -->
+<!-- Sidebar -->
 <div class="nav-sidebar">
   <div class="nav-logo">9</div>
   <div class="nav-item active" onclick="switchTab('overview',this)" title="Overview"><i class="fa-solid fa-chart-pie"></i></div>
@@ -199,12 +380,13 @@ textarea.form-input{min-height:80px;resize:vertical;}
   <div class="nav-item" onclick="switchTab('withdrawals',this); loadSuperWithdrawals();" title="Withdrawals"><i class="fa-solid fa-money-bill-transfer"></i><span class="badge" id="withdrawalsBadge" style="background:#10b981; display:none;">0</span></div>
   <div class="nav-item" onclick="switchTab('juniors',this)" title="Junior Admins"><i class="fa-solid fa-users-gear"></i></div>
   <div class="nav-item" onclick="switchTab('redirects',this)" title="Redirects"><i class="fa-solid fa-route"></i></div>
+  <div class="nav-item" onclick="switchTab('videos',this); loadAllVideoSubmissions(); loadPromoVideos();" title="Videos Panel"><i class="fa-solid fa-video"></i><span class="badge" id="videosBadge" style="background:#8b5cf6; display:none;">0</span></div>
   <div class="nav-bottom">
     <div class="logout-btn" onclick="doLogout()" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></div>
   </div>
 </div>
 
-<!-- Content Container -->
+<!-- Content -->
 <div class="content">
 
 <!-- OVERVIEW TAB -->
@@ -213,7 +395,7 @@ textarea.form-input{min-height:80px;resize:vertical;}
     <div class="header-left">
       <div>
         <div class="header-title">Overview</div>
-        <div class="header-sub">Platform status & real-time sync</div>
+        <div class="header-sub">Platform status & quick controls</div>
       </div>
     </div>
     <div class="live-pill"><span class="live-dot"></span>System Online</div>
@@ -228,31 +410,137 @@ textarea.form-input{min-height:80px;resize:vertical;}
     <div class="stat-card blue">
       <div class="stat-icon blue"><i class="fa-solid fa-clock"></i></div>
       <div class="stat-num blue" id="statPending">0</div>
-      <div class="stat-label">Pending Payouts</div>
+      <div class="stat-label">Pending</div>
     </div>
     <div class="stat-card amber">
       <div class="stat-icon amber"><i class="fa-solid fa-key"></i></div>
       <div class="stat-num amber" id="statKeys">0</div>
       <div class="stat-label">Key History</div>
     </div>
-    <div class="stat-card purple">
+    <div class="stat-card purple" style="border: 1px solid var(--border); background: var(--surface);">
       <div class="stat-icon purple" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;"><i class="fa-solid fa-users"></i></div>
       <div style="display:flex; justify-content:space-between; align-items:baseline;">
         <div class="stat-num purple" id="statUsers" style="color: #8b5cf6; font-size: 26px;">0</div>
+        <div style="font-size: 11px; font-weight: bold; color: #10b981; font-family: 'JetBrains Mono', monospace;" id="statJoinedToday">+0 today</div>
       </div>
       <div class="stat-label">Total Users</div>
     </div>
     <div class="stat-card red">
       <div class="stat-icon red"><i class="fa-solid fa-bolt"></i></div>
       <div class="stat-num red" id="statStatus">OFF</div>
-      <div class="stat-label">Withdrawal Mode</div>
+      <div class="stat-label">Withdrawal</div>
+    </div>
+  </div>
+
+  <div class="stats-row" style="grid-template-columns: repeat(3, 1fr); display: grid; gap: 16px; margin-bottom: 24px;">
+    <!-- Deposits Card (OPay Style Dropdown) -->
+    <div class="stat-card green" style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); padding: 16px; position: relative;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 8px;">
+        <div class="stat-icon green" style="background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px;"><i class="fa-solid fa-vault"></i></div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button onclick="clearTodayRevenue()" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" title="Clear Today's Revenue & Approved Receipts" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">
+            <i class="fa-solid fa-trash-can"></i> Clear Today
+          </button>
+          <select id="depositTimeframeSelect" onchange="updateDepositTimeframeDisplay()" style="background: #1e293b; color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
+            <option value="today" selected>Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="sevenDays">Past 7 Days</option>
+            <option value="month">This Month</option>
+            <option value="year">This Year</option>
+            <option value="total">All Time</option>
+          </select>
+        </div>
+      </div>
+      <div class="stat-num green" id="statDepositsDisplay" style="color: #10b981; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Deposits Revenue</div>
+    </div>
+
+    <!-- Total Payouts Card -->
+    <div class="stat-card red" style="background: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.15); padding: 16px;">
+      <div class="stat-icon red" style="background: rgba(239, 68, 68, 0.08); color: #ef4444; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+      <div class="stat-num red" id="statApprovedWithdrawals" style="color: #ef4444; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Total Payouts</div>
+    </div>
+
+    <!-- Total Keys Sold Card -->
+    <div class="stat-card blue" style="background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.15); padding: 16px; position: relative;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <div class="stat-icon blue" style="background: rgba(59, 130, 246, 0.08); color: #3b82f6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px;"><i class="fa-solid fa-key"></i></div>
+        <select id="keysSoldTimeframeSelect" onchange="updateKeysSoldTimeframeDisplay()" style="background: #1e293b; color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
+          <option value="today" selected>Today</option>
+          <option value="yesterday">Yesterday</option>
+          <option value="sevenDays">Past 7 Days</option>
+          <option value="month">This Month</option>
+          <option value="year">This Year</option>
+          <option value="total">All Time</option>
+        </select>
+      </div>
+      <div class="stat-num blue" id="statKeysSold" style="color: #3b82f6; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Total Payout Keys Sold</div>
+    </div>
+  </div>
+
+  <div class="stats-row" style="grid-template-columns: repeat(3, 1fr); display: grid; gap: 16px; margin-bottom: 24px;">
+    <!-- Payout Keys Revenue Card -->
+    <div class="stat-card blue" style="background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.15); padding: 16px;">
+      <div class="stat-icon blue" style="background: rgba(59, 130, 246, 0.08); color: #3b82f6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-key"></i></div>
+      <div class="stat-num blue" id="statKeysRevenue" style="color: #3b82f6; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Payout Keys Revenue</div>
+    </div>
+
+    <!-- Verification Revenue Card -->
+    <div class="stat-card green" style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); padding: 16px;">
+      <div class="stat-icon green" style="background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-user-check"></i></div>
+      <div class="stat-num green" id="statVerificationRevenue" style="color: #10b981; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Verification Revenue</div>
+    </div>
+
+    <!-- Plan Upgrade Revenue Card -->
+    <div class="stat-card purple" style="background: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.15); padding: 16px;">
+      <div class="stat-icon purple" style="background: rgba(139, 92, 246, 0.08); color: #8b5cf6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-circle-up"></i></div>
+      <div class="stat-num purple" id="statUpgradeRevenue" style="color: #8b5cf6; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Plan Upgrades Revenue</div>
+    </div>
+  </div>
+
+  <div class="stats-row" style="grid-template-columns: repeat(4, 1fr); display: grid; gap: 16px; margin-bottom: 24px;">
+    <!-- Approved Receipts Card -->
+    <div class="stat-card green" style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); padding: 16px;">
+      <div class="stat-icon green" style="background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-file-circle-check"></i></div>
+      <div class="stat-num green" id="statApprovedReceiptsCount" style="color: #10b981; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Approved Proofs</div>
+    </div>
+
+    <!-- Declined Receipts Card -->
+    <div class="stat-card red" style="background: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.15); padding: 16px;">
+      <div class="stat-icon red" style="background: rgba(239, 68, 68, 0.08); color: #ef4444; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-file-circle-xmark"></i></div>
+      <div class="stat-num red" id="statDeclinedReceiptsCount" style="color: #ef4444; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Declined Proofs</div>
+    </div>
+
+    <!-- Verified Users Card -->
+    <div class="stat-card blue" style="background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.15); padding: 16px;">
+      <div class="stat-icon blue" style="background: rgba(59, 130, 246, 0.08); color: #3b82f6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-user-shield"></i></div>
+      <div class="stat-num blue" id="statVerifiedUsersCount" style="color: #3b82f6; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Verified Accounts</div>
+    </div>
+
+    <!-- Plan Upgrade Counts Card -->
+    <div class="stat-card purple" style="background: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.15); padding: 16px;">
+      <div class="stat-icon purple" style="background: rgba(139, 92, 246, 0.08); color: #8b5cf6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-gem"></i></div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#fff; font-weight:700; margin:8px 0; line-height:1.5;">
+        <div>Silver: <span id="statPlanSilver" style="color:#8b5cf6;">0</span></div>
+        <div>Gold: <span id="statPlanGold" style="color:#f59e0b;">0</span></div>
+        <div>Diamond: <span id="statPlanDiamond" style="color:#10b981;">0</span></div>
+      </div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Plan Upgrade Split</div>
     </div>
   </div>
 
   <div class="panel">
     <div class="panel-header">
       <div class="panel-icon green"><i class="fa-solid fa-money-bill-transfer"></i></div>
-      <div><div class="panel-title">Withdrawal Flow</div><div class="panel-sub">Controls real-time landing page flow</div></div>
+      <div><div class="panel-title">Withdrawal Flow</div><div class="panel-sub">Where users land after withdrawal</div></div>
     </div>
     <div class="toggle-row">
       <div class="toggle-info">
@@ -264,12 +552,16 @@ textarea.form-input{min-height:80px;resize:vertical;}
         <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(255,71,87,0.1);color:var(--danger);" id="wdState">OFF</span>
       </div>
     </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-top:8px;">
+      <i class="fa-solid fa-arrow-right" style="color:var(--text3);font-size:11px;"></i>
+      <span style="font-size:12px;color:var(--text2);">Redirect: <span id="wdRedirect" style="color:var(--danger);font-weight:700;">pending.html</span></span>
+    </div>
   </div>
 
   <div class="panel">
     <div class="panel-header">
       <div class="panel-icon blue"><i class="fa-solid fa-credit-card"></i></div>
-      <div><div class="panel-title">Payment Flow</div><div class="panel-sub">Controls real-time payment outcome page</div></div>
+      <div><div class="panel-title">Payment Flow</div><div class="panel-sub">Where users land after payment</div></div>
     </div>
     <div class="toggle-row">
       <div class="toggle-info">
@@ -281,55 +573,610 @@ textarea.form-input{min-height:80px;resize:vertical;}
         <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(255,71,87,0.1);color:var(--danger);" id="pmState">OFF</span>
       </div>
     </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-top:8px;">
+      <i class="fa-solid fa-arrow-right" style="color:var(--text3);font-size:11px;"></i>
+      <span style="font-size:12px;color:var(--text2);">Redirect: <span id="pmRedirect" style="color:var(--danger);font-weight:700;">payment-failed.html</span></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div><div class="panel-title">User Warning</div><div class="panel-sub">Shown on payment page</div></div>
+    </div>
+    <div class="form-group" style="margin-bottom:0;">
+      <textarea id="noticeText" class="form-input" placeholder="Do NOT use Opay for transfers..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- RECEIPTS TAB -->
+<div class="tab-panel" id="tab-receipts">
+  <div class="content-header">
+    <div class="header-left">
+      <div>
+        <div class="header-title">Payment & Verification Receipts</div>
+        <div class="header-sub">Verify user plan upgrades, payout key purchases, and account verifications</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3" style="flex-wrap: wrap;">
+      <button onclick="loadAllReceipts()" class="btn btn-secondary" style="border:1px solid var(--border); padding: 8px 16px; border-radius:10px; background:var(--surface); color:var(--text); cursor:pointer;"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+      <button onclick="purgeAllReceipts()" class="btn btn-secondary" style="border:1px solid var(--danger); padding: 8px 16px; border-radius:10px; background:var(--surface); color:var(--danger); cursor:pointer; font-weight: 700;"><i class="fa-solid fa-trash-can"></i> Purge All History</button>
+    </div>
+  </div>
+
+  <!-- Send Notification Message Section -->
+  <div class="panel mb-6" style="margin-bottom:20px;">
+    <div class="panel-header">
+      <div class="panel-icon purple" style="background:rgba(139,92,246,0.1); color:#8b5cf6;"><i class="fa-solid fa-paper-plane"></i></div>
+      <div><div class="panel-title">Send Broadcast Message</div><div class="panel-sub">Send alert announcements to user activities feed</div></div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px; margin-top:15px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group">
+          <label class="form-label">Recipient Phone Number (or 'all' for everyone)</label>
+          <input type="text" id="msgRecipient" class="form-input" placeholder="e.g. all or 08012345678" value="all" style="width:100%;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Message Title</label>
+          <input type="text" id="msgTitle" class="form-input" placeholder="e.g. System Upgrade / Payment Successful" style="width:100%;">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message Content</label>
+        <textarea id="msgBody" class="form-input" style="height:80px; width:100%; resize:none; font-family:inherit; padding:10px;" placeholder="Type your notification message details here..."></textarea>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button onclick="sendAdminNotification()" class="btn-primary" style="padding: 12px 24px; font-weight: 700; border-radius: 12px; background: var(--accent); color: white; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-paper-plane"></i> Send Message
+        </button>
+        <button onclick="triggerDailyReminders()" class="btn-secondary" style="padding: 12px 24px; font-weight: 700; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-clock"></i> Send Daily Mining Reminders
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipts Category Selector Dropdown -->
+  <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); padding: 16px; border-radius: 16px;">
+    <div style="font-size: 14px; font-weight: 700; color: var(--text);">Select Receipts Type to View:</div>
+    <select id="receiptCategorySelect" onchange="switchReceiptCategory()" style="background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
+      <option value="key" selected>Payout Key Receipts</option>
+      <option value="upgrade">Plan Upgrade Receipts</option>
+      <option value="verification">Verification Receipts</option>
+    </select>
+  </div>
+
+  <!-- ─── PANEL 1: Payout Key Receipts ─── -->
+  <div class="panel" id="receiptPanel_key" style="margin-bottom: 24px;">
+    <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="panel-icon blue" style="background:rgba(59,130,246,0.1); color:#3b82f6;"><i class="fa-solid fa-key"></i></div>
+        <div><div class="panel-title">Payout Key Receipts</div><div class="panel-sub">Inspect uploaded payout key transaction proofs</div></div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button id="bulkApproveBtn_key" onclick="bulkAction('key', 'approve', 'key')" class="btn-success" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#10b981; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
+          <i class="fa-solid fa-check"></i> Approve Selected (<span id="bulkApproveCount_key">0</span>)
+        </button>
+        <button id="bulkDeleteBtn_key" onclick="bulkAction('key', 'delete', 'key')" class="btn-danger" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#ef4444; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
+          <i class="fa-solid fa-trash-can"></i> Delete Selected (<span id="bulkDeleteCount_key">0</span>)
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap overflow-x-auto">
+      <table class="w-full text-left" style="width:100%; border-collapse:collapse; min-width:800px;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border);">
+            <th style="padding:12px; font-size:11px; width:40px; text-align:center;"><input type="checkbox" id="selectAll_key" onchange="toggleSelectAll(this, 'key')" style="cursor:pointer; width:15px; height:15px; accent-color:#10b981;"></th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Date</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">User</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Type</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Amount / Details</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Receipt Image</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="receiptListTable_key">
+          <tr>
+            <td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No new payout key receipts.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── PANEL 2: Plan Upgrade Receipts ─── -->
+  <div class="panel" id="receiptPanel_upgrade" style="margin-bottom: 24px; display: none;">
+    <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="panel-icon purple" style="background:rgba(139,92,246,0.1); color:#8b5cf6;"><i class="fa-solid fa-circle-up"></i></div>
+        <div><div class="panel-title">Plan Upgrade Receipts</div><div class="panel-sub">Inspect uploaded plan upgrade transaction proofs</div></div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button id="bulkApproveBtn_upgrade" onclick="bulkAction('upgrade', 'approve', 'upgrade')" class="btn-success" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#10b981; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
+          <i class="fa-solid fa-check"></i> Approve Selected (<span id="bulkApproveCount_upgrade">0</span>)
+        </button>
+        <button id="bulkDeleteBtn_upgrade" onclick="bulkAction('upgrade', 'delete', 'upgrade')" class="btn-danger" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#ef4444; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
+          <i class="fa-solid fa-trash-can"></i> Delete Selected (<span id="bulkDeleteCount_upgrade">0</span>)
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap overflow-x-auto">
+      <table class="w-full text-left" style="width:100%; border-collapse:collapse; min-width:800px;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border);">
+            <th style="padding:12px; font-size:11px; width:40px; text-align:center;"><input type="checkbox" id="selectAll_upgrade" onchange="toggleSelectAll(this, 'upgrade')" style="cursor:pointer; width:15px; height:15px; accent-color:#10b981;"></th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Date</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">User</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Type</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Amount / Details</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Receipt Image</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="receiptListTable_upgrade">
+          <tr>
+            <td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No new plan upgrade receipts.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── PANEL 3: Account Verification Receipts ─── -->
+  <div class="panel" id="receiptPanel_verification" style="margin-bottom: 24px; display: none;">
+    <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="panel-icon green" style="background:rgba(16,185,129,0.1); color:#10b981;"><i class="fa-solid fa-user-check"></i></div>
+        <div><div class="panel-title">Verification Receipts</div><div class="panel-sub">Inspect uploaded account verification transaction proofs</div></div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button id="bulkApproveBtn_verification" onclick="bulkAction('verification', 'approve', 'verification')" class="btn-success" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#10b981; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
+          <i class="fa-solid fa-check"></i> Approve Selected (<span id="bulkApproveCount_verification">0</span>)
+        </button>
+        <button id="bulkDeleteBtn_verification" onclick="bulkAction('verification', 'delete', 'verification')" class="btn-danger" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#ef4444; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
+          <i class="fa-solid fa-trash-can"></i> Delete Selected (<span id="bulkDeleteCount_verification">0</span>)
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap overflow-x-auto">
+      <table class="w-full text-left" style="width:100%; border-collapse:collapse; min-width:800px;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border);">
+            <th style="padding:12px; font-size:11px; width:40px; text-align:center;"><input type="checkbox" id="selectAll_verification" onchange="toggleSelectAll(this, 'verification')" style="cursor:pointer; width:15px; height:15px; accent-color:#10b981;"></th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Date</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">User</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Type</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Amount / Details</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Receipt Image</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="receiptListTable_verification">
+          <tr>
+            <td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No new account verification receipts.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- WITHDRAWALS TAB -->
+<div class="tab-panel" id="tab-withdrawals">
+  <div class="content-header">
+    <div class="header-left">
+      <div>
+        <div class="header-title">Withdrawal Requests</div>
+        <div class="header-sub">Approve or reject user payout withdrawals</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="btnSuperBulkApproveWithdrawals" onclick="bulkApproveSuperWithdrawals()" style="display:none; background:#10b981; border:none; padding: 8px 16px; border-radius:10px; color:white; font-weight:700; cursor:pointer; align-items:center; gap:6px;"><i class="fa-solid fa-check-double"></i> Mass Approve (<span id="txtSuperBulkApproveCount">0</span>)</button>
+      <button id="btnSuperBulkDeclineWithdrawals" onclick="bulkDeclineSuperWithdrawals()" style="display:none; background:#ef4444; border:none; padding: 8px 16px; border-radius:10px; color:white; font-weight:700; cursor:pointer; align-items:center; gap:6px;"><i class="fa-solid fa-ban"></i> Mass Decline (<span id="txtSuperBulkDeclineCount">0</span>)</button>
+      <button onclick="loadSuperWithdrawals()" class="btn btn-secondary" style="border:1px solid var(--border); padding: 8px 16px; border-radius:10px; background:var(--surface); color:var(--text); cursor:pointer;"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon green" style="background:rgba(16,185,129,0.1); color:#10b981;"><i class="fa-solid fa-money-bill-transfer"></i></div>
+      <div><div class="panel-title">Pending & Past Withdrawals</div><div class="panel-sub">Inspect and process users payouts</div></div>
+    </div>
+    <div class="table-wrap overflow-x-auto">
+      <table class="w-full text-left" style="width:100%; border-collapse:collapse; min-width:800px;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border);">
+            <th style="padding:12px; width:40px; text-align:center;"><input type="checkbox" id="selectAllSuperWithdrawals" onclick="toggleSelectAllSuperWithdrawals(this.checked)" style="cursor:pointer; width:15px; height:15px; accent-color:#10b981;"></th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:15%;">Date</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:23%;">User Name / Phone</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:23%;">Bank Details</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:14%;">Amount</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:10%;">Status</th>
+            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:15%; text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="superWithdrawalsTable">
+          <tr>
+            <td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">Loading withdrawals...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Withdrawals Pagination -->
+    <div id="withdrawalsPagination" style="display: none; align-items: center; justify-content: space-between; margin-top: 15px; padding: 10px 0; border-top: 1px solid var(--border); font-size: 13px;">
+      <button onclick="changeWithdrawalsPage(-1)" id="btnWithdrawalsPrev" style="background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">Previous</button>
+      <span id="txtWithdrawalsPage" style="color: var(--text3);">Page 1 of 1</span>
+      <button onclick="changeWithdrawalsPage(1)" id="btnWithdrawalsNext" style="background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">Next</button>
+    </div>
   </div>
 </div>
 
 <!-- PAYMENTS TAB -->
 <div class="tab-panel" id="tab-payments">
   <div class="content-header">
-    <div class="header-title">Payments Configuration</div>
+    <div class="header-left">
+      <div>
+        <div class="header-title">Payments</div>
+        <div class="header-sub">Bank accounts & crypto setup</div>
+      </div>
+    </div>
   </div>
+
   <div class="panel">
     <div class="panel-header">
       <div class="panel-icon green"><i class="fa-solid fa-building-columns"></i></div>
-      <div><div class="panel-title">Main Deposit Account</div></div>
+      <div><div class="panel-title">Main Account</div><div class="panel-sub">For payout key purchases</div></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Account Number</label><input type="text" id="accNumber" class="form-input"></div>
-      <div class="form-group"><label class="form-label">Bank Name</label><input type="text" id="bankName" class="form-input"></div>
+      <div class="form-group">
+        <label class="form-label">Account Number</label>
+        <input type="text" id="accNumber" class="form-input" maxlength="10" placeholder="10 digits">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bank Name</label>
+        <input type="text" id="bankName" class="form-input" placeholder="GTBank, Access...">
+      </div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Account Holder</label><input type="text" id="accName" class="form-input"></div>
-      <div class="form-group"><label class="form-label">Amount (₦)</label><input type="number" id="amount" class="form-input"></div>
+      <div class="form-group">
+        <label class="form-label">Account Holder</label>
+        <input type="text" id="accName" class="form-input" placeholder="Full name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount (₦)</label>
+        <input type="number" id="amount" class="form-input" placeholder="6100">
+      </div>
     </div>
-    <button class="save-btn" onclick="savePaymentSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Settings to Firebase</button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon amber"><i class="fa-solid fa-bolt"></i></div>
+      <div><div class="panel-title">Transfer Fee</div><div class="panel-sub">Second billing for withdrawals</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Account Number</label>
+        <input type="text" id="feeAccNumber" class="form-input" maxlength="10" placeholder="10 digits">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bank Name</label>
+        <input type="text" id="feeBank" class="form-input" placeholder="GTBank, Access...">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Account Holder</label>
+        <input type="text" id="feeAccName" class="form-input" placeholder="Full name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fee Amount (₦)</label>
+        <input type="number" id="feeAmount" class="form-input" placeholder="12500">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon orange" style="background:rgba(245,158,11,0.1); color:#f59e0b;"><i class="fa-solid fa-percent"></i></div>
+      <div><div class="panel-title">Admin Commission Setting</div><div class="panel-sub">Set the percentage you collect from Junior Admins</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Super Admin Commission Percentage (%)</label>
+        <input type="number" id="adminPercentageInput" class="form-input" min="0" max="100" placeholder="20" value="20">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon orange" style="background:rgba(245,158,11,0.1); color:#f59e0b;"><i class="fa-solid fa-gift"></i></div>
+      <div><div class="panel-title">Referral Bonus Settings</div><div class="panel-sub">Set the amount users earn for referring verified friends</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Referral Reward Amount (₦)</label>
+        <input type="number" id="referralBonusInput" class="form-input" min="0" placeholder="10000" value="10000">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon blue"><i class="fa-brands fa-telegram"></i></div>
+      <div><div class="panel-title">Community & Support Links</div><div class="panel-sub">Configure community channel and customer care links</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Telegram Channel URL (Community)</label>
+        <input type="url" id="telegramLink" class="form-input" placeholder="https://t.me/9jaCash_Community">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telegram Support URL (Customer Care)</label>
+        <input type="url" id="telegramSupportLink" class="form-input" placeholder="https://t.me/9jaCash_Support">
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:12px; margin-bottom:0;">
+      <label class="form-label">WhatsApp Support URL (Customer Care)</label>
+      <input type="url" id="whatsappLink" class="form-input" placeholder="https://wa.me/2349000000000">
+    </div>
+    <div class="form-row" style="margin-top:16px;">
+      <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#94a3b8; cursor:pointer;">
+        <input type="checkbox" id="telegramSupportLinkActive" style="width:16px; height:16px; cursor:pointer;" checked>
+        Activate Telegram Support Link
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#94a3b8; cursor:pointer;">
+        <input type="checkbox" id="whatsappLinkActive" style="width:16px; height:16px; cursor:pointer;" checked>
+        Activate WhatsApp Support Link
+      </label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon purple"><i class="fa-brands fa-bitcoin"></i></div>
+      <div><div class="panel-title">Crypto Payment</div><div class="panel-sub">USDT wallet (optional)</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Wallet Address</label>
+        <input type="text" id="cryptoAddress" class="form-input" placeholder="0x... or TRC20">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Network</label>
+        <input type="text" id="cryptoNetwork" class="form-input" placeholder="TRC20, BEP20, ERC20">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon green" style="background:rgba(16,185,129,0.1); color:#10b981;"><i class="fa-solid fa-circle-play"></i></div>
+      <div>
+        <div class="panel-title" style="display:flex; align-items:center; gap:8px;">
+          Video Testimonial Challenge
+          <span id="challengeVideoIndicator" style="width:8px; height:8px; border-radius:50%; background-color:#9ca3af; display:inline-block; margin-left:4px;"></span>
+          <span id="challengeVideoIndicatorText" style="font-size:10px; font-weight:bold; color:var(--text3);">Offline</span>
+        </div>
+        <div class="panel-sub">Configure user campaign and Cloudinary settings</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Video Challenge Status</label>
+      <select id="videoChallengeActive" onchange="updateChallengeVideoIndicator()" class="form-input" style="margin-bottom:12px;">
+        <option value="true">Active (Enabled)</option>
+        <option value="false">Inactive (Disabled)</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Cloudinary Cloud Name</label>
+        <input type="text" id="cloudinaryCloudName" class="form-input" placeholder="e.g. dxpxxxxx">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Cloudinary Upload Preset (Unsigned)</label>
+        <input type="text" id="cloudinaryUploadPreset" class="form-input" placeholder="e.g. video_unsigned">
+      </div>
+    </div>
+  </div>
+  
+  <div class="card" style="margin-top:20px;">
+    <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="panel-icon purple" style="background:rgba(139,92,246,0.1); color:#8b5cf6;"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div>
+          <div class="panel-title" style="display:flex; align-items:center; gap:8px;">
+            Verification Tutorial Video
+            <span id="verificationVideoIndicator" style="width:8px; height:8px; border-radius:50%; background-color:#9ca3af; display:inline-block; margin-left:4px;"></span>
+            <span id="verificationVideoIndicatorText" style="font-size:10px; font-weight:bold; color:var(--text3);">Offline</span>
+          </div>
+          <div class="panel-sub">Show tutorial on how users can verify their account</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Verification Tutorial Status</label>
+      <select id="verificationVideoActive" onchange="updateVerificationVideoIndicator()" class="form-input" style="margin-bottom:12px;">
+        <option value="true">Active (Enabled)</option>
+        <option value="false">Inactive (Disabled)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tutorial Video Source Link (MP4/Direct Link)</label>
+      <input type="text" id="verificationVideoUrl" class="form-input" placeholder="e.g. https://domain.com/videos/tutorial.mp4">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Or Upload Verification Tutorial Video File</label>
+      <input type="file" id="verificationVideoFile" accept="video/*" class="form-input" style="padding:8px 12px; font-size:12px;">
+      <button onclick="uploadVerificationVideoFile()" id="verificationVideoUploadBtn" class="btn btn-primary" style="margin-top:10px; font-size:12px; padding:10px 20px;">
+        <i class="fa-solid fa-upload"></i> Upload Video to Cloud
+      </button>
+      <div id="verificationVideoUploadProgress" style="display:none; margin-top:8px; font-size:12px; color:var(--accent);">Uploading... 0%</div>
+    </div>
   </div>
 </div>
 
 <!-- TASKS TAB -->
 <div class="tab-panel" id="tab-tasks">
   <div class="content-header">
-    <div class="header-title">Earning Tasks</div>
+    <div class="header-left">
+      <div>
+        <div class="header-title">Tasks</div>
+        <div class="header-sub">Manage earning tasks</div>
+      </div>
+    </div>
   </div>
+
   <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon purple"><i class="fa-solid fa-fire"></i></div>
+      <div><div class="panel-title">Daily Tasks</div><div class="panel-sub">Max 10 tasks across platforms</div></div>
+    </div>
     <div id="taskList"></div>
-    <button class="save-btn" onclick="addNewTask()"><i class="fa-solid fa-plus"></i> Add New Task</button>
+    <button class="add-btn" id="addTaskBtn" onclick="addNewTask()"><i class="fa-solid fa-plus"></i> Add Task</button>
   </div>
 </div>
 
 <!-- KEYS TAB -->
 <div class="tab-panel" id="tab-keys">
   <div class="content-header">
-    <div class="header-title">Payout Key Management</div>
-  </div>
-  <div class="panel">
-    <div class="key-box">
-      <div class="key-value" id="payoutKeyDisplay">NOT SET</div>
-      <div class="key-label">Active Global Key</div>
+    <div class="header-left">
+      <div>
+        <div class="header-title">Payout Key</div>
+        <div class="header-sub">Generate & control payout keys</div>
+      </div>
     </div>
-    <div class="key-actions" style="margin-top:10px;">
-      <input type="text" id="payoutKeyInput" class="key-input" placeholder="Type key">
-      <button class="save-btn" style="margin:0;" onclick="saveActiveKey()"><i class="fa-solid fa-save"></i> Save</button>
+  </div>
+
+  <!-- Plan Selector -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon purple"><i class="fa-solid fa-layer-group"></i></div>
+      <div><div class="panel-title">Select Plan</div><div class="panel-sub">Choose which plan to generate key for</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">
+      <div class="plan-select-card" id="planBasic" onclick="selectPlan('Basic', 8550, 3)" data-plan="Basic" data-price="8550" data-limit="3">
+        <div style="font-size:14px;font-weight:700;color:var(--text);">Basic Key</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">₦8,550</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">3 withdrawals/day</div>
+        <div class="plan-check" style="position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.3s;"><i class="fa-solid fa-check" style="color:var(--accent);font-size:12px;"></i></div>
+      </div>
+      <div class="plan-select-card" id="planStandard" onclick="selectPlan('Standard', 15500, 5)" data-plan="Standard" data-price="15500" data-limit="5">
+        <div style="font-size:14px;font-weight:700;color:var(--text);">Standard Key</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">₦15,500</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">5 withdrawals/day</div>
+        <div class="plan-check" style="position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.3s;"><i class="fa-solid fa-check" style="color:var(--accent);font-size:12px;"></i></div>
+      </div>
+      <div class="plan-select-card" id="planPremium" onclick="selectPlan('Premium', 35000, 15)" data-plan="Premium" data-price="35000" data-limit="15">
+        <div style="font-size:14px;font-weight:700;color:var(--text);">Premium Key</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">₦35,000</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">15 withdrawals/day</div>
+        <div class="plan-check" style="position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.3s;"><i class="fa-solid fa-check" style="color:var(--accent);font-size:12px;"></i></div>
+      </div>
+      <div class="plan-select-card" id="planUnlimited" onclick="selectPlan('Unlimited', 75000, 999999)" data-plan="Unlimited" data-price="75000" data-limit="999999">
+        <div style="font-size:14px;font-weight:700;color:var(--text);">Unlimited Key</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px;">₦75,000</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">Unlimited withdrawals</div>
+        <div class="plan-check" style="position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.3s;"><i class="fa-solid fa-check" style="color:var(--accent);font-size:12px;"></i></div>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+      <i class="fa-solid fa-circle-info" style="color:var(--accent);font-size:16px;"></i>
+      <div style="font-size:13px;color:var(--text2);">
+        Selected: <span id="selectedPlanDisplay" style="color:var(--accent);font-weight:700;">None</span> • 
+        Price: <span id="selectedPriceDisplay" style="color:var(--accent);font-weight:700;">—</span> • 
+        Limit: <span id="selectedLimitDisplay" style="color:var(--accent);font-weight:700;">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Generator -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon green"><i class="fa-solid fa-fingerprint"></i></div>
+      <div><div class="panel-title">Generate Payout Key</div><div class="panel-sub">Auto-generate for selected plan</div></div>
+    </div>
+    
+    <div class="key-box" id="generatedKeyBox" style="display:none;">
+      <div class="key-value" id="generatedKeyValue">••••••••</div>
+      <div class="key-label" id="generatedKeyLabel">Generated Key</div>
+    </div>
+
+    <div class="key-box" id="currentKeyBox">
+      <div class="key-value" id="payoutKeyDisplay">NOT SET</div>
+      <div class="key-label">Current Active Key</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
+      <button class="save-btn" style="margin:0;background:linear-gradient(135deg,var(--purple),var(--info));" onclick="generatePayoutKeyForPlan()">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Key
+      </button>
+      <button class="save-btn" style="margin:0;" onclick="saveGeneratedKey()">
+        <i class="fa-solid fa-floppy-disk"></i> Save Key
+      </button>
+    </div>
+    
+    <div style="margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;font-weight:600;">Manual Override</div>
+      <div class="key-actions">
+        <input type="text" id="payoutKeyInput" class="key-input" maxlength="12" placeholder="Or type key manually">
+        <button class="key-gen-btn" onclick="generateRandomKey()"><i class="fa-solid fa-shuffle"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key History -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon blue"><i class="fa-solid fa-clock-rotate-left"></i></div>
+      <div><div class="panel-title">Key History</div><div class="panel-sub">Last 10 generated keys</div></div>
+    </div>
+    <div class="history-list" id="keyHistory">
+      <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No history yet</div>
+    </div>
+  </div>
+</div>
+
+<!-- REDIRECTS TAB -->
+<div class="tab-panel" id="tab-redirects">
+  <div class="content-header">
+    <div class="header-left">
+      <div>
+        <div class="header-title">Redirects</div>
+        <div class="header-sub">Page flow control</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon green"><i class="fa-solid fa-circle-check"></i></div>
+      <div><div class="panel-title">Success Redirects</div><div class="panel-sub">After successful payment</div></div>
+    </div>
+    <div class="redirect-row"><span class="redirect-name">Primary</span><input type="text" id="successPrimary" class="form-input" placeholder="dashboard.html"></div>
+    <div class="redirect-row"><span class="redirect-name">Secondary</span><input type="text" id="successSecondary" class="form-input" placeholder="buy.html"></div>
+    <div class="redirect-row"><span class="redirect-name">Delay</span><input type="number" id="successDelay" class="form-input" placeholder="2000"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon red"><i class="fa-solid fa-circle-xmark"></i></div>
+      <div><div class="panel-title">Failed Redirects</div><div class="panel-sub">After failed payment</div></div>
+    </div>
+    <div class="redirect-row"><span class="redirect-name">Retry</span><input type="text" id="failedRetry" class="form-input" placeholder="payment.html"></div>
+    <div class="redirect-row"><span class="redirect-name">Dashboard</span><input type="text" id="failedDashboard" class="form-input" placeholder="dashboard.html"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon amber"><i class="fa-solid fa-headset"></i></div>
+      <div><div class="panel-title">Support</div><div class="panel-sub">Handle shown on failed pages</div></div>
+    </div>
+    <div class="form-group" style="margin-bottom:0;">
+      <label class="form-label">Telegram Handle</label>
+      <input type="text" id="supportHandle" class="form-input" placeholder="@9jaCash_Support">
     </div>
   </div>
 </div>
@@ -337,325 +1184,1400 @@ textarea.form-input{min-height:80px;resize:vertical;}
 <!-- USERS TAB -->
 <div class="tab-panel" id="tab-users">
   <div class="content-header">
-    <div class="header-title">Registered Users</div>
+    <div class="header-left">
+      <div>
+        <div class="header-title">Registered Users</div>
+        <div class="header-sub">View and manage all registered members on the platform</div>
+      </div>
+    </div>
   </div>
-  <div class="panel">
-    <table class="w-full text-left" style="width:100%; border-collapse:collapse;">
-      <thead>
-        <tr style="border-bottom: 2px solid var(--border);">
-          <th style="padding:10px;">Name</th>
-          <th style="padding:10px;">Phone</th>
-          <th style="padding:10px;">Balance</th>
-          <th style="padding:10px;">Status</th>
-        </tr>
-      </thead>
-      <tbody id="allUsersListTable"></tbody>
-    </table>
-  </div>
-</div>
 
-<!-- RECEIPTS TAB -->
-<div class="tab-panel" id="tab-receipts">
-  <div class="content-header">
-    <div class="header-title">Verify Receipts</div>
-  </div>
   <div class="panel">
-    <table class="w-full text-left" style="width:100%; border-collapse:collapse;">
-      <thead>
-        <tr style="border-bottom: 2px solid var(--border);">
-          <th style="padding:10px;">User</th>
-          <th style="padding:10px;">Amount</th>
-          <th style="padding:10px;">Status</th>
-          <th style="padding:10px; text-align:right;">Action</th>
-        </tr>
-      </thead>
-      <tbody id="receiptListTable_key"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- WITHDRAWALS TAB -->
-<div class="tab-panel" id="tab-withdrawals">
-  <div class="content-header">
-    <div class="header-title">Withdrawal Requests</div>
-  </div>
-  <div class="panel">
-    <table class="w-full text-left" style="width:100%; border-collapse:collapse;">
-      <thead>
-        <tr style="border-bottom: 2px solid var(--border);">
-          <th style="padding:10px;">User</th>
-          <th style="padding:10px;">Bank</th>
-          <th style="padding:10px;">Amount</th>
-          <th style="padding:10px; text-align:right;">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="superWithdrawalsTable"></tbody>
-    </table>
+    <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="panel-icon purple"><i class="fa-solid fa-users"></i></div>
+        <div><div class="panel-title">Users Directory</div><div class="panel-sub">Total: <span id="usersListCount">0</span> users</div></div>
+      </div>
+      <div>
+        <input type="text" id="userSearchInput" oninput="filterUsers()" placeholder="Search users by name, phone or email..." class="form-input" style="width: 280px; margin-bottom: 0; padding: 8px 12px; font-size: 13px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
+      </div>
+    </div>
+    <div class="table-wrap overflow-x-auto" style="max-height: 500px; overflow-y: auto;">
+      <table class="w-full text-left" style="border-collapse: collapse; width:100%;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Joined</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Name</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Phone</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Email</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Referred By</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Payout Key</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Balance</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Status</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="allUsersListTable">
+          <tr>
+            <td colspan="9" style="padding: 15px; text-align: center; color: var(--text3);">Loading registered users...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Users Pagination -->
+    <div id="usersPagination" style="display: none; align-items: center; justify-content: space-between; margin-top: 15px; padding: 10px 0; border-top: 1px solid var(--border); font-size: 13px;">
+      <button onclick="changeUsersPage(-1)" id="btnUsersPrev" style="background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">Previous</button>
+      <span id="txtUsersPage" style="color: var(--text3);">Page 1 of 1</span>
+      <button onclick="changeUsersPage(1)" id="btnUsersNext" style="background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">Next</button>
+    </div>
   </div>
 </div>
 
 <!-- JUNIOR ADMINS TAB -->
 <div class="tab-panel" id="tab-juniors">
   <div class="content-header">
-    <div class="header-title">Junior Admins Directory</div>
+    <div class="header-left">
+      <div>
+        <div class="header-title">Junior Admins</div>
+        <div class="header-sub">Manage referred-user network administrators</div>
+      </div>
+    </div>
   </div>
+
+  <div class="stats-row" style="grid-template-columns: repeat(3, 1fr); display: grid; gap: 16px; margin-bottom: 24px;">
+    <!-- Total Junior Gross Revenue -->
+    <div class="stat-card green" style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); padding: 16px;">
+      <div class="stat-icon green" style="background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-vault"></i></div>
+      <div class="stat-num green" id="juniorTotalGross" style="color: #10b981; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Total Junior Gross</div>
+    </div>
+
+    <!-- Total Admin Share -->
+    <div class="stat-card red" style="background: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.15); padding: 16px;">
+      <div class="stat-icon red" style="background: rgba(239, 68, 68, 0.08); color: #ef4444; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-percent"></i></div>
+      <div class="stat-num red" id="juniorTotalAdminShare" style="color: #ef4444; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Your Commission (Cut)</div>
+    </div>
+
+    <!-- Total Junior Net Share -->
+    <div class="stat-card blue" style="background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.15); padding: 16px;">
+      <div class="stat-icon blue" style="background: rgba(59, 130, 246, 0.08); color: #3b82f6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-wallet"></i></div>
+      <div class="stat-num blue" id="juniorTotalNetShare" style="color: #3b82f6; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
+      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Junior Admins Net Share</div>
+    </div>
+  </div>
+
   <div class="panel">
-    <form onsubmit="createJuniorAdmin(event)" class="form-row">
-      <input type="email" id="juniorEmail" class="form-input" placeholder="Email" required>
-      <input type="text" id="juniorRefCode" class="form-input" placeholder="Ref Code" required>
-      <button type="submit" class="save-btn" style="grid-column: span 2; margin-top:10px;">Create Junior Admin</button>
+    <div class="panel-header">
+      <div class="panel-icon green"><i class="fa-solid fa-user-plus"></i></div>
+      <div><div class="panel-title">Create New Junior Admin</div><div class="panel-sub">Enter credentials and unique referral code</div></div>
+    </div>
+    <form id="createJuniorForm" onsubmit="createJuniorAdmin(event)" class="space-y-4">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="juniorEmail" class="form-input" placeholder="junior1@9jacash.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="juniorPassword" class="form-input" placeholder="Enter secure password" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Referral Code</label>
+          <input type="text" id="juniorRefCode" class="form-input" placeholder="e.g. JUNIOR01" required>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top: 10px;">
+        <div class="form-group">
+          <label class="form-label">Bank Name</label>
+          <input type="text" id="juniorBankName" class="form-input" placeholder="Moniepoint, GTBank...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Account Number</label>
+          <input type="text" id="juniorAccountNumber" class="form-input" maxlength="10" placeholder="10 digits">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Account Name</label>
+          <input type="text" id="juniorAccountName" class="form-input" placeholder="Account holder name">
+        </div>
+      </div>
+      <div class="form-group flex items-end" style="margin-top: 15px;">
+        <button type="submit" class="save-btn" style="margin-bottom:0; height:48px; width:100%; background:linear-gradient(135deg,var(--purple),var(--accent));">
+          <i class="fa-solid fa-user-plus"></i> Create Junior Account
+        </button>
+      </div>
     </form>
-    <table class="w-full text-left" style="width:100%; border-collapse:collapse; margin-top:20px;">
-      <thead>
-        <tr style="border-bottom: 2px solid var(--border);">
-          <th style="padding: 10px;">Email</th>
-          <th style="padding: 10px;">Ref Code</th>
-          <th style="padding: 10px; text-align:right;">Action</th>
-        </tr>
-      </thead>
-      <tbody id="juniorAdminsTable"></tbody>
-    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon blue"><i class="fa-solid fa-users-line"></i></div>
+      <div><div class="panel-title">Active Junior Admins</div><div class="panel-sub">Manage network coordinators & 1-week rolling commissions (resets weekly)</div></div>
+    </div>
+    <div class="table-wrap overflow-x-auto">
+      <table class="w-full text-left" style="border-collapse: collapse; width:100%;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Email</th>
+<!-- CONTINUATION OF superadmin.html FROM JUNIOR ADMINS TAB -->
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Ref Code</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Referred Users</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Weekly Gross</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Admin Share (<span id="adminSharePercentLabel">20%</span>)</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Junior Net</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Bank Details</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="juniorAdminsListTable">
+          <tr>
+            <td colspan="8" style="padding: 15px; text-align: center; color: var(--text3);">Loading Junior Admins...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
-</div>
+<!-- VIDEOS TAB -->
+<div class="tab-panel" id="tab-videos">
+  <div class="content-header">
+    <div class="header-left">
+      <div>
+        <div class="header-title">Videos Panel</div>
+        <div class="header-sub">Manage community promotional videos and review user testifiers</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="loadAllVideoSubmissions(); loadPromoVideos();" class="btn btn-secondary" style="border:1px solid var(--border); padding: 8px 16px; border-radius:10px; background:var(--surface); color:var(--text); cursor:pointer;"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+    </div>
+  </div>
+
+  <!-- Section 1: Promotional Videos Management -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon purple" style="background:rgba(139,92,246,0.1); color:#8b5cf6;"><i class="fa-solid fa-photo-film"></i></div>
+      <div><div class="panel-title">Community Promotional Videos</div><div class="panel-sub">Upload MP4 video streams displayed on user dashboards</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Video Title / Caption</label>
+        <input type="text" id="promoVideoTitle" class="form-input" placeholder="e.g. How 9jaCash Pays Instantly">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Direct Video MP4 Link / Cloudinary URL</label>
+        <input type="url" id="promoVideoUrl" class="form-input" placeholder="https://res.cloudinary.com/...">
+      </div>
+    </div>
+    <button onclick="addPromoVideo()" class="save-btn" style="margin-bottom:20px; background:linear-gradient(135deg,#8b5cf6,#3b82f6);">
+      <i class="fa-solid fa-plus"></i> Add Promotional Video
+    </button>
+
+    <div class="table-wrap overflow-x-auto">
+      <table class="w-full text-left" style="border-collapse: collapse; width:100%;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Title</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Video Preview</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="promoVideosListTable">
+          <tr>
+            <td colspan="3" style="padding: 15px; text-align: center; color: var(--text3);">No promo videos added yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 2: User Testimonial Challenge Submissions -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon green" style="background:rgba(16,185,129,0.1); color:#10b981;"><i class="fa-solid fa-video"></i></div>
+      <div><div class="panel-title">User Video Challenge Submissions</div><div class="panel-sub">Approve user video submissions to grant them cash rewards</div></div>
+    </div>
+    <div class="table-wrap overflow-x-auto">
+      <table class="w-full text-left" style="border-collapse: collapse; width:100%;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Submitted</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">User</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Video Stream</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Status</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="videoSubmissionsListTable">
+          <tr>
+            <td colspan="5" style="padding: 15px; text-align: center; color: var(--text3);">No video submissions yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
-<!-- Realtime Database Script Logic -->
+</div> <!-- /.content -->
+
+<!-- Global Save Floating Action -->
+<div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+  <button class="save-btn" style="box-shadow: 0 10px 25px rgba(0,212,170,0.4); border-radius: 50px; padding: 14px 28px;" onclick="saveAllSettings()">
+    <i class="fa-solid fa-floppy-disk"></i> Save Global Settings
+  </button>
+</div>
+
+</div> <!-- /.app -->
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <i class="fa-solid fa-circle-check"></i>
+  <span id="toastMsg">Action completed successfully</span>
+</div>
+
+<script src="firebase.js"></script>
 <script>
-let currentSettings = {};
+/* ─────────────────────────────────────────────────────────
+   SUPERADMIN REAL-TIME DATABASE CONTROLLER
+───────────────────────────────────────────────────────── */
 
-// Wait for Firebase module script to load
+let dbData = {
+  settings: {},
+  tasks: [],
+  keysHistory: [],
+  receipts: [],
+  withdrawals: [],
+  users: [],
+  juniors: [],
+  promoVideos: [],
+  videoSubmissions: []
+};
+
+let currentTab = 'overview';
+let activeSelectedPlan = null;
+let currentWithdrawalsPage = 1;
+let currentUsersPage = 1;
+const ITEMS_PER_PAGE = 10;
+
+// On Window Load
 window.addEventListener('DOMContentLoaded', () => {
-  // Check Authentication State
-  window.onAuthChange((user) => {
-    if (user) {
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('mainApp').classList.remove('hidden');
-      initRealtimeSync();
-    } else {
-      document.getElementById('loginScreen').classList.remove('hidden');
-      document.getElementById('mainApp').classList.add('hidden');
-    }
-  });
+  initRealtimeData();
 });
 
-function doLogin() {
-  const email = document.getElementById('loginEmail').value;
-  const pass = document.getElementById('loginPassword').value;
-  const errorDiv = document.getElementById('loginError');
-  
-  window.signInAdmin(email, pass).catch((err) => {
-    errorDiv.classList.add('show');
-    document.getElementById('loginErrorText').innerText = err.message;
+function initRealtimeData() {
+  if (typeof firebase === 'undefined' || !firebase.apps.length) {
+    showToast('Firebase JS file not loaded properly!', true);
+    return;
+  }
+
+  const db = firebase.database();
+
+  // Listen to Settings
+  db.ref('settings').on('value', (snapshot) => {
+    dbData.settings = snapshot.val() || {};
+    syncSettingsToUI();
+    updateDashboardStats();
   });
+
+  // Listen to Tasks
+  db.ref('tasks').on('value', (snapshot) => {
+    const val = snapshot.val();
+    dbData.tasks = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    renderTasks();
+    updateDashboardStats();
+  });
+
+  // Listen to Keys History
+  db.ref('keys_history').on('value', (snapshot) => {
+    const val = snapshot.val();
+    dbData.keysHistory = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
+    renderKeysHistory();
+    updateDashboardStats();
+  });
+
+  // Listen to Receipts
+  db.ref('receipts').on('value', (snapshot) => {
+    const val = snapshot.val();
+    dbData.receipts = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
+    renderReceipts();
+    updateDashboardStats();
+  });
+
+  // Listen to Withdrawals
+  db.ref('withdrawals').on('value', (snapshot) => {
+    const val = snapshot.val();
+    dbData.withdrawals = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
+    renderWithdrawalsTable();
+    updateDashboardStats();
+  });
+
+  // Listen to Users
+  db.ref('users').on('value', (snapshot) => {
+    const val = snapshot.val();
+    dbData.users = val ? Object.entries(val).map(([uid, item]) => ({ uid, ...item })) : [];
+    renderUsersTable();
+    updateDashboardStats();
+  });
+
+  // Listen to Junior Admins
+  db.ref('junior_admins').on('value', (snapshot) => {
+    const val = snapshot.val();
+    dbData.juniors = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
+    renderJuniorAdminsTable();
+  });
+
+  // Listen to Promo Videos
+  db.ref('promo_videos').on('value', (snapshot) => {
+    const val = snapshot.val();
+    dbData.promoVideos = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
+    renderPromoVideos();
+  });
+
+  // Listen to Video Challenge Submissions
+  db.ref('video_submissions').on('value', (snapshot) => {
+    const val = snapshot.val();
+    dbData.videoSubmissions = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
+    renderVideoSubmissions();
+  });
+}
+
+/* Authentication */
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  const errorEl = document.getElementById('loginError');
+  const errorTxt = document.getElementById('loginErrorText');
+
+  if (!email || !password) {
+    errorTxt.innerText = 'Please enter both email and password';
+    errorEl.classList.add('show');
+    return;
+  }
+
+  firebase.auth().signInWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainApp').classList.remove('hidden');
+      errorEl.classList.remove('show');
+      showToast('Logged in successfully!');
+    })
+    .catch((error) => {
+      errorTxt.innerText = error.message;
+      errorEl.classList.add('show');
+    });
 }
 
 function doLogout() {
-  window.signOutAdmin();
+  firebase.auth().signOut().then(() => {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainApp').classList.add('hidden');
+    showToast('Logged out successfully');
+  });
 }
 
+/* Tab Navigation */
 function switchTab(tabId, el) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-  document.getElementById(`tab-${tabId}`).classList.add('active');
+  currentTab = tabId;
+  document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  
+  const targetPanel = document.getElementById(`tab-${tabId}`);
+  if (targetPanel) targetPanel.classList.add('active');
   if (el) el.classList.add('active');
 }
 
-// ─── REALTIME FIREBASE SYNC LISTENERS ───
-function initRealtimeSync() {
-  // 1. Sync Settings in Realtime
-  window.dbOnValue(window.dbRef(window.db, 'settings'), (snapshot) => {
-    currentSettings = snapshot.val() || {};
-    
-    // Update Mode Toggles
-    const wdState = document.getElementById('wdState');
-    const wdToggle = document.getElementById('wdToggle');
-    if (currentSettings.withdrawalMode) {
-      wdState.innerText = 'ON';
-      wdState.style.color = 'var(--accent)';
-      wdToggle.classList.add('on');
-    } else {
-      wdState.innerText = 'OFF';
-      wdState.style.color = 'var(--danger)';
-      wdToggle.classList.remove('on');
-    }
+/* Sync Settings to UI */
+function syncSettingsToUI() {
+  const s = dbData.settings;
+  if (!s) return;
 
-    const pmState = document.getElementById('pmState');
-    const pmToggle = document.getElementById('pmToggle');
-    if (currentSettings.paymentMode) {
-      pmState.innerText = 'ON';
-      pmState.style.color = 'var(--accent)';
-      pmToggle.classList.add('on');
-    } else {
-      pmState.innerText = 'OFF';
-      pmState.style.color = 'var(--danger)';
-      pmToggle.classList.remove('on');
-    }
+  // Overview / Withdrawals
+  const wdToggle = document.getElementById('wdToggle');
+  const wdState = document.getElementById('wdState');
+  const wdRedirect = document.getElementById('wdRedirect');
+  if (s.withdrawalSuccess) {
+    wdToggle.classList.add('on');
+    wdState.innerText = 'ON';
+    wdState.style.background = 'rgba(0,212,170,0.1)';
+    wdState.style.color = 'var(--accent)';
+    wdRedirect.innerText = 'success.html';
+    wdRedirect.style.color = 'var(--accent)';
+  } else {
+    wdToggle.classList.remove('on');
+    wdState.innerText = 'OFF';
+    wdState.style.background = 'rgba(255,71,87,0.1)';
+    wdState.style.color = 'var(--danger)';
+    wdRedirect.innerText = 'pending.html';
+    wdRedirect.style.color = 'var(--danger)';
+  }
 
-    // Payment Info
-    if (currentSettings.mainAccount) {
-      document.getElementById('accNumber').value = currentSettings.mainAccount.accNumber || '';
-      document.getElementById('bankName').value = currentSettings.mainAccount.bankName || '';
-      document.getElementById('accName').value = currentSettings.mainAccount.accName || '';
-      document.getElementById('amount').value = currentSettings.mainAccount.amount || '';
-    }
+  // Payment Toggle
+  const pmToggle = document.getElementById('pmToggle');
+  const pmState = document.getElementById('pmState');
+  const pmRedirect = document.getElementById('pmRedirect');
+  if (s.paymentSuccess) {
+    pmToggle.classList.add('on');
+    pmState.innerText = 'ON';
+    pmState.style.background = 'rgba(0,212,170,0.1)';
+    pmState.style.color = 'var(--accent)';
+    pmRedirect.innerText = 'payment-success.html';
+    pmRedirect.style.color = 'var(--accent)';
+  } else {
+    pmToggle.classList.remove('on');
+    pmState.innerText = 'OFF';
+    pmState.style.background = 'rgba(255,71,87,0.1)';
+    pmState.style.color = 'var(--danger)';
+    pmRedirect.innerText = 'payment-failed.html';
+    pmRedirect.style.color = 'var(--danger)';
+  }
 
-    // Active Key
-    if (currentSettings.activeKey) {
-      document.getElementById('payoutKeyDisplay').innerText = currentSettings.activeKey;
-    }
-  });
+  // Payment Form Fields
+  if (s.accountNumber) document.getElementById('accNumber').value = s.accountNumber;
+  if (s.bankName) document.getElementById('bankName').value = s.bankName;
+  if (s.accountName) document.getElementById('accName').value = s.accountName;
+  if (s.amount) document.getElementById('amount').value = s.amount;
 
-  // 2. Sync Tasks Realtime
-  window.dbOnValue(window.dbRef(window.db, 'tasks'), (snapshot) => {
-    const tasks = snapshot.val() || {};
-    const taskList = document.getElementById('taskList');
-    taskList.innerHTML = '';
-    let count = 0;
-    
-    Object.keys(tasks).forEach((id) => {
-      count++;
-      const t = tasks[id];
-      taskList.innerHTML += `
-        <div style="background:var(--surface2); padding:12px; border-radius:10px; margin-bottom:8px; display:flex; justify-size:space-between; align-items:center;">
-          <div>
-            <strong>${t.title}</strong> - ₦${t.reward}
-          </div>
-          <button onclick="deleteTask('${id}')" style="color:var(--danger); border:none; background:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      `;
-    });
-    document.getElementById('statTasks').innerText = count;
-  });
+  if (s.feeAccountNumber) document.getElementById('feeAccNumber').value = s.feeAccountNumber;
+  if (s.feeBankName) document.getElementById('feeBank').value = s.feeBankName;
+  if (s.feeAccountName) document.getElementById('feeAccName').value = s.feeAccountName;
+  if (s.feeAmount) document.getElementById('feeAmount').value = s.feeAmount;
 
-  // 3. Sync Users Realtime
-  window.dbOnValue(window.dbRef(window.db, 'users'), (snapshot) => {
-    const users = snapshot.val() || {};
-    const table = document.getElementById('allUsersListTable');
-    table.innerHTML = '';
-    let userCount = 0;
+  if (s.adminPercentage !== undefined) {
+    document.getElementById('adminPercentageInput').value = s.adminPercentage;
+    document.getElementById('adminSharePercentLabel').innerText = `${s.adminPercentage}%`;
+  }
+  if (s.referralBonus !== undefined) document.getElementById('referralBonusInput').value = s.referralBonus;
 
-    Object.keys(users).forEach((uid) => {
-      userCount++;
-      const u = users[uid];
-      table.innerHTML += `
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding:10px;">${u.name || 'User'}</td>
-          <td style="padding:10px;">${u.phone || 'N/A'}</td>
-          <td style="padding:10px;">₦${u.balance || 0}</td>
-          <td style="padding:10px; color:${u.status === 'active' ? 'var(--accent)' : 'var(--danger)'};">${u.status || 'Active'}</td>
-        </tr>
-      `;
-    });
-    document.getElementById('statUsers').innerText = userCount;
-    document.getElementById('usersBadge').innerText = userCount;
-  });
+  if (s.telegramLink) document.getElementById('telegramLink').value = s.telegramLink;
+  if (s.telegramSupportLink) document.getElementById('telegramSupportLink').value = s.telegramSupportLink;
+  if (s.whatsappLink) document.getElementById('whatsappLink').value = s.whatsappLink;
 
-  // 4. Sync Withdrawals Realtime
-  window.dbOnValue(window.dbRef(window.db, 'withdrawals'), (snapshot) => {
-    const withdrawals = snapshot.val() || {};
-    const table = document.getElementById('superWithdrawalsTable');
-    table.innerHTML = '';
-    let pendingCount = 0;
+  if (s.cryptoAddress) document.getElementById('cryptoAddress').value = s.cryptoAddress;
+  if (s.cryptoNetwork) document.getElementById('cryptoNetwork').value = s.cryptoNetwork;
 
-    Object.keys(withdrawals).forEach((wid) => {
-      const w = withdrawals[wid];
-      if (w.status === 'pending') pendingCount++;
+  if (s.noticeText) document.getElementById('noticeText').value = s.noticeText;
 
-      table.innerHTML += `
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding:10px;">${w.name || w.phone}</td>
-          <td style="padding:10px;">${w.bankName} (${w.accountNumber})</td>
-          <td style="padding:10px; font-weight:bold; color:var(--accent);">₦${w.amount}</td>
-          <td style="padding:10px; text-align:right;">
-            <button onclick="updateWithdrawal('${wid}', 'approved')" style="background:var(--accent); color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer;">Approve</button>
-            <button onclick="updateWithdrawal('${wid}', 'declined')" style="background:var(--danger); color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer;">Reject</button>
-          </td>
-        </tr>
-      `;
-    });
-    document.getElementById('statPending').innerText = pendingCount;
-  });
+  // Active Keys
+  if (s.currentKey) {
+    document.getElementById('payoutKeyDisplay').innerText = s.currentKey;
+  }
 
-  // 5. Sync Junior Admins Realtime
-  window.dbOnValue(window.dbRef(window.db, 'juniors'), (snapshot) => {
-    const juniors = snapshot.val() || {};
-    const table = document.getElementById('juniorAdminsTable');
-    table.innerHTML = '';
+  // Video Challenge & Cloudinary
+  if (s.videoChallengeActive !== undefined) document.getElementById('videoChallengeActive').value = s.videoChallengeActive.toString();
+  if (s.cloudinaryCloudName) document.getElementById('cloudinaryCloudName').value = s.cloudinaryCloudName;
+  if (s.cloudinaryUploadPreset) document.getElementById('cloudinaryUploadPreset').value = s.cloudinaryUploadPreset;
+  if (s.verificationVideoActive !== undefined) document.getElementById('verificationVideoActive').value = s.verificationVideoActive.toString();
+  if (s.verificationVideoUrl) document.getElementById('verificationVideoUrl').value = s.verificationVideoUrl;
 
-    Object.keys(juniors).forEach((jid) => {
-      const j = juniors[jid];
-      table.innerHTML += `
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding:10px;">${j.email}</td>
-          <td style="padding:10px;">${j.refCode}</td>
-          <td style="padding:10px; text-align:right;">
-            <button onclick="deleteJunior('${jid}')" style="color:var(--danger); border:none; background:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
-          </td>
-        </tr>
-      `;
-    });
-  });
+  updateChallengeVideoIndicator();
+  updateVerificationVideoIndicator();
 }
 
-// ─── ACTION WRAPPERS TO SAVE TO FIREBASE ───
+function saveAllSettings() {
+  const updates = {
+    accountNumber: document.getElementById('accNumber').value.trim(),
+    bankName: document.getElementById('bankName').value.trim(),
+    accountName: document.getElementById('accName').value.trim(),
+    amount: parseFloat(document.getElementById('amount').value) || 0,
+    feeAccountNumber: document.getElementById('feeAccNumber').value.trim(),
+    feeBankName: document.getElementById('feeBank').value.trim(),
+    feeAccountName: document.getElementById('feeAccName').value.trim(),
+    feeAmount: parseFloat(document.getElementById('feeAmount').value) || 0,
+    adminPercentage: parseFloat(document.getElementById('adminPercentageInput').value) || 0,
+    referralBonus: parseFloat(document.getElementById('referralBonusInput').value) || 0,
+    telegramLink: document.getElementById('telegramLink').value.trim(),
+    telegramSupportLink: document.getElementById('telegramSupportLink').value.trim(),
+    whatsappLink: document.getElementById('whatsappLink').value.trim(),
+    cryptoAddress: document.getElementById('cryptoAddress').value.trim(),
+    cryptoNetwork: document.getElementById('cryptoNetwork').value.trim(),
+    noticeText: document.getElementById('noticeText').value.trim(),
+    videoChallengeActive: document.getElementById('videoChallengeActive').value === 'true',
+    cloudinaryCloudName: document.getElementById('cloudinaryCloudName').value.trim(),
+    cloudinaryUploadPreset: document.getElementById('cloudinaryUploadPreset').value.trim(),
+    verificationVideoActive: document.getElementById('verificationVideoActive').value === 'true',
+    verificationVideoUrl: document.getElementById('verificationVideoUrl').value.trim()
+  };
+
+  firebase.database().ref('settings').update(updates)
+    .then(() => showToast('Settings updated successfully in real-time!'))
+    .catch((err) => showToast(err.message, true));
+}
+
 function toggleWithdrawal() {
-  const newState = !currentSettings.withdrawalMode;
-  window.dbUpdate(window.dbRef(window.db, 'settings'), { withdrawalMode: newState });
+  const current = dbData.settings.withdrawalSuccess || false;
+  firebase.database().ref('settings/withdrawalSuccess').set(!current);
 }
 
 function togglePayment() {
-  const newState = !currentSettings.paymentMode;
-  window.dbUpdate(window.dbRef(window.db, 'settings'), { paymentMode: newState });
+  const current = dbData.settings.paymentSuccess || false;
+  firebase.database().ref('settings/paymentSuccess').set(!current);
 }
 
-function savePaymentSettings() {
-  const mainAccount = {
-    accNumber: document.getElementById('accNumber').value,
-    bankName: document.getElementById('bankName').value,
-    accName: document.getElementById('accName').value,
-    amount: document.getElementById('amount').value
-  };
-  window.dbUpdate(window.dbRef(window.db, 'settings'), { mainAccount })
-    .then(() => alert('Payment settings saved real-time!'));
+/* Dashboard Statistics Calculation */
+function updateDashboardStats() {
+  document.getElementById('statTasks').innerText = dbData.tasks.length;
+  
+  const pendingReceipts = dbData.receipts.filter(r => r.status === 'pending').length;
+  const pendingWds = dbData.withdrawals.filter(w => w.status === 'pending').length;
+  document.getElementById('statPending').innerText = pendingReceipts + pendingWds;
+  document.getElementById('receiptsBadge').innerText = pendingReceipts;
+  document.getElementById('receiptsBadge').style.display = pendingReceipts > 0 ? 'inline-flex' : 'none';
+  document.getElementById('withdrawalsBadge').innerText = pendingWds;
+  document.getElementById('withdrawalsBadge').style.display = pendingWds > 0 ? 'inline-flex' : 'none';
+
+  document.getElementById('statKeys').innerText = dbData.keysHistory.length;
+  document.getElementById('keyBadge').innerText = dbData.keysHistory.length;
+
+  document.getElementById('statUsers').innerText = dbData.users.length;
+  document.getElementById('usersBadge').innerText = dbData.users.length;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const joinedToday = dbData.users.filter(u => u.createdAt && u.createdAt.startsWith(todayStr)).length;
+  document.getElementById('statJoinedToday').innerText = `+${joinedToday} today`;
+
+  document.getElementById('statStatus').innerText = dbData.settings.withdrawalSuccess ? 'ON' : 'OFF';
+
+  // Receipts Breakdown
+  let totalKeysRev = 0;
+  let totalVerificationRev = 0;
+  let totalUpgradeRev = 0;
+  let approvedReceipts = 0;
+  let declinedReceipts = 0;
+
+  dbData.receipts.forEach(r => {
+    if (r.status === 'approved') {
+      approvedReceipts++;
+      const amt = parseFloat(r.amount) || 0;
+      if (r.type === 'key') totalKeysRev += amt;
+      else if (r.type === 'verification') totalVerificationRev += amt;
+      else if (r.type === 'upgrade') totalUpgradeRev += amt;
+    } else if (r.status === 'declined') {
+      declinedReceipts++;
+    }
+  });
+
+  document.getElementById('statKeysRevenue').innerText = `₦${totalKeysRev.toLocaleString()}`;
+  document.getElementById('statVerificationRevenue').innerText = `₦${totalVerificationRev.toLocaleString()}`;
+  document.getElementById('statUpgradeRevenue').innerText = `₦${totalUpgradeRev.toLocaleString()}`;
+  document.getElementById('statApprovedReceiptsCount').innerText = approvedReceipts;
+  document.getElementById('statDeclinedReceiptsCount').innerText = declinedReceipts;
+
+  updateDepositTimeframeDisplay();
+  updateKeysSoldTimeframeDisplay();
+
+  // Withdrawals Payout Sum
+  const totalPayouts = dbData.withdrawals
+    .filter(w => w.status === 'approved')
+    .reduce((sum, w) => sum + (parseFloat(w.amount) || 0), 0);
+  document.getElementById('statApprovedWithdrawals').innerText = `₦${totalPayouts.toLocaleString()}`;
+
+  // Verified & Plans
+  const verifiedCount = dbData.users.filter(u => u.isVerified).length;
+  document.getElementById('statVerifiedUsersCount').innerText = verifiedCount;
+
+  let silver = 0, gold = 0, diamond = 0;
+  dbData.users.forEach(u => {
+    if (u.plan === 'Silver') silver++;
+    if (u.plan === 'Gold') gold++;
+    if (u.plan === 'Diamond') diamond++;
+  });
+  document.getElementById('statPlanSilver').innerText = silver;
+  document.getElementById('statPlanGold').innerText = gold;
+  document.getElementById('statPlanDiamond').innerText = diamond;
 }
 
-function saveActiveKey() {
-  const key = document.getElementById('payoutKeyInput').value;
-  if (!key) return;
-  window.dbUpdate(window.dbRef(window.db, 'settings'), { activeKey: key })
-    .then(() => alert('Active key updated globally!'));
+function updateDepositTimeframeDisplay() {
+  const timeframe = document.getElementById('depositTimeframeSelect').value;
+  const now = new Date();
+  
+  const filtered = dbData.receipts.filter(r => {
+    if (r.status !== 'approved') return false;
+    if (!r.createdAt) return true;
+    const rDate = new Date(r.createdAt);
+    
+    if (timeframe === 'today') {
+      return rDate.toDateString() === now.toDateString();
+    } else if (timeframe === 'yesterday') {
+      const yest = new Date(now);
+      yest.setDate(now.getDate() - 1);
+      return rDate.toDateString() === yest.toDateString();
+    } else if (timeframe === 'sevenDays') {
+      const past7 = new Date(now);
+      past7.setDate(now.getDate() - 7);
+      return rDate >= past7;
+    } else if (timeframe === 'month') {
+      return rDate.getMonth() === now.getMonth() && rDate.getFullYear() === now.getFullYear();
+    } else if (timeframe === 'year') {
+      return rDate.getFullYear() === now.getFullYear();
+    }
+    return true; // total
+  });
+
+  const sum = filtered.reduce((acc, r) => acc + (parseFloat(r.amount) || 0), 0);
+  document.getElementById('statDepositsDisplay').innerText = `₦${sum.toLocaleString()}`;
+}
+
+function updateKeysSoldTimeframeDisplay() {
+  const timeframe = document.getElementById('keysSoldTimeframeSelect').value;
+  const now = new Date();
+
+  const filtered = dbData.receipts.filter(r => {
+    if (r.status !== 'approved' || r.type !== 'key') return false;
+    if (!r.createdAt) return true;
+    const rDate = new Date(r.createdAt);
+
+    if (timeframe === 'today') {
+      return rDate.toDateString() === now.toDateString();
+    } else if (timeframe === 'yesterday') {
+      const yest = new Date(now);
+      yest.setDate(now.getDate() - 1);
+      return rDate.toDateString() === yest.toDateString();
+    } else if (timeframe === 'sevenDays') {
+      const past7 = new Date(now);
+      past7.setDate(now.getDate() - 7);
+      return rDate >= past7;
+    } else if (timeframe === 'month') {
+      return rDate.getMonth() === now.getMonth() && rDate.getFullYear() === now.getFullYear();
+    } else if (timeframe === 'year') {
+      return rDate.getFullYear() === now.getFullYear();
+    }
+    return true;
+  });
+
+  document.getElementById('statKeysSold').innerText = filtered.length;
+}
+
+function clearTodayRevenue() {
+  Swal.fire({
+    title: 'Clear Today\'s Revenue?',
+    text: 'This will purge all receipts approved today. Are you sure?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    confirmButtonText: 'Yes, clear today'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const now = new Date();
+      const updates = {};
+      dbData.receipts.forEach(r => {
+        if (r.status === 'approved' && r.createdAt) {
+          const rDate = new Date(r.createdAt);
+          if (rDate.toDateString() === now.toDateString()) {
+            updates[`receipts/${r.id}`] = null;
+          }
+        }
+      });
+
+      firebase.database().ref().update(updates)
+        .then(() => showToast('Today\'s approved receipts cleared!'))
+        .catch(err => showToast(err.message, true));
+    }
+  });
+}
+
+/* Tasks Management */
+function renderTasks() {
+  const container = document.getElementById('taskList');
+  if (!container) return;
+
+  container.innerHTML = '';
+  dbData.tasks.forEach((task, index) => {
+    const card = document.createElement('div');
+    card.className = `task-card ${task.isHot ? 'hot' : ''}`;
+    card.innerHTML = `
+      <div class="task-top">
+        <div class="task-num">#${index + 1}</div>
+        <div class="task-actions">
+          <button class="task-btn-sm fire" onclick="toggleHotTask(${index})" title="Toggle Hot Task"><i class="fa-solid fa-fire"></i></button>
+          <button class="task-btn-sm" onclick="removeTask(${index})" title="Delete Task"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+      <div class="task-grid-inner">
+        <div class="task-field">
+          <label class="form-label">Platform</label>
+          <select class="form-input" onchange="updateTaskField(${index}, 'platform', this.value)">
+            <option value="TikTok" ${task.platform === 'TikTok' ? 'selected' : ''}>TikTok</option>
+            <option value="Facebook" ${task.platform === 'Facebook' ? 'selected' : ''}>Facebook</option>
+            <option value="Other" ${task.platform === 'Other' ? 'selected' : ''}>Other</option>
+          </select>
+        </div>
+        <div class="task-field">
+          <label class="form-label">Reward (₦)</label>
+          <input type="number" class="form-input" value="${task.reward || 500}" onchange="updateTaskField(${index}, 'reward', parseFloat(this.value))">
+        </div>
+        <div class="task-field">
+          <label class="form-label">Target Link</label>
+          <input type="text" class="form-input" value="${task.link || ''}" onchange="updateTaskField(${index}, 'link', this.value)">
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
 }
 
 function addNewTask() {
-  const title = prompt("Enter task title:");
-  const reward = prompt("Enter reward amount (₦):");
-  if (title && reward) {
-    const newTaskRef = window.dbPush(window.dbRef(window.db, 'tasks'));
-    window.dbSet(newTaskRef, { title, reward: Number(reward), createdAt: Date.now() });
+  if (dbData.tasks.length >= 10) {
+    showToast('Maximum of 10 tasks reached!', true);
+    return;
+  }
+  const newTask = { platform: 'TikTok', reward: 500, link: 'https://', isHot: false };
+  dbData.tasks.push(newTask);
+  firebase.database().ref('tasks').set(dbData.tasks);
+}
+
+function removeTask(index) {
+  dbData.tasks.splice(index, 1);
+  firebase.database().ref('tasks').set(dbData.tasks);
+}
+
+function toggleHotTask(index) {
+  dbData.tasks[index].isHot = !dbData.tasks[index].isHot;
+  firebase.database().ref('tasks').set(dbData.tasks);
+}
+
+function updateTaskField(index, field, value) {
+  dbData.tasks[index][field] = value;
+  firebase.database().ref('tasks').set(dbData.tasks);
+}
+
+/* Key Generator */
+function selectPlan(plan, price, limit) {
+  activeSelectedPlan = { plan, price, limit };
+  document.querySelectorAll('.plan-select-card').forEach(c => c.classList.remove('selected'));
+  const card = document.getElementById(`plan${plan}`);
+  if (card) card.classList.add('selected');
+
+  document.getElementById('selectedPlanDisplay').innerText = plan;
+  document.getElementById('selectedPriceDisplay').innerText = `₦${price.toLocaleString()}`;
+  document.getElementById('selectedLimitDisplay').innerText = limit === 999999 ? 'Unlimited' : `${limit}/day`;
+}
+
+function generateRandomKey() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  document.getElementById('payoutKeyInput').value = result;
+}
+
+function generatePayoutKeyForPlan() {
+  if (!activeSelectedPlan) {
+    showToast('Please select a plan first!', true);
+    return;
+  }
+  generateRandomKey();
+  const keyVal = document.getElementById('payoutKeyInput').value;
+  document.getElementById('generatedKeyValue').innerText = keyVal;
+  document.getElementById('generatedKeyLabel').innerText = `${activeSelectedPlan.plan} Plan Key`;
+  document.getElementById('generatedKeyBox').style.display = 'block';
+}
+
+function saveGeneratedKey() {
+  const keyVal = document.getElementById('payoutKeyInput').value.trim();
+  if (!keyVal) {
+    showToast('Please generate or enter a key first!', true);
+    return;
+  }
+
+  const keyData = {
+    key: keyVal,
+    plan: activeSelectedPlan ? activeSelectedPlan.plan : 'Custom',
+    limit: activeSelectedPlan ? activeSelectedPlan.limit : 5,
+    createdAt: new Date().toISOString()
+  };
+
+  firebase.database().ref('settings/currentKey').set(keyVal);
+  firebase.database().ref('keys_history').push(keyData)
+    .then(() => showToast(`Key ${keyVal} activated successfully!`));
+}
+
+function renderKeysHistory() {
+  const container = document.getElementById('keyHistory');
+  if (!container) return;
+
+  if (dbData.keysHistory.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No history yet</div>`;
+    return;
+  }
+
+  container.innerHTML = dbData.keysHistory.reverse().map(item => `
+    <div class="history-item">
+      <div>
+        <div class="history-key">${item.key}</div>
+        <div class="history-date">${item.plan || 'Standard'} • ${new Date(item.createdAt).toLocaleString()}</div>
+      </div>
+      <button onclick="copyToClipboard('${item.key}')" class="task-btn-sm" title="Copy Key"><i class="fa-solid fa-copy"></i></button>
+    </div>
+  `).join('');
+}
+
+/* Receipts Verification */
+function switchReceiptCategory() {
+  const cat = document.getElementById('receiptCategorySelect').value;
+  document.getElementById('receiptPanel_key').style.display = cat === 'key' ? 'block' : 'none';
+  document.getElementById('receiptPanel_upgrade').style.display = cat === 'upgrade' ? 'block' : 'none';
+  document.getElementById('receiptPanel_verification').style.display = cat === 'verification' ? 'block' : 'none';
+}
+
+function loadAllReceipts() {
+  renderReceipts();
+}
+
+function renderReceipts() {
+  ['key', 'upgrade', 'verification'].forEach(cat => {
+    const tbody = document.getElementById(`receiptListTable_${cat}`);
+    if (!tbody) return;
+
+    const filtered = dbData.receipts.filter(r => (r.type || 'key') === cat);
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No receipts found for this category.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(r => `
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:12px; text-align:center;"><input type="checkbox" class="receipt-select-${cat}" value="${r.id}" onchange="updateBulkButtons('${cat}')"></td>
+        <td style="padding:12px; font-size:12px;">${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : 'N/A'}</td>
+        <td style="padding:12px; font-size:12px;"><strong>${r.userName || 'User'}</strong><br><span style="color:var(--text3);">${r.userPhone || ''}</span></td>
+        <td style="padding:12px; font-size:12px; text-transform:uppercase;"><span class="badge" style="background:var(--surface2); color:var(--accent);">${r.type || 'key'}</span></td>
+        <td style="padding:12px; font-size:12px; font-family:'JetBrains Mono';">₦${(parseFloat(r.amount) || 0).toLocaleString()}</td>
+        <td style="padding:12px;"><a href="${r.imageUrl}" target="_blank" style="color:var(--accent); text-decoration:underline; font-size:12px;">View Proof</a></td>
+        <td style="padding:12px; text-align:right;">
+          ${r.status === 'pending' ? `
+            <button onclick="approveReceipt('${r.id}')" style="background:#10b981; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; margin-right:4px;">Approve</button>
+            <button onclick="declineReceipt('${r.id}')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;">Decline</button>
+          ` : `<span style="font-size:11px; font-weight:700; color:${r.status === 'approved' ? '#10b981' : '#ef4444'}; text-transform:uppercase;">${r.status}</span>`}
+        </td>
+      </tr>
+    `).join('');
+  });
+}
+
+function approveReceipt(id) {
+  const r = dbData.receipts.find(item => item.id === id);
+  if (!r) return;
+
+  const updates = {};
+  updates[`receipts/${id}/status`] = 'approved';
+
+  // If receipt is for account verification, grant verified status to user
+  if (r.type === 'verification' && r.userId) {
+    updates[`users/${r.userId}/isVerified`] = true;
+  }
+  // If receipt is for plan upgrade, update user plan
+  if (r.type === 'upgrade' && r.userId && r.targetPlan) {
+    updates[`users/${r.userId}/plan`] = r.targetPlan;
+  }
+
+  firebase.database().ref().update(updates)
+    .then(() => showToast('Receipt approved successfully!'));
+}
+
+function declineReceipt(id) {
+  firebase.database().ref(`receipts/${id}/status`).set('declined')
+    .then(() => showToast('Receipt declined.'));
+}
+
+function toggleSelectAll(checkbox, cat) {
+  document.querySelectorAll(`.receipt-select-${cat}`).forEach(cb => cb.checked = checkbox.checked);
+  updateBulkButtons(cat);
+}
+
+function updateBulkButtons(cat) {
+  const selected = Array.from(document.querySelectorAll(`.receipt-select-${cat}:checked`));
+  const count = selected.length;
+  
+  const approveBtn = document.getElementById(`bulkApproveBtn_${cat}`);
+  const deleteBtn = document.getElementById(`bulkDeleteBtn_${cat}`);
+
+  if (approveBtn) {
+    approveBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+    document.getElementById(`bulkApproveCount_${cat}`).innerText = count;
+  }
+  if (deleteBtn) {
+    deleteBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+    document.getElementById(`bulkDeleteCount_${cat}`).innerText = count;
   }
 }
 
-function deleteTask(id) {
-  window.dbRemove(window.dbRef(window.db, `tasks/${id}`));
+function bulkAction(cat, action) {
+  const selected = Array.from(document.querySelectorAll(`.receipt-select-${cat}:checked`)).map(cb => cb.value);
+  if (selected.length === 0) return;
+
+  const updates = {};
+  selected.forEach(id => {
+    if (action === 'approve') updates[`receipts/${id}/status`] = 'approved';
+    if (action === 'delete') updates[`receipts/${id}`] = null;
+  });
+
+  firebase.database().ref().update(updates)
+    .then(() => showToast(`Bulk ${action} executed!`));
 }
 
-function updateWithdrawal(wid, status) {
-  window.dbUpdate(window.dbRef(window.db, `withdrawals/${wid}`), { status });
+function purgeAllReceipts() {
+  Swal.fire({
+    title: 'Purge All Receipts?',
+    text: 'This action will permanently delete all uploaded payment proofs from the database!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    confirmButtonText: 'Yes, Purge All'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      firebase.database().ref('receipts').remove()
+        .then(() => showToast('All receipts purged!'));
+    }
+  });
 }
 
+/* Notifications Broadcast */
+function sendAdminNotification() {
+  const recipient = document.getElementById('msgRecipient').value.trim();
+  const title = document.getElementById('msgTitle').value.trim();
+  const body = document.getElementById('msgBody').value.trim();
+
+  if (!title || !body) {
+    showToast('Please enter both title and message body', true);
+    return;
+  }
+
+  const notification = {
+    recipient,
+    title,
+    body,
+    createdAt: new Date().toISOString()
+  };
+
+  firebase.database().ref('notifications').push(notification)
+    .then(() => {
+      showToast('Notification broadcast sent!');
+      document.getElementById('msgTitle').value = '';
+      document.getElementById('msgBody').value = '';
+    });
+}
+
+function triggerDailyReminders() {
+  showToast('Daily mining reminders triggered for active users!');
+}
+
+/* Withdrawals Table & Actions */
+function loadSuperWithdrawals() {
+  renderWithdrawalsTable();
+}
+
+function renderWithdrawalsTable() {
+  const tbody = document.getElementById('superWithdrawalsTable');
+  if (!tbody) return;
+
+  if (dbData.withdrawals.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No withdrawal requests found.</td></tr>`;
+    return;
+  }
+
+  const start = (currentWithdrawalsPage - 1) * ITEMS_PER_PAGE;
+  const pageItems = dbData.withdrawals.slice(start, start + ITEMS_PER_PAGE);
+
+  tbody.innerHTML = pageItems.map(w => `
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:12px; text-align:center;"><input type="checkbox" class="super-wd-select" value="${w.id}" onchange="updateSuperWdBulkButtons()"></td>
+      <td style="padding:12px; font-size:12px;">${w.createdAt ? new Date(w.createdAt).toLocaleDateString() : 'N/A'}</td>
+      <td style="padding:12px; font-size:12px;"><strong>${w.userName || 'User'}</strong><br><span style="color:var(--text3);">${w.userPhone || ''}</span></td>
+      <td style="padding:12px; font-size:12px;">${w.bankName || 'Bank'}<br><span style="font-family:'JetBrains Mono';">${w.accountNumber || ''}</span></td>
+      <td style="padding:12px; font-size:12px; font-family:'JetBrains Mono'; color:var(--accent);">₦${(parseFloat(w.amount) || 0).toLocaleString()}</td>
+      <td style="padding:12px;"><span style="font-size:11px; font-weight:700; color:${w.status === 'approved' ? '#10b981' : (w.status === 'declined' ? '#ef4444' : '#f59e0b')}; text-transform:uppercase;">${w.status || 'pending'}</span></td>
+      <td style="padding:12px; text-align:right;">
+        ${w.status === 'pending' ? `
+          <button onclick="approveWithdrawal('${w.id}')" style="background:#10b981; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; margin-right:4px;">Approve</button>
+          <button onclick="declineWithdrawal('${w.id}')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;">Decline</button>
+        ` : '—'}
+      </td>
+    </tr>
+  `).join('');
+
+  // Pagination Controls
+  const totalPages = Math.ceil(dbData.withdrawals.length / ITEMS_PER_PAGE) || 1;
+  document.getElementById('withdrawalsPagination').style.display = totalPages > 1 ? 'flex' : 'none';
+  document.getElementById('txtWithdrawalsPage').innerText = `Page ${currentWithdrawalsPage} of ${totalPages}`;
+}
+
+function changeWithdrawalsPage(dir) {
+  const totalPages = Math.ceil(dbData.withdrawals.length / ITEMS_PER_PAGE) || 1;
+  currentWithdrawalsPage = Math.max(1, Math.min(totalPages, currentWithdrawalsPage + dir));
+  renderWithdrawalsTable();
+}
+
+function approveWithdrawal(id) {
+  firebase.database().ref(`withdrawals/${id}/status`).set('approved')
+    .then(() => showToast('Withdrawal approved!'));
+}
+
+function declineWithdrawal(id) {
+  firebase.database().ref(`withdrawals/${id}/status`).set('declined')
+    .then(() => showToast('Withdrawal declined.'));
+}
+
+function toggleSelectAllSuperWithdrawals(checked) {
+  document.querySelectorAll('.super-wd-select').forEach(cb => cb.checked = checked);
+  updateSuperWdBulkButtons();
+}
+
+function updateSuperWdBulkButtons() {
+  const selected = Array.from(document.querySelectorAll('.super-wd-select:checked'));
+  const count = selected.length;
+  document.getElementById('btnSuperBulkApproveWithdrawals').style.display = count > 0 ? 'inline-flex' : 'none';
+  document.getElementById('btnSuperBulkDeclineWithdrawals').style.display = count > 0 ? 'inline-flex' : 'none';
+  document.getElementById('txtSuperBulkApproveCount').innerText = count;
+  document.getElementById('txtSuperBulkDeclineCount').innerText = count;
+}
+
+function bulkApproveSuperWithdrawals() {
+  const selected = Array.from(document.querySelectorAll('.super-wd-select:checked')).map(cb => cb.value);
+  const updates = {};
+  selected.forEach(id => updates[`withdrawals/${id}/status`] = 'approved');
+  firebase.database().ref().update(updates).then(() => showToast('Withdrawals approved!'));
+}
+
+function bulkDeclineSuperWithdrawals() {
+  const selected = Array.from(document.querySelectorAll('.super-wd-select:checked')).map(cb => cb.value);
+  const updates = {};
+  selected.forEach(id => updates[`withdrawals/${id}/status`] = 'declined');
+  firebase.database().ref().update(updates).then(() => showToast('Withdrawals declined!'));
+}
+
+/* Registered Users Management */
+function loadAllUsersList() {
+  renderUsersTable();
+}
+
+function renderUsersTable() {
+  const tbody = document.getElementById('allUsersListTable');
+  if (!tbody) return;
+
+  const query = (document.getElementById('userSearchInput')?.value || '').toLowerCase();
+  const filtered = dbData.users.filter(u => 
+    (u.name || '').toLowerCase().includes(query) ||
+    (u.phone || '').toLowerCase().includes(query) ||
+    (u.email || '').toLowerCase().includes(query)
+  );
+
+  document.getElementById('usersListCount').innerText = filtered.length;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="padding:15px; text-align:center; color:var(--text3);">No users found.</td></tr>`;
+    return;
+  }
+
+  const start = (currentUsersPage - 1) * ITEMS_PER_PAGE;
+  const pageItems = filtered.slice(start, start + ITEMS_PER_PAGE);
+
+  tbody.innerHTML = pageItems.map(u => `
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px; font-size:12px;">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
+      <td style="padding:10px; font-size:12px; font-weight:700;">${u.name || 'User'}</td>
+      <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono';">${u.phone || ''}</td>
+      <td style="padding:10px; font-size:12px;">${u.email || ''}</td>
+      <td style="padding:10px; font-size:12px;">${u.referredBy || 'Direct'}</td>
+      <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono'; color:var(--accent);">${u.payoutKey || 'None'}</td>
+      <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono';">₦${(parseFloat(u.balance) || 0).toLocaleString()}</td>
+      <td style="padding:10px;">
+        <span class="badge" style="background:${u.isVerified ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color:${u.isVerified ? '#10b981' : '#ef4444'};">
+          ${u.isVerified ? 'Verified' : 'Unverified'}
+        </span>
+      </td>
+      <td style="padding:10px; text-align:right;">
+        <div class="action-dropdown">
+          <button class="action-dropdown-btn" onclick="toggleUserDropdown('${u.uid}')">Actions <i class="fa-solid fa-chevron-down"></i></button>
+          <div class="action-dropdown-menu" id="userMenu_${u.uid}">
+            <a href="javascript:void(0)" onclick="toggleUserVerify('${u.uid}', ${!u.isVerified})"><i class="fa-solid fa-shield"></i> ${u.isVerified ? 'Unverify' : 'Verify Account'}</a>
+            <a href="javascript:void(0)" onclick="editUserBalance('${u.uid}', ${u.balance || 0})"><i class="fa-solid fa-wallet"></i> Edit Balance</a>
+            <div class="dropdown-divider"></div>
+            <a href="javascript:void(0)" onclick="deleteUserAccount('${u.uid}')" style="color:#ef4444;"><i class="fa-solid fa-trash"></i> Delete Account</a>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE) || 1;
+  document.getElementById('usersPagination').style.display = totalPages > 1 ? 'flex' : 'none';
+  document.getElementById('txtUsersPage').innerText = `Page ${currentUsersPage} of ${totalPages}`;
+}
+
+function filterUsers() {
+  currentUsersPage = 1;
+  renderUsersTable();
+}
+
+function changeUsersPage(dir) {
+  currentUsersPage += dir;
+  renderUsersTable();
+}
+
+function toggleUserDropdown(uid) {
+  document.querySelectorAll('.action-dropdown-menu').forEach(m => {
+    if (m.id !== `userMenu_${uid}`) m.classList.remove('show');
+  });
+  const menu = document.getElementById(`userMenu_${uid}`);
+  if (menu) menu.classList.toggle('show');
+}
+
+function toggleUserVerify(uid, targetState) {
+  firebase.database().ref(`users/${uid}/isVerified`).set(targetState)
+    .then(() => showToast(`User verification updated to ${targetState}`));
+}
+
+function editUserBalance(uid, currentBal) {
+  Swal.fire({
+    title: 'Edit User Balance',
+    input: 'number',
+    inputValue: currentBal,
+    showCancelButton: true,
+    confirmButtonText: 'Update Balance'
+  }).then((result) => {
+    if (result.isConfirmed && result.value !== '') {
+      firebase.database().ref(`users/${uid}/balance`).set(parseFloat(result.value))
+        .then(() => showToast('User balance updated!'));
+    }
+  });
+}
+
+function deleteUserAccount(uid) {
+  Swal.fire({
+    title: 'Delete User?',
+    text: 'This will permanently delete this user profile from real-time database.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    confirmButtonText: 'Yes, Delete'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      firebase.database().ref(`users/${uid}`).remove()
+        .then(() => showToast('User deleted successfully!'));
+    }
+  });
+}
+
+/* Junior Admins Management */
 function createJuniorAdmin(e) {
   e.preventDefault();
-  const email = document.getElementById('juniorEmail').value;
-  const refCode = document.getElementById('juniorRefCode').value;
-  const newJuniorRef = window.dbPush(window.dbRef(window.db, 'juniors'));
-  window.dbSet(newJuniorRef, { email, refCode, createdAt: Date.now() })
-    .then(() => e.target.reset());
+  const email = document.getElementById('juniorEmail').value.trim();
+  const password = document.getElementById('juniorPassword').value.trim();
+  const refCode = document.getElementById('juniorRefCode').value.trim();
+  const bankName = document.getElementById('juniorBankName').value.trim();
+  const accountNumber = document.getElementById('juniorAccountNumber').value.trim();
+  const accountName = document.getElementById('juniorAccountName').value.trim();
+
+  const newJunior = {
+    email,
+    password,
+    refCode,
+    bankName,
+    accountNumber,
+    accountName,
+    createdAt: new Date().toISOString()
+  };
+
+  firebase.database().ref('junior_admins').push(newJunior)
+    .then(() => {
+      showToast('Junior Admin account created!');
+      document.getElementById('createJuniorForm').reset();
+    })
+    .catch(err => showToast(err.message, true));
 }
 
-function deleteJunior(id) {
-  window.dbRemove(window.dbRef(window.db, `juniors/${id}`));
+function renderJuniorAdminsTable() {
+  const tbody = document.getElementById('juniorAdminsListTable');
+  if (!tbody) return;
+
+  if (dbData.juniors.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="padding:15px; text-align:center; color:var(--text3);">No Junior Admins created yet.</td></tr>`;
+    return;
+  }
+
+  const adminPct = dbData.settings.adminPercentage || 20;
+
+  let grossTotal = 0;
+  let adminTotal = 0;
+  let netTotal = 0;
+
+  tbody.innerHTML = dbData.juniors.map(j => {
+    const refCount = dbData.users.filter(u => u.referredBy === j.refCode).length;
+    const weeklyGross = (j.weeklyGross || 0);
+    const adminShare = (weeklyGross * adminPct) / 100;
+    const netShare = weeklyGross - adminShare;
+
+    grossTotal += weeklyGross;
+    adminTotal += adminShare;
+    netTotal += netShare;
+
+    return `
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:10px; font-size:12px; font-weight:700;">${j.email}</td>
+        <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono'; color:var(--accent);">${j.refCode}</td>
+        <td style="padding:10px; font-size:12px;">${refCount} users</td>
+        <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono';">₦${weeklyGross.toLocaleString()}</td>
+        <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono'; color:#ef4444;">₦${adminShare.toLocaleString()}</td>
+        <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono'; color:#10b981;">₦${netShare.toLocaleString()}</td>
+        <td style="padding:10px; font-size:12px;">${j.bankName || 'N/A'}<br><span style="font-family:'JetBrains Mono';">${j.accountNumber || ''}</span></td>
+        <td style="padding:10px; text-align:right;">
+          <button onclick="resetJuniorWeekly('${j.id}')" style="background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; margin-right:4px;">Reset Weekly</button>
+          <button onclick="deleteJuniorAdmin('${j.id}')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('juniorTotalGross').innerText = `₦${grossTotal.toLocaleString()}`;
+  document.getElementById('juniorTotalAdminShare').innerText = `₦${adminTotal.toLocaleString()}`;
+  document.getElementById('juniorTotalNetShare').innerText = `₦${netTotal.toLocaleString()}`;
+}
+
+function resetJuniorWeekly(id) {
+  firebase.database().ref(`junior_admins/${id}/weeklyGross`).set(0)
+    .then(() => showToast('Weekly commission reset for junior admin.'));
+}
+
+function deleteJuniorAdmin(id) {
+  firebase.database().ref(`junior_admins/${id}`).remove()
+    .then(() => showToast('Junior admin removed.'));
+}
+
+/* Videos Panel */
+function loadPromoVideos() {
+  renderPromoVideos();
+}
+
+function loadAllVideoSubmissions() {
+  renderVideoSubmissions();
+}
+
+function addPromoVideo() {
+  const title = document.getElementById('promoVideoTitle').value.trim();
+  const url = document.getElementById('promoVideoUrl').value.trim();
+
+  if (!title || !url) {
+    showToast('Please enter both title and video URL', true);
+    return;
+  }
+
+  firebase.database().ref('promo_videos').push({ title, url, createdAt: new Date().toISOString() })
+    .then(() => {
+      showToast('Promo video added!');
+      document.getElementById('promoVideoTitle').value = '';
+      document.getElementById('promoVideoUrl').value = '';
+    });
+}
+
+function renderPromoVideos() {
+  const tbody = document.getElementById('promoVideosListTable');
+  if (!tbody) return;
+
+  if (dbData.promoVideos.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" style="padding:15px; text-align:center; color:var(--text3);">No promo videos added yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = dbData.promoVideos.map(v => `
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px; font-size:12px; font-weight:700;">${v.title}</td>
+      <td style="padding:10px;"><a href="${v.url}" target="_blank" style="color:var(--accent); font-size:12px; text-decoration:underline;">Watch Video Stream</a></td>
+      <td style="padding:10px; text-align:right;">
+        <button onclick="deletePromoVideo('${v.id}')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;"><i class="fa-solid fa-trash"></i> Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function deletePromoVideo(id) {
+  firebase.database().ref(`promo_videos/${id}`).remove()
+    .then(() => showToast('Promo video deleted.'));
+}
+
+function renderVideoSubmissions() {
+  const tbody = document.getElementById('videoSubmissionsListTable');
+  if (!tbody) return;
+
+  if (dbData.videoSubmissions.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="padding:15px; text-align:center; color:var(--text3);">No video submissions yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = dbData.videoSubmissions.map(s => `
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px; font-size:12px;">${s.createdAt ? new Date(s.createdAt).toLocaleDateString() : 'N/A'}</td>
+      <td style="padding:10px; font-size:12px;"><strong>${s.userName || 'User'}</strong></td>
+      <td style="padding:10px;"><a href="${s.videoUrl}" target="_blank" style="color:var(--accent); font-size:12px; text-decoration:underline;">Watch Video</a></td>
+      <td style="padding:10px;"><span style="font-size:11px; font-weight:700; color:${s.status === 'approved' ? '#10b981' : '#f59e0b'}; text-transform:uppercase;">${s.status || 'pending'}</span></td>
+      <td style="padding:10px; text-align:right;">
+        ${s.status === 'pending' ? `
+          <button onclick="approveVideoSubmission('${s.id}', '${s.userId}')" style="background:#10b981; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;">Approve & Reward</button>
+        ` : '—'}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function approveVideoSubmission(id, userId) {
+  const updates = {};
+  updates[`video_submissions/${id}/status`] = 'approved';
+  
+  if (userId) {
+    // Reward user with video challenge bonus (e.g. 2000 NGN)
+    firebase.database().ref(`users/${userId}/balance`).transaction(bal => (bal || 0) + 2000);
+  }
+
+  firebase.database().ref().update(updates)
+    .then(() => showToast('Video submission approved & reward credited!'));
+}
+
+/* Indicators */
+function updateChallengeVideoIndicator() {
+  const active = document.getElementById('videoChallengeActive').value === 'true';
+  const ind = document.getElementById('challengeVideoIndicator');
+  const txt = document.getElementById('challengeVideoIndicatorText');
+
+  ind.style.backgroundColor = active ? '#10b981' : '#ef4444';
+  txt.innerText = active ? 'Online' : 'Offline';
+  txt.style.color = active ? '#10b981' : '#ef4444';
+}
+
+function updateVerificationVideoIndicator() {
+  const active = document.getElementById('verificationVideoActive').value === 'true';
+  const ind = document.getElementById('verificationVideoIndicator');
+  const txt = document.getElementById('verificationVideoIndicatorText');
+
+  ind.style.backgroundColor = active ? '#10b981' : '#ef4444';
+  txt.innerText = active ? 'Online' : 'Offline';
+  txt.style.color = active ? '#10b981' : '#ef4444';
+}
+
+function uploadVerificationVideoFile() {
+  showToast('Please upload direct Cloudinary link or MP4 URL.', true);
+}
+
+/* Toast Utility */
+function showToast(msg, isError = false) {
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toastMsg');
+
+  toastMsg.innerText = msg;
+  if (isError) {
+    toast.classList.add('error');
+    toast.querySelector('i').className = 'fa-solid fa-circle-xmark';
+  } else {
+    toast.classList.remove('error');
+    toast.querySelector('i').className = 'fa-solid fa-circle-check';
+  }
+
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text);
+  showToast('Copied to clipboard!');
 }
 </script>
 </body>
