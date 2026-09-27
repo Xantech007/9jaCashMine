@@ -593,7 +593,7 @@ function verifyBankLink() { window.location.href = "verify.html"; }
 
 function initReferrals() {
   const code = userData ? (userData.referralCode || userData.phone || "9JACASH") : "9JACASH";
-  const baseUrl = window.location.origin + window.location.pathname.replace("home.html", "") + "register.html?ref=" + code;
+  const baseUrl = window.location.origin + window.location.pathname.replace"register.html?ref=" + code;
 
   const input = document.getElementById("referralLinkInput");
   if (input) input.value = baseUrl;
