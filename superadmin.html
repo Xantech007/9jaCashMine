@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="firebase-init.js"></script>
+<script src="firebase.js"></script>
 <style>
 :root{
   --bg:#070b14;
@@ -1319,98 +1319,18 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
         <thead>
           <tr style="border-bottom: 2px solid var(--border);">
             <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Email</th>
-<!-- CONTINUATION OF superadmin.html FROM JUNIOR ADMINS TAB -->
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Ref Code</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Referred Users</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Weekly Gross</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Admin Share (<span id="adminSharePercentLabel">20%</span>)</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Junior Net</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Referral Code</th>
             <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Bank Details</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="juniorAdminsListTable">
-          <tr>
-            <td colspan="8" style="padding: 15px; text-align: center; color: var(--text3);">Loading Junior Admins...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- VIDEOS TAB -->
-<div class="tab-panel" id="tab-videos">
-  <div class="content-header">
-    <div class="header-left">
-      <div>
-        <div class="header-title">Videos Panel</div>
-        <div class="header-sub">Manage community promotional videos and review user testifiers</div>
-      </div>
-    </div>
-    <div class="flex items-center gap-3">
-      <button onclick="loadAllVideoSubmissions(); loadPromoVideos();" class="btn btn-secondary" style="border:1px solid var(--border); padding: 8px 16px; border-radius:10px; background:var(--surface); color:var(--text); cursor:pointer;"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
-    </div>
-  </div>
-
-  <!-- Section 1: Promotional Videos Management -->
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-icon purple" style="background:rgba(139,92,246,0.1); color:#8b5cf6;"><i class="fa-solid fa-photo-film"></i></div>
-      <div><div class="panel-title">Community Promotional Videos</div><div class="panel-sub">Upload MP4 video streams displayed on user dashboards</div></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Video Title / Caption</label>
-        <input type="text" id="promoVideoTitle" class="form-input" placeholder="e.g. How 9jaCash Pays Instantly">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Direct Video MP4 Link / Cloudinary URL</label>
-        <input type="url" id="promoVideoUrl" class="form-input" placeholder="https://res.cloudinary.com/...">
-      </div>
-    </div>
-    <button onclick="addPromoVideo()" class="save-btn" style="margin-bottom:20px; background:linear-gradient(135deg,#8b5cf6,#3b82f6);">
-      <i class="fa-solid fa-plus"></i> Add Promotional Video
-    </button>
-
-    <div class="table-wrap overflow-x-auto">
-      <table class="w-full text-left" style="border-collapse: collapse; width:100%;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Title</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Video Preview</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="promoVideosListTable">
-          <tr>
-            <td colspan="3" style="padding: 15px; text-align: center; color: var(--text3);">No promo videos added yet.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Section 2: User Testimonial Challenge Submissions -->
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-icon green" style="background:rgba(16,185,129,0.1); color:#10b981;"><i class="fa-solid fa-video"></i></div>
-      <div><div class="panel-title">User Video Challenge Submissions</div><div class="panel-sub">Approve user video submissions to grant them cash rewards</div></div>
-    </div>
-    <div class="table-wrap overflow-x-auto">
-      <table class="w-full text-left" style="border-collapse: collapse; width:100%;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Submitted</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">User</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Video Stream</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Weekly Gross</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Admin Cut (20%)</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Junior Share (80%)</th>
             <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Status</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Actions</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Action</th>
           </tr>
         </thead>
-        <tbody id="videoSubmissionsListTable">
+        <tbody id="juniorAdminListTable">
           <tr>
-            <td colspan="5" style="padding: 15px; text-align: center; color: var(--text3);">No video submissions yet.</td>
+            <td colspan="8" style="padding: 15px; text-align: center; color: var(--text3);">Loading junior admins...</td>
           </tr>
         </tbody>
       </table>
@@ -1418,1166 +1338,2947 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
   </div>
 </div>
 
-</div> <!-- /.content -->
-
-<!-- Global Save Floating Action -->
-<div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
-  <button class="save-btn" style="box-shadow: 0 10px 25px rgba(0,212,170,0.4); border-radius: 50px; padding: 14px 28px;" onclick="saveAllSettings()">
-    <i class="fa-solid fa-floppy-disk"></i> Save Global Settings
-  </button>
+<!-- Videos Panel -->
+<div class="tab-panel" id="tab-videos">
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon purple" style="background:rgba(139,92,246,0.1); color:var(--accent);"><i class="fa-solid fa-video"></i></div>
+      <div>
+        <div class="panel-title">Video Testimony Challenge</div>
+        <div class="panel-sub">Review user testimonial videos and approve rewards</div>
+      </div>
+    </div>
+    <div class="table-wrap overflow-x-auto">
+      <table class="w-full text-left" style="border-collapse: collapse; width:100%;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">User Name</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Phone Number</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Video URL Link</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Submitted Date</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Status</th>
+            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="videoSubmissionListTable">
+          <tr>
+            <td colspan="6" style="padding: 15px; text-align: center; color: var(--text-muted);">No video submissions yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Onboarding Scroll Videos (matching Image 1 / TikTok scroll request) -->
+  <div class="panel" style="margin-top: 24px;">
+    <div class="panel-header">
+      <div class="panel-icon blue" style="background:rgba(59,130,246,0.1); color:#3b82f6;"><i class="fa-solid fa-film"></i></div>
+      <div>
+        <div class="panel-title">Onboarding &amp; Login Scroll Videos</div>
+        <div class="panel-sub">Manage the 4 TikTok-style scroll videos on Login/Start screens (max 10 minutes)</div>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 12px 0;" id="promoVideosGrid">
+      <!-- Generated dynamically by loadPromoVideos() -->
+    </div>
+  </div>
 </div>
 
-</div> <!-- /.app -->
+<!-- SAVE ALL -->
+<button class="save-btn" id="saveBtn" onclick="saveAll()">
+  <i class="fa-solid fa-cloud-arrow-up"></i>
+  <span id="saveText">Save All Changes</span>
+</button>
+
+<!-- PREVIEW -->
+<div class="preview-box">
+  <div class="preview-header"><i class="fa-solid fa-eye"></i> Live Preview</div>
+  <div class="preview-row"><span class="preview-key">Withdrawal</span><span class="preview-val" id="previewWithdrawal" style="color:var(--danger);">Pending</span></div>
+  <div class="preview-row"><span class="preview-key">Payment</span><span class="preview-val" id="previewPayment" style="color:var(--danger);">Failed</span></div>
+  <div class="preview-row"><span class="preview-key">Payout Key</span><span class="preview-val" id="previewPayoutKey" style="color:var(--accent);">Not set</span></div>
+  <div class="preview-row"><span class="preview-key">Main Amt</span><span class="preview-val" id="previewMainAmt" style="color:var(--accent);">₦—</span></div>
+  <div class="preview-row"><span class="preview-key">Fee Amt</span><span class="preview-val" id="previewFeeAmt" style="color:var(--warning);">₦—</span></div>
+  <div class="preview-row"><span class="preview-key">Tasks</span><span class="preview-val" id="previewTasks" style="color:var(--purple);">0</span></div>
+</div>
+
+</div><!-- end content -->
+</div><!-- end app -->
 
 <!-- TOAST -->
-<div class="toast" id="toast">
-  <i class="fa-solid fa-circle-check"></i>
-  <span id="toastMsg">Action completed successfully</span>
-</div>
+<div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Saved!</span></div>
 
-<script src="firebase.js"></script>
+
+
 <script>
-/* ─────────────────────────────────────────────────────────
-   SUPERADMIN REAL-TIME DATABASE CONTROLLER
-───────────────────────────────────────────────────────── */
-
-let dbData = {
-  settings: {},
-  tasks: [],
-  keysHistory: [],
-  receipts: [],
-  withdrawals: [],
-  users: [],
-  juniors: [],
-  promoVideos: [],
-  videoSubmissions: []
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
+const firebaseConfig={apiKey: "AIzaSyAojnW_iRXCk4mR9ihRz8GwQI4aPWIXepA",
+  authDomain: "jacash-51c97.firebaseapp.com",
+  databaseURL: "https://jacash-51c97-default-rtdb.firebaseio.com",
+  projectId: "jacash-51c97",
+  storageBucket: "jacash-51c97.firebasestorage.app",
+  messagingSenderId: "662540432833",
+  appId: "1:662540432833:web:244b7af8ea02ab56b76b40",
+  measurementId: "G-CEN430143Z"
 };
 
-let currentTab = 'overview';
-let activeSelectedPlan = null;
-let currentWithdrawalsPage = 1;
-let currentUsersPage = 1;
-const ITEMS_PER_PAGE = 10;
 
-// On Window Load
-window.addEventListener('DOMContentLoaded', () => {
-  initRealtimeData();
-});
 
-function initRealtimeData() {
-  if (typeof firebase === 'undefined' || !firebase.apps.length) {
-    showToast('Firebase JS file not loaded properly!', true);
-    return;
+let auth = (window._9jaCash && window._9jaCash.auth) || window.auth;
+let db = (window._9jaCash && window._9jaCash.db) || window.db;
+
+try {
+  if (db && typeof db.settings === 'function') {
+    db.settings({ experimentalForceLongPolling: true });
   }
+} catch(e) {}
 
-  const db = firebase.database();
+window._9jaCash = window._9jaCash || {};
+window._9jaCash.db = db;
+window._9jaCash.auth = auth;
 
-  // Listen to Settings
-  db.ref('settings').on('value', (snapshot) => {
-    dbData.settings = snapshot.val() || {};
-    syncSettingsToUI();
-    updateDashboardStats();
-  });
+let wdSuccess=false;
+let pmSuccess=false;
+let payoutKey='';
+let keyHistory=[];
+let tasks=[];
+let selectedPlanData=null;
+let generatedKey='';
+const MAX_TASKS=100;
+const CATS=['tiktok','facebook','other'];
+const CAT_LABELS={tiktok:'TikTok',facebook:'Facebook',other:'Other'};
+const CAT_ICONS={tiktok:'fa-brands fa-tiktok',facebook:'fa-brands fa-facebook',other:'fa-solid fa-globe'};
+const DEFAULT_TASKS=[
+  {id:'t1',name:'Follow TikTok',cat:'tiktok',link:'',amt:500,hot:false},
+  {id:'t2',name:'Like TikTok',cat:'tiktok',link:'',amt:500,hot:false},
+  {id:'t3',name:'Share TikTok',cat:'tiktok',link:'',amt:500,hot:false},
+  {id:'t4',name:'Like Facebook',cat:'facebook',link:'',amt:500,hot:false},
+  {id:'t5',name:'Share Facebook',cat:'facebook',link:'',amt:500,hot:false},
+  {id:'t6',name:'Comment FB',cat:'facebook',link:'',amt:500,hot:false},
+  {id:'t7',name:'Join FB Group',cat:'facebook',link:'',amt:500,hot:false},
+  {id:'t8',name:'Watch YouTube',cat:'other',link:'',amt:500,hot:false},
+  {id:'t9',name:'Subscribe',cat:'other',link:'',amt:500,hot:false},
+  {id:'t10',name:'Download App',cat:'other',link:'',amt:500,hot:false}
+];
 
-  // Listen to Tasks
-  db.ref('tasks').on('value', (snapshot) => {
-    const val = snapshot.val();
-    dbData.tasks = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
-    renderTasks();
-    updateDashboardStats();
-  });
-
-  // Listen to Keys History
-  db.ref('keys_history').on('value', (snapshot) => {
-    const val = snapshot.val();
-    dbData.keysHistory = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
-    renderKeysHistory();
-    updateDashboardStats();
-  });
-
-  // Listen to Receipts
-  db.ref('receipts').on('value', (snapshot) => {
-    const val = snapshot.val();
-    dbData.receipts = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
-    renderReceipts();
-    updateDashboardStats();
-  });
-
-  // Listen to Withdrawals
-  db.ref('withdrawals').on('value', (snapshot) => {
-    const val = snapshot.val();
-    dbData.withdrawals = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
-    renderWithdrawalsTable();
-    updateDashboardStats();
-  });
-
-  // Listen to Users
-  db.ref('users').on('value', (snapshot) => {
-    const val = snapshot.val();
-    dbData.users = val ? Object.entries(val).map(([uid, item]) => ({ uid, ...item })) : [];
-    renderUsersTable();
-    updateDashboardStats();
-  });
-
-  // Listen to Junior Admins
-  db.ref('junior_admins').on('value', (snapshot) => {
-    const val = snapshot.val();
-    dbData.juniors = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
-    renderJuniorAdminsTable();
-  });
-
-  // Listen to Promo Videos
-  db.ref('promo_videos').on('value', (snapshot) => {
-    const val = snapshot.val();
-    dbData.promoVideos = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
-    renderPromoVideos();
-  });
-
-  // Listen to Video Challenge Submissions
-  db.ref('video_submissions').on('value', (snapshot) => {
-    const val = snapshot.val();
-    dbData.videoSubmissions = val ? Object.entries(val).map(([id, item]) => ({ id, ...item })) : [];
-    renderVideoSubmissions();
+function initAuth(){
+  auth.onAuthStateChanged(user=>{
+    if(user){
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('loadingScreen').classList.add('active');
+      loadData();
+    }else{
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('mainApp').classList.add('hidden');
+      document.getElementById('loadingScreen').classList.remove('active');
+    }
   });
 }
 
-/* Authentication */
-function doLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value.trim();
-  const errorEl = document.getElementById('loginError');
-  const errorTxt = document.getElementById('loginErrorText');
-
-  if (!email || !password) {
-    errorTxt.innerText = 'Please enter both email and password';
-    errorEl.classList.add('show');
+function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPassword').value;
+  const errDiv=document.getElementById('loginError');
+  const errText=document.getElementById('loginErrorText');
+  const btn=document.getElementById('loginBtn');
+  
+  if(!email||!pass){
+    errText.textContent='Enter email and password';
+    errDiv.classList.add('show');
     return;
   }
-
-  firebase.auth().signInWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('mainApp').classList.remove('hidden');
-      errorEl.classList.remove('show');
-      showToast('Logged in successfully!');
-    })
-    .catch((error) => {
-      errorTxt.innerText = error.message;
-      errorEl.classList.add('show');
+  
+  btn.disabled=true;
+  btn.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i> Accessing...';
+  errDiv.classList.remove('show');
+  
+  auth.signInWithEmailAndPassword(email,pass)
+    .then(()=>{errDiv.classList.remove('show');})
+    .catch(e=>{
+      let msg=e.message;
+      if(msg.includes('user-not-found'))msg='No account found';
+      else if(msg.includes('wrong-password'))msg='Wrong password';
+      else if(msg.includes('invalid-email'))msg='Invalid email';
+      else if(msg.includes('invalid-credential'))msg='Invalid credentials';
+      else msg=msg.replace('Firebase: ','').replace(/\(.+\)/,'');
+      errText.textContent=msg;
+      errDiv.classList.add('show');
+      btn.disabled=false;
+      btn.innerHTML='<i class="fa-solid fa-arrow-right-to-bracket"></i> Access Control';
     });
 }
 
-function doLogout() {
-  firebase.auth().signOut().then(() => {
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('mainApp').classList.add('hidden');
-    showToast('Logged out successfully');
+function doLogout(){auth.signOut().then(()=>location.reload());}
+
+['loginEmail','loginPassword'].forEach(id=>{
+  document.getElementById(id).addEventListener('keypress',e=>{
+    if(e.key==='Enter')doLogin();
+  });
+});
+
+// ========== TABS ==========
+function switchTab(tab,el){
+  document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if (tab === 'withdrawals') loadSuperWithdrawals();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ========== TOGGLES ==========
+function toggleWithdrawal(){
+  wdSuccess=!wdSuccess;
+  const t=document.getElementById('wdToggle');
+  const s=document.getElementById('wdState');
+  const r=document.getElementById('wdRedirect');
+  const p=document.getElementById('previewWithdrawal');
+  const stat=document.getElementById('statStatus');
+  if(wdSuccess){
+    t.classList.add('on');s.textContent='ON';s.style.background='rgba(0,212,170,0.1)';s.style.color='var(--accent)';
+    r.textContent='success.html';r.style.color='var(--accent)';
+    p.textContent='Success';p.style.color='var(--accent)';
+    stat.textContent='ON';stat.style.color='var(--accent)';
+  }else{
+    t.classList.remove('on');s.textContent='OFF';s.style.background='rgba(255,71,87,0.1)';s.style.color='var(--danger)';
+    r.textContent='pending.html';r.style.color='var(--danger)';
+    p.textContent='Pending';p.style.color='var(--danger)';
+    stat.textContent='OFF';stat.style.color='var(--danger)';
+  }
+  showToast(wdSuccess?'Withdrawal success ON':'Withdrawal pending ON');
+}
+
+function togglePayment(){
+  pmSuccess=!pmSuccess;
+  const t=document.getElementById('pmToggle');
+  const s=document.getElementById('pmState');
+  const r=document.getElementById('pmRedirect');
+  const p=document.getElementById('previewPayment');
+  if(pmSuccess){
+    t.classList.add('on');s.textContent='ON';s.style.background='rgba(0,212,170,0.1)';s.style.color='var(--accent)';
+    r.textContent='payment-success.html';r.style.color='var(--accent)';
+    p.textContent='Success';p.style.color='var(--accent)';
+  }else{
+    t.classList.remove('on');s.textContent='OFF';s.style.background='rgba(255,71,87,0.1)';s.style.color='var(--danger)';
+    r.textContent='payment-failed.html';r.style.color='var(--danger)';
+    p.textContent='Failed';p.style.color='var(--danger)';
+  }
+  showToast(pmSuccess?'Payment success ON':'Payment failed ON');
+}
+
+// ========== PAYOUT KEY ==========
+function selectPlan(name, price, limit) {
+  document.querySelectorAll('.plan-select-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('plan' + name).classList.add('selected');
+  
+  selectedPlanData = { name, price, limit };
+  document.getElementById('selectedPlanDisplay').textContent = name + ' Key';
+  document.getElementById('selectedPriceDisplay').textContent = '₦' + price.toLocaleString();
+  document.getElementById('selectedLimitDisplay').textContent = limit === 999999 ? 'Unlimited' : limit + '/day';
+  
+  showToast(name + ' Key selected — ready to generate');
+}
+
+function generatePayoutKeyForPlan() {
+  if (!selectedPlanData) {
+    showToast('Select a plan first!', 'error');
+    document.querySelectorAll('.plan-select-card').forEach(c => {
+      c.style.animation = 'shake 0.5s ease';
+      setTimeout(() => c.style.animation = '', 500);
+    });
+    return;
+  }
+  
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let key = '';
+  for (let i = 0; i < 8; i++) {
+    key += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  generatedKey = key;
+  
+  document.getElementById('generatedKeyBox').style.display = 'block';
+  document.getElementById('currentKeyBox').style.display = 'none';
+  document.getElementById('generatedKeyValue').textContent = key;
+  document.getElementById('generatedKeyLabel').textContent = 'Generated for ' + selectedPlanData.name + ' Key (₦' + selectedPlanData.price.toLocaleString() + ')';
+  
+  document.getElementById('payoutKeyInput').value = key;
+  
+  showToast('Key generated for ' + selectedPlanData.name + '!');
+}
+
+function generateRandomKey() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let key = '';
+  for (let i = 0; i < 8; i++) {
+    key += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  document.getElementById('payoutKeyInput').value = key;
+  showToast('Random key generated');
+}
+
+function saveGeneratedKey() {
+  const k = generatedKey || document.getElementById('payoutKeyInput').value.trim().toUpperCase();
+  if (!k || k.length < 4) {
+    showToast('Enter valid key (min 4 chars)', 'error');
+    return;
+  }
+  
+  if (payoutKey && payoutKey !== k && !keyHistory.includes(payoutKey)) {
+    keyHistory.unshift(payoutKey);
+    if (keyHistory.length > 10) keyHistory.pop();
+  }
+  
+  payoutKey = k;
+  if (!keyHistory.includes(k)) keyHistory.unshift(k);
+  if (keyHistory.length > 10) keyHistory.pop();
+  
+  document.getElementById('payoutKeyDisplay').textContent = k;
+  document.getElementById('previewPayoutKey').textContent = k;
+  document.getElementById('statKeys').textContent = keyHistory.length;
+  document.getElementById('keyBadge').textContent = keyHistory.length;
+  
+  document.getElementById('generatedKeyBox').style.display = 'none';
+  document.getElementById('currentKeyBox').style.display = 'block';
+  
+  showToast('Payout key saved! Click "Save All Changes" to store in Firebase.');
+  renderKeyHistory();
+}
+
+function renderKeyHistory(){
+  const el=document.getElementById('keyHistory');
+  if(keyHistory.length===0){
+    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No history yet</div>';
+    return;
+  }
+  el.innerHTML='';
+  keyHistory.forEach((k,i)=>{
+    const div=document.createElement('div');
+    div.className='history-item';
+    div.innerHTML='<span class="history-key">'+k+'</span><span class="history-date">'+(i===0?'Current':'#'+(i+1))+'</span>';
+    el.appendChild(div);
   });
 }
 
-/* Tab Navigation */
-function switchTab(tabId, el) {
-  currentTab = tabId;
-  document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+// ========== TASKS ==========
+function renderTasks(){
+  const el=document.getElementById('taskList');
+  el.innerHTML='';
+  tasks.forEach((t,i)=>{
+    const div=document.createElement('div');
+    div.className='task-card'+(t.hot?' hot':'');
+    div.innerHTML='<div class="task-top"><div style="display:flex;align-items:center;gap:10px;"><div class="task-num">'+(i+1)+'</div><input type="text" class="form-input" style="padding:8px 12px;font-size:13px;min-width:160px;" value="'+t.name+'" onchange="updateTask('+i+',\'name\',this.value)" placeholder="Task name"></div><div class="task-actions"><button class="task-btn-sm fire" onclick="toggleHot('+i+')" title="Hot"><i class="fa-solid fa-fire" style="color:'+(t.hot?'var(--warning)':'var(--text3)')+'"></i></button><button class="task-btn-sm" onclick="deleteTask('+i+')" title="Delete"><i class="fa-solid fa-trash"></i></button></div></div><div class="task-grid-inner"><div class="task-field"><label class="form-label">Category</label><select class="form-input" onchange="updateTask('+i+',\'cat\',this.value)">'+CATS.map(c=>'<option value="'+c+'"'+(t.cat===c?' selected':'')+'>'+CAT_LABELS[c]+'</option>').join('')+'</select></div><div class="task-field"><label class="form-label">Amount</label><input type="number" class="form-input" value="'+t.amt+'" onchange="updateTask('+i+',\'amt\',Number(this.value))" placeholder="500"></div><div class="task-field"><label class="form-label">Link</label><input type="url" class="form-input" value="'+t.link+'" onchange="updateTask('+i+',\'link\',this.value)" placeholder="https://..."></div></div><span class="task-tag tag-'+t.cat+'"><i class="'+CAT_ICONS[t.cat]+'"></i> '+CAT_LABELS[t.cat]+'</span>';
+    el.appendChild(div);
+  });
+  updateTaskBtn();
+  document.getElementById('previewTasks').textContent=tasks.length+' ('+tasks.filter(t=>t.hot).length+' hot)';
+  document.getElementById('statTasks').textContent=tasks.length;
+}
+
+function updateTask(i,f,v){tasks[i][f]=v;if(f==='cat'||f==='hot')renderTasks();}
+function toggleHot(i){tasks[i].hot=!tasks[i].hot;renderTasks();}
+function deleteTask(i){
+  if(tasks.length<=1){showToast('Need at least 1 task','error');return;}
+  Swal.fire({title:'Delete?',text:'Remove "'+tasks[i].name+'"?',icon:'warning',showCancelButton:true,confirmButtonColor:'#ff4757',cancelButtonColor:'#576574',confirmButtonText:'Delete',background:'#0f1623',color:'#c8d6e5'}).then(r=>{if(r.isConfirmed){tasks.splice(i,1);renderTasks();showToast('Deleted');}});
+}
+function addNewTask(){
+  if(tasks.length>=MAX_TASKS){showToast('Max '+MAX_TASKS,'error');return;}
+  tasks.push({id:'t'+Date.now(),name:'New Task',cat:CATS[Math.floor(Math.random()*3)],link:'',amt:500,hot:false});
+  renderTasks();showToast('Task added');
+}
+function updateTaskBtn(){
+  const btn=document.getElementById('addTaskBtn');
+  if(tasks.length>=MAX_TASKS){btn.style.opacity='0.5';btn.style.pointerEvents='none';btn.innerHTML='<i class="fa-solid fa-lock"></i> Max '+MAX_TASKS;}
+  else{btn.style.opacity='1';btn.style.pointerEvents='auto';btn.innerHTML='<i class="fa-solid fa-plus"></i> Add ('+tasks.length+'/'+MAX_TASKS+')';}
+}
+
+// ========== LOAD DATA (NO USERS) ==========
+async function loadData(){
+  try{
+    const [payDoc,feeDoc,taskDoc,wdDoc,pmDoc,keyDoc,redirDoc,videoChallengeDoc,adminPctDoc,referralBonusDoc,verificationVideoDoc]=await Promise.all([
+      db.collection('settings').doc('payment').get(),
+      db.collection('settings').doc('secondBilling').get(),
+      db.collection('settings').doc('tasks').get(),
+      db.collection('settings').doc('withdrawalStatus').get(),
+      db.collection('settings').doc('paymentStatus').get(),
+      db.collection('settings').doc('payoutKeys').get(),
+      db.collection('settings').doc('redirects').get(),
+      db.collection('settings').doc('videoChallenge').get(),
+      db.collection('settings').doc('admin_percentage').get().catch(() => ({ exists: false })),
+      db.collection('settings').doc('referral_bonus').get().catch(() => ({ exists: false })),
+      db.collection('settings').doc('verificationVideo').get().catch(() => ({ exists: false }))
+    ]);
+    
+    const pay=payDoc.exists?payDoc.data():{};
+    const fee=feeDoc.exists?feeDoc.data():{};
+    const taskData=taskDoc.exists?taskDoc.data():{};
+    const wdData=wdDoc.exists?wdDoc.data():{};
+    const pmData=pmDoc.exists?pmDoc.data():{};
+    const keyData=keyDoc.exists?keyDoc.data():{};
+    const redirData=redirDoc.exists?redirDoc.data():{};
+    const videoChallengeData=videoChallengeDoc.exists?videoChallengeDoc.data():{active:true};
+    const verificationVideoData=verificationVideoDoc.exists?verificationVideoDoc.data():{active:false, videoUrl:''};
+    const adminPct = adminPctDoc.exists ? (adminPctDoc.data().percentage || 20) : 20;
+    const refBonus = referralBonusDoc.exists ? (referralBonusDoc.data().amount || 10000) : 10000;
+    
+    const adminPercentageInput = document.getElementById('adminPercentageInput');
+    if (adminPercentageInput) adminPercentageInput.value = adminPct;
+    const referralBonusInput = document.getElementById('referralBonusInput');
+    if (referralBonusInput) referralBonusInput.value = refBonus;
+    
+    document.getElementById('telegramLink').value=pay.telegramLink||'';
+    document.getElementById('telegramSupportLink').value=pay.telegramSupportLink||'';
+    document.getElementById('whatsappLink').value=pay.whatsappLink||'';
+    document.getElementById('telegramSupportLinkActive').checked = pay.telegramSupportLinkActive !== false;
+    document.getElementById('whatsappLinkActive').checked = pay.whatsappLinkActive !== false;
+    document.getElementById('accNumber').value=pay.accNumber||'';
+    document.getElementById('bankName').value=pay.bank||'';
+    document.getElementById('accName').value=pay.accName||'';
+    document.getElementById('amount').value=pay.amount||'';
+    document.getElementById('cryptoAddress').value=pay.cryptoAddress||'';
+    document.getElementById('cryptoNetwork').value=pay.cryptoNetwork||'';
+    document.getElementById('noticeText').value=pay.notice||'';
+    document.getElementById('feeAccNumber').value=fee.accNumber||'';
+    document.getElementById('feeBank').value=fee.bank||'';
+    document.getElementById('feeAccName').value=fee.accName||'';
+    document.getElementById('feeAmount').value=fee.amount||'12500';
+    document.getElementById('videoChallengeActive').value=videoChallengeData.active === false ? 'false' : 'true';
+    document.getElementById('cloudinaryCloudName').value=videoChallengeData.cloudinaryCloudName||'';
+    document.getElementById('cloudinaryUploadPreset').value=videoChallengeData.cloudinaryUploadPreset||'';
+    
+    document.getElementById('verificationVideoUrl').value=verificationVideoData.videoUrl||'';
+    document.getElementById('verificationVideoActive').value=verificationVideoData.active === true ? 'true' : 'false';
+    updateVerificationVideoIndicator();
+    updateChallengeVideoIndicator();
+    
+    wdSuccess=wdData.success===true;updateWdToggleUI();
+    pmSuccess=pmData.success===true;updatePmToggleUI();
+    
+    payoutKey=keyData.currentKey||'';
+    keyHistory=keyData.history||[];
+    document.getElementById('payoutKeyDisplay').textContent=payoutKey||'NOT SET';
+    document.getElementById('payoutKeyInput').value=payoutKey;
+    document.getElementById('previewPayoutKey').textContent=payoutKey||'Not set';
+    document.getElementById('statKeys').textContent=keyHistory.length;
+    document.getElementById('keyBadge').textContent=keyHistory.length;
+    renderKeyHistory();
+    
+    if(redirData.successPrimaryRedirect)document.getElementById('successPrimary').value=redirData.successPrimaryRedirect;
+    if(redirData.successSecondaryRedirect)document.getElementById('successSecondary').value=redirData.successSecondaryRedirect;
+    if(redirData.successDelay)document.getElementById('successDelay').value=redirData.successDelay;
+    if(redirData.failedRetryRedirect)document.getElementById('failedRetry').value=redirData.failedRetryRedirect;
+    if(redirData.failedDashboardRedirect)document.getElementById('failedDashboard').value=redirData.failedDashboardRedirect;
+    if(redirData.failedSupportHandle)document.getElementById('supportHandle').value=redirData.failedSupportHandle;
+    
+    tasks=taskData.tasks||DEFAULT_TASKS;renderTasks();
+    
+    // Restore timeframe selection
+    const savedTimeframe = localStorage.getItem('admin_deposit_timeframe') || 'today';
+    const timeframeSelect = document.getElementById('depositTimeframeSelect');
+    if (timeframeSelect) timeframeSelect.value = savedTimeframe;
+    
+    // Reveal admin dashboard UI immediately (< 50ms)
+    document.getElementById('loadingScreen').classList.remove('active');
+    document.getElementById('mainApp').classList.remove('hidden');
+    
+    // Fetch live SQL statistics & preview first
+    loadSuperStats();
+    updatePreview();
+    
+    // Stagger secondary table loads in background tasks so UI remains smooth and instant
+    setTimeout(loadJuniorAdminsList, 50);
+    setTimeout(loadSuperWithdrawals, 100);
+    setTimeout(loadAllReceipts, 150);
+    setTimeout(loadAllVideoSubmissions, 200);
+  }catch(err){
+    console.error('Load error:',err);
+    document.getElementById('loadingScreen').classList.remove('active');
+    document.getElementById('mainApp').classList.remove('hidden');
+    showToast('Failed to load: '+err.message,'error');
+  }
+}
+
+function updateVerificationVideoIndicator() {
+  const active = document.getElementById('verificationVideoActive').value === 'true';
+  const dot = document.getElementById('verificationVideoIndicator');
+  const txt = document.getElementById('verificationVideoIndicatorText');
+  if (dot && txt) {
+    dot.style.backgroundColor = active ? '#10b981' : '#9ca3af';
+    txt.textContent = active ? 'Online' : 'Offline';
+    txt.style.color = active ? '#10b981' : 'var(--text3)';
+  }
+}
+
+function uploadVerificationVideoFile() {
+  const fileInput = document.getElementById('verificationVideoFile');
+  const btn = document.getElementById('verificationVideoUploadBtn');
+  const progressEl = document.getElementById('verificationVideoUploadProgress');
+  const file = fileInput.files[0];
+
+  if (!file) {
+    showToast('Please select a video file first', 'error');
+    return;
+  }
+  if (file.size > 500 * 1024 * 1024) {
+    showToast('Video file is too large! Max 500MB.', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+  progressEl.style.display = 'block';
+  progressEl.style.color = 'var(--accent)';
+  progressEl.textContent = 'Initializing upload...';
+
+  fetch(API_URL + '/api/cloudinary-signature?folder=verification_videos')
+    .then(res => res.json())
+    .then(sigData => {
+      if (!sigData.status) throw new Error(sigData.error || 'Failed to sign upload.');
+      const { signature, timestamp, apiKey, cloudName, folder } = sigData;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', folder);
+      formData.append('timestamp', timestamp);
+      formData.append('api_key', apiKey);
+      formData.append('signature', signature);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, true);
+      xhr.upload.onprogress = function(evt) {
+        if (evt.lengthComputable) {
+          const pct = Math.round((evt.loaded / evt.total) * 100);
+          progressEl.textContent = `Uploading to cloud... ${pct}%`;
+        }
+      };
+      xhr.onload = function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-upload"></i> Upload Video to Cloud';
+        if (xhr.status === 200) {
+          const result = JSON.parse(xhr.responseText);
+          const url = result.secure_url;
+          // Set URL in field
+          document.getElementById('verificationVideoUrl').value = url;
+          progressEl.textContent = 'Upload complete! Saving to settings...';
+          progressEl.style.color = '#10b981';
+
+          // Auto-save immediately to backend
+          const isActive = document.getElementById('verificationVideoActive').value === 'true';
+          fetch(API_URL + '/api/settings/verificationVideo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ value: { active: isActive, videoUrl: url } })
+          })
+          .then(r => r.json())
+          .then(saveData => {
+            if (saveData.status !== false) {
+              progressEl.textContent = '✅ Upload complete & saved! Users with payout keys will see this video.';
+              updateVerificationVideoIndicator();
+              showToast('Verification video uploaded & saved!', 'success');
+            } else {
+              progressEl.textContent = '⚠️ Uploaded but save failed. Click Save All Settings to apply.';
+              showToast('Uploaded but not saved. Click Save All Settings.', 'error');
+            }
+          })
+          .catch(() => {
+            progressEl.textContent = '⚠️ Uploaded. Click Save All Settings to apply.';
+            showToast('Uploaded! Click Save All Settings to apply.', 'success');
+          });
+        } else {
+          progressEl.textContent = 'Upload failed. Please try again.';
+          progressEl.style.color = '#ef4444';
+          showToast('Upload failed', 'error');
+        }
+      };
+      xhr.onerror = function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-upload"></i> Upload Video to Cloud';
+        progressEl.textContent = 'Network error during upload.';
+        progressEl.style.color = '#ef4444';
+        showToast('Upload failed', 'error');
+      };
+      xhr.send(formData);
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-upload"></i> Upload Video to Cloud';
+      progressEl.textContent = 'Error: ' + err.message;
+      progressEl.style.color = '#ef4444';
+      showToast(err.message, 'error');
+    });
+}
+
+function updateChallengeVideoIndicator() {
+  const active = document.getElementById('videoChallengeActive').value === 'true';
+  const dot = document.getElementById('challengeVideoIndicator');
+  const txt = document.getElementById('challengeVideoIndicatorText');
+  if (dot && txt) {
+    dot.style.backgroundColor = active ? '#10b981' : '#9ca3af';
+    txt.textContent = active ? 'Online' : 'Offline';
+    txt.style.color = active ? '#10b981' : 'var(--text3)';
+  }
+}
+
+function updateWdToggleUI(){
+  const t=document.getElementById('wdToggle');
+  const s=document.getElementById('wdState');
+  const r=document.getElementById('wdRedirect');
+  const p=document.getElementById('previewWithdrawal');
+  const stat=document.getElementById('statStatus');
+  if(wdSuccess){
+    t.classList.add('on');s.textContent='ON';s.style.background='rgba(0,212,170,0.1)';s.style.color='var(--accent)';
+    r.textContent='success.html';r.style.color='var(--accent)';
+    p.textContent='Success';p.style.color='var(--accent)';
+    stat.textContent='ON';stat.style.color='var(--accent)';
+  }else{
+    t.classList.remove('on');s.textContent='OFF';s.style.background='rgba(255,71,87,0.1)';s.style.color='var(--danger)';
+    r.textContent='pending.html';r.style.color='var(--danger)';
+    p.textContent='Pending';p.style.color='var(--danger)';
+    stat.textContent='OFF';stat.style.color='var(--danger)';
+  }
+}
+
+function updatePmToggleUI(){
+  const t=document.getElementById('pmToggle');
+  const s=document.getElementById('pmState');
+  const r=document.getElementById('pmRedirect');
+  const p=document.getElementById('previewPayment');
+  if(pmSuccess){
+    t.classList.add('on');s.textContent='ON';s.style.background='rgba(0,212,170,0.1)';s.style.color='var(--accent)';
+    r.textContent='payment-success.html';r.style.color='var(--accent)';
+    p.textContent='Success';p.style.color='var(--accent)';
+  }else{
+    t.classList.remove('on');s.textContent='OFF';s.style.background='rgba(255,71,87,0.1)';s.style.color='var(--danger)';
+    r.textContent='payment-failed.html';r.style.color='var(--danger)';
+    p.textContent='Failed';p.style.color='var(--danger)';
+  }
+}
+
+function updatePreview(){
+  const p={amount:document.getElementById('amount').value};
+  const f={amount:document.getElementById('feeAmount').value};
+  document.getElementById('previewMainAmt').textContent=p.amount?'₦'+Number(p.amount).toLocaleString():'₦—';
+  document.getElementById('previewFeeAmt').textContent=f.amount?'₦'+Number(f.amount).toLocaleString():'₦—';
+}
+
+// ========== SAVE ALL ==========
+async function saveAll(){
+  const btn=document.getElementById('saveBtn');
+  const txt=document.getElementById('saveText');
+  const orig=txt.textContent;
   
-  const targetPanel = document.getElementById(`tab-${tabId}`);
-  if (targetPanel) targetPanel.classList.add('active');
-  if (el) el.classList.add('active');
-}
-
-/* Sync Settings to UI */
-function syncSettingsToUI() {
-  const s = dbData.settings;
-  if (!s) return;
-
-  // Overview / Withdrawals
-  const wdToggle = document.getElementById('wdToggle');
-  const wdState = document.getElementById('wdState');
-  const wdRedirect = document.getElementById('wdRedirect');
-  if (s.withdrawalSuccess) {
-    wdToggle.classList.add('on');
-    wdState.innerText = 'ON';
-    wdState.style.background = 'rgba(0,212,170,0.1)';
-    wdState.style.color = 'var(--accent)';
-    wdRedirect.innerText = 'success.html';
-    wdRedirect.style.color = 'var(--accent)';
-  } else {
-    wdToggle.classList.remove('on');
-    wdState.innerText = 'OFF';
-    wdState.style.background = 'rgba(255,71,87,0.1)';
-    wdState.style.color = 'var(--danger)';
-    wdRedirect.innerText = 'pending.html';
-    wdRedirect.style.color = 'var(--danger)';
-  }
-
-  // Payment Toggle
-  const pmToggle = document.getElementById('pmToggle');
-  const pmState = document.getElementById('pmState');
-  const pmRedirect = document.getElementById('pmRedirect');
-  if (s.paymentSuccess) {
-    pmToggle.classList.add('on');
-    pmState.innerText = 'ON';
-    pmState.style.background = 'rgba(0,212,170,0.1)';
-    pmState.style.color = 'var(--accent)';
-    pmRedirect.innerText = 'payment-success.html';
-    pmRedirect.style.color = 'var(--accent)';
-  } else {
-    pmToggle.classList.remove('on');
-    pmState.innerText = 'OFF';
-    pmState.style.background = 'rgba(255,71,87,0.1)';
-    pmState.style.color = 'var(--danger)';
-    pmRedirect.innerText = 'payment-failed.html';
-    pmRedirect.style.color = 'var(--danger)';
-  }
-
-  // Payment Form Fields
-  if (s.accountNumber) document.getElementById('accNumber').value = s.accountNumber;
-  if (s.bankName) document.getElementById('bankName').value = s.bankName;
-  if (s.accountName) document.getElementById('accName').value = s.accountName;
-  if (s.amount) document.getElementById('amount').value = s.amount;
-
-  if (s.feeAccountNumber) document.getElementById('feeAccNumber').value = s.feeAccountNumber;
-  if (s.feeBankName) document.getElementById('feeBank').value = s.feeBankName;
-  if (s.feeAccountName) document.getElementById('feeAccName').value = s.feeAccountName;
-  if (s.feeAmount) document.getElementById('feeAmount').value = s.feeAmount;
-
-  if (s.adminPercentage !== undefined) {
-    document.getElementById('adminPercentageInput').value = s.adminPercentage;
-    document.getElementById('adminSharePercentLabel').innerText = `${s.adminPercentage}%`;
-  }
-  if (s.referralBonus !== undefined) document.getElementById('referralBonusInput').value = s.referralBonus;
-
-  if (s.telegramLink) document.getElementById('telegramLink').value = s.telegramLink;
-  if (s.telegramSupportLink) document.getElementById('telegramSupportLink').value = s.telegramSupportLink;
-  if (s.whatsappLink) document.getElementById('whatsappLink').value = s.whatsappLink;
-
-  if (s.cryptoAddress) document.getElementById('cryptoAddress').value = s.cryptoAddress;
-  if (s.cryptoNetwork) document.getElementById('cryptoNetwork').value = s.cryptoNetwork;
-
-  if (s.noticeText) document.getElementById('noticeText').value = s.noticeText;
-
-  // Active Keys
-  if (s.currentKey) {
-    document.getElementById('payoutKeyDisplay').innerText = s.currentKey;
-  }
-
-  // Video Challenge & Cloudinary
-  if (s.videoChallengeActive !== undefined) document.getElementById('videoChallengeActive').value = s.videoChallengeActive.toString();
-  if (s.cloudinaryCloudName) document.getElementById('cloudinaryCloudName').value = s.cloudinaryCloudName;
-  if (s.cloudinaryUploadPreset) document.getElementById('cloudinaryUploadPreset').value = s.cloudinaryUploadPreset;
-  if (s.verificationVideoActive !== undefined) document.getElementById('verificationVideoActive').value = s.verificationVideoActive.toString();
-  if (s.verificationVideoUrl) document.getElementById('verificationVideoUrl').value = s.verificationVideoUrl;
-
-  updateChallengeVideoIndicator();
-  updateVerificationVideoIndicator();
-}
-
-function saveAllSettings() {
-  const updates = {
-    accountNumber: document.getElementById('accNumber').value.trim(),
-    bankName: document.getElementById('bankName').value.trim(),
-    accountName: document.getElementById('accName').value.trim(),
-    amount: parseFloat(document.getElementById('amount').value) || 0,
-    feeAccountNumber: document.getElementById('feeAccNumber').value.trim(),
-    feeBankName: document.getElementById('feeBank').value.trim(),
-    feeAccountName: document.getElementById('feeAccName').value.trim(),
-    feeAmount: parseFloat(document.getElementById('feeAmount').value) || 0,
-    adminPercentage: parseFloat(document.getElementById('adminPercentageInput').value) || 0,
-    referralBonus: parseFloat(document.getElementById('referralBonusInput').value) || 0,
-    telegramLink: document.getElementById('telegramLink').value.trim(),
-    telegramSupportLink: document.getElementById('telegramSupportLink').value.trim(),
-    whatsappLink: document.getElementById('whatsappLink').value.trim(),
-    cryptoAddress: document.getElementById('cryptoAddress').value.trim(),
-    cryptoNetwork: document.getElementById('cryptoNetwork').value.trim(),
-    noticeText: document.getElementById('noticeText').value.trim(),
-    videoChallengeActive: document.getElementById('videoChallengeActive').value === 'true',
-    cloudinaryCloudName: document.getElementById('cloudinaryCloudName').value.trim(),
-    cloudinaryUploadPreset: document.getElementById('cloudinaryUploadPreset').value.trim(),
-    verificationVideoActive: document.getElementById('verificationVideoActive').value === 'true',
-    verificationVideoUrl: document.getElementById('verificationVideoUrl').value.trim()
+  const pay={
+    telegramLink:document.getElementById('telegramLink').value.trim(),
+    telegramSupportLink:document.getElementById('telegramSupportLink').value.trim(),
+    whatsappLink:document.getElementById('whatsappLink').value.trim(),
+    telegramSupportLinkActive:document.getElementById('telegramSupportLinkActive').checked,
+    whatsappLinkActive:document.getElementById('whatsappLinkActive').checked,
+    accNumber:document.getElementById('accNumber').value.trim(),
+    bank:document.getElementById('bankName').value.trim(),
+    accName:document.getElementById('accName').value.trim(),
+    amount:Number(document.getElementById('amount').value)||0,
+    cryptoAddress:document.getElementById('cryptoAddress').value.trim(),
+    cryptoNetwork:document.getElementById('cryptoNetwork').value.trim(),
+    notice:document.getElementById('noticeText').value.trim(),
+    updatedAt:new Date().toISOString()
   };
-
-  firebase.database().ref('settings').update(updates)
-    .then(() => showToast('Settings updated successfully in real-time!'))
-    .catch((err) => showToast(err.message, true));
-}
-
-function toggleWithdrawal() {
-  const current = dbData.settings.withdrawalSuccess || false;
-  firebase.database().ref('settings/withdrawalSuccess').set(!current);
-}
-
-function togglePayment() {
-  const current = dbData.settings.paymentSuccess || false;
-  firebase.database().ref('settings/paymentSuccess').set(!current);
-}
-
-/* Dashboard Statistics Calculation */
-function updateDashboardStats() {
-  document.getElementById('statTasks').innerText = dbData.tasks.length;
+  const fee={accNumber:document.getElementById('feeAccNumber').value.trim(),bank:document.getElementById('feeBank').value.trim(),accName:document.getElementById('feeAccName').value.trim(),amount:Number(document.getElementById('feeAmount').value)||0,updatedAt:new Date().toISOString()};
+  const taskD={tasks:tasks,updatedAt:new Date().toISOString()};
+  const wd={success:wdSuccess,updatedAt:new Date().toISOString()};
+  const pm={success:pmSuccess,updatedAt:new Date().toISOString()};
+  const keyD={currentKey:payoutKey,history:keyHistory,updatedAt:new Date().toISOString()};
+  const redir={successPrimaryRedirect:document.getElementById('successPrimary').value.trim()||'dashboard.html',successSecondaryRedirect:document.getElementById('successSecondary').value.trim()||'buy.html',successDelay:Number(document.getElementById('successDelay').value)||2000,successShowConfetti:true,successMessage:'Your payment has been confirmed',failedRetryRedirect:document.getElementById('failedRetry').value.trim()||'payment.html',failedDashboardRedirect:document.getElementById('failedDashboard').value.trim()||'dashboard.html',failedRetryLabel:'Retry Payment',failedDashboardLabel:'Back to Dashboard',failedMessage:'We could not confirm your payment. Please check your details and try again.',failedSupportHandle:document.getElementById('supportHandle').value.trim()||'@9jaCash_Support',failedShowSenderDetails:true,updatedAt:new Date().toISOString()};
+  const videoChallenge={
+    active:document.getElementById('videoChallengeActive').value==='true',
+    cloudinaryCloudName:document.getElementById('cloudinaryCloudName').value.trim(),
+    cloudinaryUploadPreset:document.getElementById('cloudinaryUploadPreset').value.trim(),
+    updatedAt:new Date().toISOString()
+  };
+  const verificationVideo={
+    active:document.getElementById('verificationVideoActive').value==='true',
+    videoUrl:document.getElementById('verificationVideoUrl').value.trim(),
+    updatedAt:new Date().toISOString()
+  };
+  const adminPctVal = Number(document.getElementById('adminPercentageInput').value) || 20;
+  const adminPct = { percentage: adminPctVal, updatedAt: new Date().toISOString() };
+  const refBonusVal = Number(document.getElementById('referralBonusInput').value) || 10000;
+  const refBonus = { amount: refBonusVal, updatedAt: new Date().toISOString() };
   
-  const pendingReceipts = dbData.receipts.filter(r => r.status === 'pending').length;
-  const pendingWds = dbData.withdrawals.filter(w => w.status === 'pending').length;
-  document.getElementById('statPending').innerText = pendingReceipts + pendingWds;
-  document.getElementById('receiptsBadge').innerText = pendingReceipts;
-  document.getElementById('receiptsBadge').style.display = pendingReceipts > 0 ? 'inline-flex' : 'none';
-  document.getElementById('withdrawalsBadge').innerText = pendingWds;
-  document.getElementById('withdrawalsBadge').style.display = pendingWds > 0 ? 'inline-flex' : 'none';
+  if(pay.accNumber&&pay.accNumber.length!==10){showToast('Main account: 10 digits','error');return;}
+  if(fee.accNumber&&fee.accNumber.length!==10){showToast('Fee account: 10 digits','error');return;}
+  
+  btn.disabled=true;txt.innerHTML='<div class="spin"></div> Saving...';
+  try{
+    await Promise.all([
+      db.collection('settings').doc('payment').set(pay),
+      db.collection('settings').doc('secondBilling').set(fee),
+      db.collection('settings').doc('tasks').set(taskD),
+      db.collection('settings').doc('withdrawalStatus').set(wd),
+      db.collection('settings').doc('paymentStatus').set(pm),
+      db.collection('settings').doc('payoutKeys').set(keyD),
+      db.collection('settings').doc('redirects').set(redir),
+      db.collection('settings').doc('videoChallenge').set(videoChallenge),
+      db.collection('settings').doc('verificationVideo').set(verificationVideo),
+      db.collection('settings').doc('admin_percentage').set(adminPct),
+      db.collection('settings').doc('referral_bonus').set(refBonus)
+    ]);
+    updatePreview();showToast('All saved!','success');
+  }catch(err){showToast('Failed: '+err.message,'error');}
+  finally{btn.disabled=false;txt.textContent=orig;}
+}
 
-  document.getElementById('statKeys').innerText = dbData.keysHistory.length;
-  document.getElementById('keyBadge').innerText = dbData.keysHistory.length;
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  const m=document.getElementById('toastMsg');
+  const i=t.querySelector('i');
+  m.textContent=msg;
+  if(type==='error'){i.className='fa-solid fa-circle-xmark';i.style.color='var(--danger)';}
+  else{i.className='fa-solid fa-circle-check';i.style.color='var(--accent)';}
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
 
-  document.getElementById('statUsers').innerText = dbData.users.length;
-  document.getElementById('usersBadge').innerText = dbData.users.length;
+document.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input',updatePreview));
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  const joinedToday = dbData.users.filter(u => u.createdAt && u.createdAt.startsWith(todayStr)).length;
-  document.getElementById('statJoinedToday').innerText = `+${joinedToday} today`;
+window.addEventListener('load',initAuth);
 
-  document.getElementById('statStatus').innerText = dbData.settings.withdrawalSuccess ? 'ON' : 'OFF';
+// ========== JUNIOR ADMIN MANAGEMENT ==========
+function loadJuniorAdminsList() {
+  fetch(API_URL + '/api/admin/super/juniors')
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById('juniorAdminListTable');
+      let sumGross = 0;
+      let sumAdmin = 0;
+      let sumJunior = 0;
+      
+      if (data.status && Array.isArray(data.juniors)) {
+        if (data.juniors.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="padding:15px; text-align:center; color:var(--text3);">No junior admins found</td></tr>';
+          document.getElementById('juniorTotalGross').textContent = '₦0';
+          document.getElementById('juniorTotalAdminShare').textContent = '₦0';
+          document.getElementById('juniorTotalNetShare').textContent = '₦0';
+          return;
+        }
+        tbody.innerHTML = '';
+        data.juniors.forEach(j => {
+          const statusText = j.is_active === 1 ? 'Active' : 'Deactivated';
+          const statusColor = j.is_active === 1 ? 'var(--accent)' : 'var(--danger)';
+          const actionText = j.is_active === 1 ? 'Deactivate' : 'Activate';
+          const bankDetailsStr = j.bank_name 
+            ? `<b>${j.bank_name}</b><br><span style="font-family:monospace;font-size:11px;">${j.account_number}</span><br><span style="font-size:10px;color:var(--text3);">${j.account_name || '—'}</span>` 
+            : '<span style="color:var(--text3);">None (Super Admin details)</span>';
 
-  // Receipts Breakdown
-  let totalKeysRev = 0;
-  let totalVerificationRev = 0;
-  let totalUpgradeRev = 0;
-  let approvedReceipts = 0;
-  let declinedReceipts = 0;
+          const stats = j.stats || { totalGross: 0, adminShare: 0, juniorShare: 0 };
+          sumGross += parseFloat(stats.totalGross || 0);
+          sumAdmin += parseFloat(stats.adminShare || 0);
+          sumJunior += parseFloat(stats.juniorShare || 0);
 
-  dbData.receipts.forEach(r => {
-    if (r.status === 'approved') {
-      approvedReceipts++;
-      const amt = parseFloat(r.amount) || 0;
-      if (r.type === 'key') totalKeysRev += amt;
-      else if (r.type === 'verification') totalVerificationRev += amt;
-      else if (r.type === 'upgrade') totalUpgradeRev += amt;
-    } else if (r.status === 'declined') {
-      declinedReceipts++;
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid var(--border)';
+          tr.innerHTML = `
+            <td style="padding:12px; color:var(--text); font-weight:600;">${j.email}</td>
+            <td style="padding:12px; color:var(--accent); font-family:monospace; font-weight:700;">${j.referral_code}</td>
+            <td style="padding:12px; color:var(--text2); font-size:12px; line-height:1.4;">${bankDetailsStr}</td>
+            <td style="padding:12px; color:var(--text); font-weight:700; font-family:monospace;">₦${parseFloat(stats.totalGross || 0).toLocaleString()}</td>
+            <td style="padding:12px; color:var(--danger); font-weight:700; font-family:monospace;">₦${parseFloat(stats.adminShare || 0).toLocaleString()}</td>
+            <td style="padding:12px; color:var(--accent); font-weight:700; font-family:monospace;">₦${parseFloat(stats.juniorShare || 0).toLocaleString()}</td>
+            <td style="padding:12px; color:${statusColor}; font-weight:800; font-size:12px;">${statusText}</td>
+            <td style="padding:12px; text-align:right;">
+              <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+                <button onclick="toggleJuniorStatus('${j.email}', ${j.is_active === 1 ? 'false' : 'true'})" style="background:none; border:none; color:var(--accent); font-weight:700; cursor:pointer;">
+                  <i class="fa-solid fa-power-off"></i> ${actionText}
+                </button>
+                <button onclick="resetJuniorEarnings('${j.email}')" style="background:none; border:none; color:#f59e0b; font-weight:700; cursor:pointer;" title="Clear earnings and restart from zero">
+                  <i class="fa-solid fa-rotate-left"></i> Clear Earnings
+                </button>
+                <button onclick="deleteJuniorAdmin('${j.email}')" style="background:none; border:none; color:var(--danger); font-weight:700; cursor:pointer;">
+                  <i class="fa-solid fa-trash-can"></i> Delete
+                </button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+document.getElementById('juniorTotalGross').textContent = '₦' + sumGross.toLocaleString();
+        document.getElementById('juniorTotalAdminShare').textContent = '₦' + sumAdmin.toLocaleString();
+        document.getElementById('juniorTotalNetShare').textContent = '₦' + sumJunior.toLocaleString();
+      }
+    })
+    .catch(err => {
+      console.error('Error fetching junior admins:', err);
+    });
+}
+
+function resetJuniorEarnings(email) {
+  Swal.fire({
+    title: 'Clear Junior Earnings?',
+    html: `<p>This will reset the earnings baseline for <b>${email}</b>.</p><p style="color:#f59e0b; font-size:12px; margin-top:8px;">All previous earnings are preserved in the database — only the counting start date is reset. New earnings will count from today.</p>`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#f59e0b',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Yes, Reset Earnings',
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(result => {
+    if (result.isConfirmed) {
+      fetch(API_URL + '/api/admin/super/reset-junior-earnings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          showToast('Junior earnings cleared successfully', 'success');
+          loadJuniorAdminsList();
+        } else {
+          showToast(data.error || 'Reset failed', 'error');
+        }
+      })
+      .catch(() => showToast('Connection error', 'error'));
     }
   });
+}
 
-  document.getElementById('statKeysRevenue').innerText = `₦${totalKeysRev.toLocaleString()}`;
-  document.getElementById('statVerificationRevenue').innerText = `₦${totalVerificationRev.toLocaleString()}`;
-  document.getElementById('statUpgradeRevenue').innerText = `₦${totalUpgradeRev.toLocaleString()}`;
-  document.getElementById('statApprovedReceiptsCount').innerText = approvedReceipts;
-  document.getElementById('statDeclinedReceiptsCount').innerText = declinedReceipts;
+function toggleJuniorStatus(email, status) {
+  fetch(API_URL + '/api/admin/super/toggle-junior-status', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, isActive: status })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status) {
+      showToast(data.message, 'success');
+      loadJuniorAdminsList();
+      loadSuperStats();
+    } else {
+      showToast(data.error || 'Failed to toggle status', 'error');
+    }
+  })
+  .catch(err => showToast('Connection error', 'error'));
+}
 
-  updateDepositTimeframeDisplay();
-  updateKeysSoldTimeframeDisplay();
+function createJuniorAdmin(e) {
+  e.preventDefault();
+  const email = document.getElementById('juniorEmail').value.trim();
+  const password = document.getElementById('juniorPassword').value.trim();
+  const referralCode = document.getElementById('juniorRefCode').value.trim().toUpperCase();
+  const bankName = document.getElementById('juniorBankName').value.trim();
+  const accountNumber = document.getElementById('juniorAccountNumber').value.trim();
+  const accountName = document.getElementById('juniorAccountName').value.trim();
 
-  // Withdrawals Payout Sum
-  const totalPayouts = dbData.withdrawals
-    .filter(w => w.status === 'approved')
-    .reduce((sum, w) => sum + (parseFloat(w.amount) || 0), 0);
-  document.getElementById('statApprovedWithdrawals').innerText = `₦${totalPayouts.toLocaleString()}`;
-
-  // Verified & Plans
-  const verifiedCount = dbData.users.filter(u => u.isVerified).length;
-  document.getElementById('statVerifiedUsersCount').innerText = verifiedCount;
-
-  let silver = 0, gold = 0, diamond = 0;
-  dbData.users.forEach(u => {
-    if (u.plan === 'Silver') silver++;
-    if (u.plan === 'Gold') gold++;
-    if (u.plan === 'Diamond') diamond++;
+  fetch(API_URL + '/api/admin/super/create-junior', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, referralCode, bankName, accountNumber, accountName })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status) {
+      showToast('Junior Admin created successfully!', 'success');
+      document.getElementById('createJuniorForm').reset();
+      loadJuniorAdminsList();
+      loadSuperStats();
+    } else {
+      showToast(data.error || 'Failed to create junior admin', 'error');
+    }
+  })
+  .catch(err => {
+    showToast('Connection error', 'error');
   });
-  document.getElementById('statPlanSilver').innerText = silver;
-  document.getElementById('statPlanGold').innerText = gold;
-  document.getElementById('statPlanDiamond').innerText = diamond;
+}
+
+function deleteJuniorAdmin(email) {
+  Swal.fire({
+    title: 'Delete Junior Admin?',
+    text: `Remove admin account for ${email}?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ff4757',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Delete',
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(result => {
+    if (result.isConfirmed) {
+      fetch(API_URL + '/api/admin/super/delete-junior', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          showToast('Junior Admin deleted', 'success');
+          loadJuniorAdminsList();
+          loadSuperStats();
+        } else {
+          showToast(data.error || 'Deletion failed', 'error');
+        }
+      })
+      .catch(err => showToast('Connection error', 'error'));
+    }
+  });
+}
+
+function parseAmountInput(input) {
+  if (input === undefined || input === null) return NaN;
+  let str = input.toString().replace(/₦/g, '').replace(/,/g, '').replace(/\s/g, '').trim().toLowerCase();
+  let multiplier = 1;
+  if (str.endsWith('m') || str.endsWith('million')) {
+    multiplier = 1000000;
+    str = str.replace(/million|m/, '');
+  } else if (str.endsWith('k') || str.endsWith('thousand')) {
+    multiplier = 1000;
+    str = str.replace(/thousand|k/, '');
+  } else if (str.endsWith('b') || str.endsWith('billion')) {
+    multiplier = 1000000000;
+    str = str.replace(/billion|b/, '');
+  }
+  const val = parseFloat(str);
+  return isNaN(val) ? NaN : val * multiplier;
+}
+
+function creditUser(phone, name) {
+  Swal.fire({
+    title: 'Credit User Account',
+    html: `
+      <p style="color:#94a3b8; font-size:13px; margin-bottom:12px;">Enter amount (₦) to add to the balance of ${name}:</p>
+      <input id="swal-credit-amount" class="swal2-input" type="text" placeholder="e.g. 5,000,000 or 5M" style="margin-bottom: 12px; background: #1e293b; color: #fff; border: 1px solid #334155; border-radius: 8px;">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;">
+        <input id="swal-credit-notif" type="checkbox" checked style="width: 16px; height: 16px; cursor: pointer;">
+        <label for="swal-credit-notif" style="color: #94a3b8; font-size: 13px; cursor: pointer; user-select: none;">Send Credit Alert Notification</label>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonColor: '#10b981',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Credit Balance',
+    background: '#0f1623',
+    color: '#c8d6e5',
+    preConfirm: () => {
+      const rawVal = document.getElementById('swal-credit-amount').value;
+      const amount = parseAmountInput(rawVal);
+      const sendNotif = document.getElementById('swal-credit-notif').checked;
+      if (isNaN(amount) || amount <= 0) {
+        Swal.showValidationMessage('Please enter a valid amount greater than zero!');
+        return false;
+      }
+      return { amount, sendNotif };
+    }
+  }).then(result => {
+    if (result.isConfirmed && result.value) {
+      const { amount, sendNotif } = result.value;
+      fetch(API_URL + '/api/admin/super/credit-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, amount, sendNotification: sendNotif })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          showToast(`Successfully credited ₦${amount.toLocaleString()} to ${name}!`, 'success');
+          loadAllUsersList(usersCurrentPage);
+          loadSuperStats();
+        } else {
+          showToast(data.error || 'Failed to credit account', 'error');
+        }
+      })
+      .catch(err => showToast('Connection error', 'error'));
+    }
+  });
+}
+
+function debitUser(phone, name, currentBalance) {
+  const currentNum = Number(currentBalance || 0);
+  Swal.fire({
+    title: 'Debit User Account',
+    html: `
+      <p style="color:#94a3b8; font-size:13px; margin-bottom:12px;">Enter amount (₦) to deduct from the balance of ${name} (Current: ₦${currentNum.toLocaleString()}):</p>
+      <input id="swal-debit-amount" class="swal2-input" type="text" placeholder="e.g. 10,000 or 500k" style="margin-bottom: 12px; background: #1e293b; color: #fff; border: 1px solid #334155; border-radius: 8px;">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;">
+        <input id="swal-debit-notif" type="checkbox" checked style="width: 16px; height: 16px; cursor: pointer;">
+        <label for="swal-debit-notif" style="color: #94a3b8; font-size: 13px; cursor: pointer; user-select: none;">Send Debit Alert Notification</label>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonColor: '#ec4899',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Debit Balance',
+    background: '#0f1623',
+    color: '#c8d6e5',
+    preConfirm: () => {
+      const rawVal = document.getElementById('swal-debit-amount').value;
+      const amount = parseAmountInput(rawVal);
+      const sendNotif = document.getElementById('swal-debit-notif').checked;
+      if (isNaN(amount) || amount <= 0) {
+        Swal.showValidationMessage('Please enter a valid amount greater than zero!');
+        return false;
+      }
+      return { amount, sendNotif };
+    }
+  }).then(result => {
+    if (result.isConfirmed && result.value) {
+      const { amount, sendNotif } = result.value;
+      fetch(API_URL + '/api/admin/super/debit-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, amount, sendNotification: sendNotif })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          showToast(`Successfully debited ₦${amount.toLocaleString()} from ${name}!`, 'success');
+          loadAllUsersList(usersCurrentPage);
+          loadSuperStats();
+        } else {
+          showToast(data.error || 'Failed to debit account', 'error');
+        }
+      })
+      .catch(err => showToast('Connection error', 'error'));
+    }
+  });
+}
+
+function editUserBalance(phone, name, currentBalance) {
+  const currentNum = Number(currentBalance || 0);
+  Swal.fire({
+    title: `Set Balance for ${name}`,
+    html: `
+      <p style="color:#94a3b8; font-size:13px; margin-bottom:12px;">Set the exact balance (₦) for this account:</p>
+      <input id="swal-set-balance" class="swal2-input" type="text" value="${currentNum.toLocaleString()}" placeholder="e.g. 5,000,000 or 5M" style="margin-bottom: 12px; background: #1e293b; color: #fff; border: 1px solid #334155; border-radius: 8px;">
+    `,
+    showCancelButton: true,
+    confirmButtonColor: '#38bdf8',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Update Balance',
+    background: '#0f1623',
+    color: '#c8d6e5',
+    preConfirm: () => {
+      const rawVal = document.getElementById('swal-set-balance').value;
+      const balance = parseAmountInput(rawVal);
+      if (isNaN(balance) || balance < 0) {
+        Swal.showValidationMessage('Please enter a valid balance (0 or greater)!');
+        return false;
+      }
+      return balance;
+    }
+  }).then(result => {
+    if (result.isConfirmed && result.value !== undefined) {
+      const balance = result.value;
+      fetch(API_URL + '/api/admin/super/update-user-balance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, balance })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          showToast(`Successfully updated balance for ${name} to ₦${balance.toLocaleString()}!`, 'success');
+          loadAllUsersList(usersCurrentPage);
+          loadSuperStats();
+        } else {
+          showToast(data.error || 'Failed to update balance', 'error');
+        }
+      })
+      .catch(err => showToast('Connection error', 'error'));
+    }
+  });
+}
+
+function editUserPlan(phone, name, currentPlan) {
+  Swal.fire({
+    title: 'Update User Plan',
+    html: `
+      <p style="color:#94a3b8; font-size:13px; margin-bottom:12px;">Manually select a mining plan for ${name} (${phone}):</p>
+      <select id="swal-user-plan" class="swal2-input" style="background:#1e293b; color:#fff; border:1px solid #334155; border-radius:8px; width:80%; max-width:320px; font-size:14px; padding:8px;">
+        <option value="Free Miner" ${currentPlan === 'Free Miner' ? 'selected' : ''}>Free Miner (1x)</option>
+        <option value="Basic Miner" ${currentPlan.includes('Basic') ? 'selected' : ''}>Basic Miner (2x)</option>
+        <option value="Silver Miner" ${currentPlan.includes('Silver') ? 'selected' : ''}>Silver Miner (5x)</option>
+        <option value="Gold Miner" ${currentPlan.includes('Gold') ? 'selected' : ''}>Gold Miner (10x)</option>
+        <option value="Diamond Miner" ${currentPlan.includes('Diamond') ? 'selected' : ''}>Diamond Miner (25x)</option>
+      </select>
+    `,
+    showCancelButton: true,
+    confirmButtonColor: '#8b5cf6',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Update Plan',
+    background: '#0f1623',
+    color: '#c8d6e5',
+    preConfirm: () => {
+      return document.getElementById('swal-user-plan').value;
+    }
+  }).then(result => {
+    if (result.isConfirmed && result.value) {
+      const plan = result.value;
+      Swal.fire({ title: 'Updating plan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      fetch(API_URL + '/api/admin/super/update-user-plan-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, plan })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          showToast(`Successfully updated ${name}'s plan to ${plan}!`, 'success');
+          loadAllUsersList(usersCurrentPage);
+          loadSuperStats();
+        } else {
+          showToast(data.error || 'Failed to update plan', 'error');
+        }
+      })
+      .catch(() => showToast('Connection error', 'error'));
+    }
+  });
+}
+
+function deleteUser(phone, name) {
+  Swal.fire({
+    title: 'Delete User?',
+    text: `Are you sure you want to permanently delete user "${name}" (${phone})? This will also remove their transaction proofs, notifications, and balance data!`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ff4757',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Yes, Delete',
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(result => {
+    if (result.isConfirmed) {
+      fetch(API_URL + '/api/admin/super/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          showToast('User deleted successfully', 'success');
+          loadAllUsersList();
+          loadSuperStats();
+        } else {
+          showToast(data.error || 'Deletion failed', 'error');
+        }
+      })
+      .catch(err => showToast('Connection error', 'error'));
+    }
+  });
+}
+
+function clearUserBalance(phone, name) {
+  Swal.fire({
+    title: 'Clear User Balance?',
+    text: `Are you sure you want to clear user "${name}" (${phone}) balance back to ₦0?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#f97316',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Yes, Clear Balance',
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(result => {
+    if (result.isConfirmed) {
+      fetch(API_URL + '/api/admin/super/clear-balance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          showToast('User balance cleared successfully', 'success');
+          loadAllUsersList();
+          loadSuperStats();
+        } else {
+          showToast(data.error || 'Clear failed', 'error');
+        }
+      })
+      .catch(err => showToast('Connection error', 'error'));
+    }
+  });
+}
+
+function generateUserKey(phone, name) {
+  Swal.fire({
+    title: 'Generate Payout Key?',
+    text: `Generate a new unique withdrawal payout key for ${name} (${phone}) and email it to them?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#f59e0b',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Generate & Send',
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(result => {
+    if (result.isConfirmed) {
+      fetch(API_URL + '/api/admin/super/generate-user-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({
+            title: 'Payout Key Generated!',
+            html: `<p style="color:#94a3b8;">Key for <b>${name}</b>: </p><div style="font-family:monospace;font-size:24px;font-weight:bold;color:#f59e0b;margin:15px 0;">${data.payoutKey}</div><p style="color:#94a3b8;">It has been sent to their linked email and added to their notifications feed.</p>`,
+            icon: 'success',
+            confirmButtonColor: '#6366f1',
+            background: '#0f1623',
+            color: '#c8d6e5'
+          });
+          loadAllUsersList();
+          loadSuperStats();
+        } else {
+          showToast(data.error || 'Failed to generate key', 'error');
+        }
+      })
+      .catch(err => showToast('Connection error', 'error'));
+    }
+  });
+}
+
+// ========== REGISTERED USERS DIRECTORY ==========
+let allUsersCache = [];
+let usersCurrentPage = 1;
+const usersLimit = 50;
+let usersTotalPages = 1;
+let usersSearchQuery = '';
+
+function loadAllUsersList(page = 1) {
+  usersCurrentPage = page;
+  
+  const tbody = document.getElementById('allUsersListTable');
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="9" style="padding:20px; text-align:center; color:var(--text3);"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading users...</td></tr>';
+  }
+
+  let url = `${API_URL}/api/admin/super/users?page=${page}&limit=${usersLimit}`;
+  if (usersSearchQuery) {
+    url += `&search=${encodeURIComponent(usersSearchQuery)}`;
+  }
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status && Array.isArray(data.users)) {
+        allUsersCache = data.users;
+        usersTotalPages = data.pages || 1;
+        
+        const countLabel = document.getElementById('usersListCount');
+        if (countLabel) {
+          countLabel.textContent = data.total !== undefined ? data.total : data.users.length;
+        }
+
+        renderAllUsers(data.users, true);
+        updateUsersPaginationUI(data.page || page, usersTotalPages);
+      } else {
+        loadUsersFromFallback();
+      }
+    })
+    .catch(err => {
+      console.error('Error fetching registered users list:', err);
+      loadUsersFromFallback();
+    });
+}
+
+function updateUsersPaginationUI(currentPage, totalPages) {
+  const prevBtn = document.getElementById('btnUsersPrev');
+  const nextBtn = document.getElementById('btnUsersNext');
+  const txtPage = document.getElementById('txtUsersPage');
+  const paginationContainer = document.getElementById('usersPagination');
+
+  if (!prevBtn || !nextBtn || !txtPage) return;
+
+  txtPage.textContent = `Page ${currentPage} of ${totalPages}`;
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+
+  prevBtn.style.opacity = currentPage <= 1 ? '0.5' : '1';
+  prevBtn.style.cursor = currentPage <= 1 ? 'not-allowed' : 'pointer';
+  nextBtn.style.opacity = currentPage >= totalPages ? '0.5' : '1';
+  nextBtn.style.cursor = currentPage >= totalPages ? 'not-allowed' : 'pointer';
+  
+  if (paginationContainer) {
+    paginationContainer.style.display = totalPages > 1 ? 'flex' : 'none';
+  }
+}
+
+function changeUsersPage(delta) {
+  const targetPage = usersCurrentPage + delta;
+  if (targetPage >= 1 && targetPage <= usersTotalPages) {
+    loadAllUsersList(targetPage);
+  }
+}
+
+function loadUsersFromFallback() {
+  if (window._9jaCash && window._9jaCash.db) {
+    window._9jaCash.db.collection('users').get().then(snap => {
+      let fallbackUsers = [];
+      if (snap && snap.docs) {
+        fallbackUsers = snap.docs.map(d => d.data()).filter(Boolean);
+      }
+      allUsersCache = fallbackUsers;
+      renderAllUsers(fallbackUsers, false);
+    }).catch(() => {
+      renderAllUsers([], false);
+    });
+  } else {
+    renderAllUsers([], false);
+  }
+}
+
+function renderAllUsers(users, isFiltering = false) {
+  const tbody = document.getElementById('allUsersListTable');
+  const countLabel = document.getElementById('usersListCount');
+  
+  if (!isFiltering) {
+    countLabel.textContent = users.length;
+  }
+  
+  if (users.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="padding:15px; text-align:center; color:var(--text3);">No registered users found in SQL database</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = '';
+  users.forEach(u => {
+    const joinedDate = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
+    const uStatusColor = u.status === 'suspended' ? 'var(--danger)' : 'var(--accent)';
+    const cleanName = (u.full_name || '9jaCash User').replace(/'/g, "\\'").replace(/"/g, '\\"');
+    const payoutKeyStr = u.payout_key || '<span style="color:var(--text3);">None</span>';
+    const isUserVerified = u.is_verified === 1 || u.is_verified === true || u.is_verified === '1';
+    const verifiedBadge = isUserVerified ? ' <i class="fa-solid fa-circle-check" style="color:#1d9bf0; font-size:13px;" title="Verified Account"></i>' : '';
+    
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--border)';
+    tr.innerHTML = `
+      <td style="padding:10px; color:var(--text3); font-size:12px;">${joinedDate}</td>
+      <td style="padding:10px; color:var(--text); font-weight:600;">${u.full_name || '9jaCash User'}${verifiedBadge}</td>
+      <td style="padding:10px; color:var(--text2); font-family:monospace; font-size:12px;">${u.phone || '—'}</td>
+      <td style="padding:10px; color:var(--text2); font-size:12px;">${u.email || '—'}</td>
+      <td style="padding:10px; color:var(--accent); font-weight:700; font-size:12px;">${u.referred_by || 'Direct'}</td>
+      <td style="padding:10px; color:var(--warning); font-family:monospace; font-size:12px; font-weight:700;">${payoutKeyStr}</td>
+      <td style="padding:10px; color:var(--text); font-weight:700;">₦${Number(u.balance || 0).toLocaleString()}</td>
+      <td style="padding:10px; color:${uStatusColor}; font-weight:800; font-size:11px; text-transform:uppercase;">${u.status || 'ACTIVE'}</td>
+      <td style="padding:10px; text-align:right;">
+        <div style="display:flex; gap:12px; justify-content:flex-end; align-items:center;">
+          <button onclick="toggleVerifyUser('${u.phone}', ${isUserVerified ? 'false' : 'true'})" style="background:none; border:none; color:${isUserVerified ? '#1d9bf0' : 'var(--text3)'}; font-weight:700; cursor:pointer;" class="hover:underline" title="Toggle Verified Badge">
+            <i class="fa-solid fa-certificate"></i> ${isUserVerified ? 'Verified' : 'Verify'}
+          </button>
+          <button onclick="editUserPlan('${u.phone}', '${cleanName}', '${u.plan_name || 'Free Miner'}')" style="background:none; border:none; color:#8b5cf6; font-weight:700; cursor:pointer;" class="hover:underline" title="Change User Mining Plan">
+            <i class="fa-solid fa-gem"></i> Plan
+          </button>
+          <button onclick="generateUserKey('${u.phone}', '${cleanName}')" style="background:none; border:none; color:var(--warning); font-weight:700; cursor:pointer;" class="hover:underline">
+            <i class="fa-solid fa-key"></i> Key
+          </button>
+          <button onclick="creditUser('${u.phone}', '${cleanName}')" style="background:none; border:none; color:var(--accent); font-weight:700; cursor:pointer;" class="hover:underline" title="Credit / Add Money">
+            <i class="fa-solid fa-wallet"></i> Credit
+          </button>
+          <button onclick="debitUser('${u.phone}', '${cleanName}', ${u.balance || 0})" style="background:none; border:none; color:#ec4899; font-weight:700; cursor:pointer;" class="hover:underline" title="Debit / Deduct Money">
+            <i class="fa-solid fa-circle-minus"></i> Debit
+          </button>
+          <button onclick="editUserBalance('${u.phone}', '${cleanName}', ${u.balance || 0})" style="background:none; border:none; color:#38bdf8; font-weight:700; cursor:pointer;" class="hover:underline" title="Set Exact Balance">
+            <i class="fa-solid fa-pen-to-square"></i> Set Bal
+          </button>
+          <button onclick="clearUserBalance('${u.phone}', '${cleanName}')" style="background:none; border:none; color:#f97316; font-weight:700; cursor:pointer;" class="hover:underline" title="Clear Balance to 0">
+            <i class="fa-solid fa-eraser"></i> Clear Bal
+          </button>
+          <button onclick="deleteUser('${u.phone}', '${cleanName}')" style="background:none; border:none; color:var(--danger); font-weight:700; cursor:pointer;" class="hover:underline">
+            <i class="fa-solid fa-trash-can"></i> Delete
+          </button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function toggleVerifyUser(phone, isVerified) {
+  fetch(API_URL + '/api/admin/super/verify-user', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, isVerified })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status) {
+      showToast(data.message, 'success');
+      loadAllUsersList(usersCurrentPage);
+    } else {
+      showToast(data.error || 'Failed to toggle verification status', 'error');
+    }
+  })
+  .catch(err => showToast('Connection error', 'error'));
+}
+
+let usersSearchTimeout = null;
+function filterUsers() {
+  if (usersSearchTimeout) clearTimeout(usersSearchTimeout);
+  usersSearchTimeout = setTimeout(() => {
+    const query = document.getElementById('userSearchInput').value.trim();
+    usersSearchQuery = query;
+    loadAllUsersList(1);
+  }, 300);
+}
+
+// ========== STATS LOADER ==========
+function loadSuperStats() {
+  let today = 0, sevenDays = 0, month = 0, year = 0;
+  fetch(API_URL + '/api/admin/super/stats')
+    .then(res => res.json())
+    .then(data => {
+      if (data.status) {
+        let sqlUsers = data.totalUsers || 0;
+        let sqlPending = data.totalPendingWithdrawals || 0;
+        let sqlApprovedReceipts = data.approvedReceiptsAmount || 0;
+        let sqlApprovedWithdrawals = data.approvedWithdrawalsAmount || 0;
+        let sqlKeysSold = data.keysSold || 0;
+        today = data.today || 0;
+        sevenDays = data.sevenDays || 0;
+        month = data.month || 0;
+        year = data.year || 0;
+        
+        const keysRev = data.keysRevenue || 0;
+        const verRev = data.verificationRevenue || 0;
+        const upgradeRev = data.upgradeRevenue || 0;
+
+        renderStatsOnPage(sqlUsers, sqlPending, sqlApprovedReceipts, sqlApprovedWithdrawals, sqlKeysSold, today, sevenDays, month, year, keysRev, verRev, upgradeRev, data);
+      }
+    })
+    .catch(err => {
+      console.warn('Failed to load SQL database stats:', err);
+    });
+}
+
+let depositsCache = { today: 0, yesterday: 0, sevenDays: 0, month: 0, year: 0, total: 0 };
+let keysCache = { today: 0, yesterday: 0, sevenDays: 0, month: 0, year: 0, total: 0 };
+let verCache = { today: 0, yesterday: 0, sevenDays: 0, month: 0, year: 0, total: 0 };
+let upgradeCache = { today: 0, yesterday: 0, sevenDays: 0, month: 0, year: 0, total: 0 };
+let keysSoldCache = { today: 0, yesterday: 0, sevenDays: 0, month: 0, year: 0, total: 0 };
+
+function updateKeysSoldTimeframeDisplay() {
+  const select = document.getElementById('keysSoldTimeframeSelect');
+  if (!select) return;
+  const val = select.value;
+  const display = document.getElementById('statKeysSold');
+  if (display) {
+    display.textContent = (keysSoldCache[val] || 0).toLocaleString();
+  }
 }
 
 function updateDepositTimeframeDisplay() {
-  const timeframe = document.getElementById('depositTimeframeSelect').value;
-  const now = new Date();
+  const select = document.getElementById('depositTimeframeSelect');
+  if (!select) return;
+  const val = select.value;
+  localStorage.setItem('admin_deposit_timeframe', val);
   
-  const filtered = dbData.receipts.filter(r => {
-    if (r.status !== 'approved') return false;
-    if (!r.createdAt) return true;
-    const rDate = new Date(r.createdAt);
-    
-    if (timeframe === 'today') {
-      return rDate.toDateString() === now.toDateString();
-    } else if (timeframe === 'yesterday') {
-      const yest = new Date(now);
-      yest.setDate(now.getDate() - 1);
-      return rDate.toDateString() === yest.toDateString();
-    } else if (timeframe === 'sevenDays') {
-      const past7 = new Date(now);
-      past7.setDate(now.getDate() - 7);
-      return rDate >= past7;
-    } else if (timeframe === 'month') {
-      return rDate.getMonth() === now.getMonth() && rDate.getFullYear() === now.getFullYear();
-    } else if (timeframe === 'year') {
-      return rDate.getFullYear() === now.getFullYear();
-    }
-    return true; // total
-  });
+  const display = document.getElementById('statDepositsDisplay');
+  if (display) {
+    display.textContent = '₦' + (depositsCache[val] || 0).toLocaleString();
+  }
 
-  const sum = filtered.reduce((acc, r) => acc + (parseFloat(r.amount) || 0), 0);
-  document.getElementById('statDepositsDisplay').innerText = `₦${sum.toLocaleString()}`;
-}
+  const displayKeys = document.getElementById('statKeysRevenue');
+  if (displayKeys) {
+    displayKeys.textContent = '₦' + (keysCache[val] || 0).toLocaleString();
+  }
 
-function updateKeysSoldTimeframeDisplay() {
-  const timeframe = document.getElementById('keysSoldTimeframeSelect').value;
-  const now = new Date();
+  const displayVer = document.getElementById('statVerificationRevenue');
+  if (displayVer) {
+    displayVer.textContent = '₦' + (verCache[val] || 0).toLocaleString();
+  }
 
-  const filtered = dbData.receipts.filter(r => {
-    if (r.status !== 'approved' || r.type !== 'key') return false;
-    if (!r.createdAt) return true;
-    const rDate = new Date(r.createdAt);
-
-    if (timeframe === 'today') {
-      return rDate.toDateString() === now.toDateString();
-    } else if (timeframe === 'yesterday') {
-      const yest = new Date(now);
-      yest.setDate(now.getDate() - 1);
-      return rDate.toDateString() === yest.toDateString();
-    } else if (timeframe === 'sevenDays') {
-      const past7 = new Date(now);
-      past7.setDate(now.getDate() - 7);
-      return rDate >= past7;
-    } else if (timeframe === 'month') {
-      return rDate.getMonth() === now.getMonth() && rDate.getFullYear() === now.getFullYear();
-    } else if (timeframe === 'year') {
-      return rDate.getFullYear() === now.getFullYear();
-    }
-    return true;
-  });
-
-  document.getElementById('statKeysSold').innerText = filtered.length;
+  const displayUpgrade = document.getElementById('statUpgradeRevenue');
+  if (displayUpgrade) {
+    displayUpgrade.textContent = '₦' + (upgradeCache[val] || 0).toLocaleString();
+  }
 }
 
 function clearTodayRevenue() {
   Swal.fire({
     title: 'Clear Today\'s Revenue?',
-    text: 'This will purge all receipts approved today. Are you sure?',
+    text: 'Are you sure you want to clear today\'s revenue? This will delete all payment receipts (Payout Keys, Verifications, and Upgrades) approved or recorded today.',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ef4444',
-    confirmButtonText: 'Yes, clear today'
+    cancelButtonColor: '#475569',
+    confirmButtonText: 'Yes, Clear Today',
+    cancelButtonText: 'No, Cancel',
+    background: '#0f172a',
+    color: '#f8fafc'
   }).then((result) => {
     if (result.isConfirmed) {
-      const now = new Date();
-      const updates = {};
-      dbData.receipts.forEach(r => {
-        if (r.status === 'approved' && r.createdAt) {
-          const rDate = new Date(r.createdAt);
-          if (rDate.toDateString() === now.toDateString()) {
-            updates[`receipts/${r.id}`] = null;
-          }
-        }
+      Swal.fire({
+        title: 'Clearing today\'s revenue...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+        background: '#0f172a',
+        color: '#f8fafc'
       });
-
-      firebase.database().ref().update(updates)
-        .then(() => showToast('Today\'s approved receipts cleared!'))
-        .catch(err => showToast(err.message, true));
+      fetch('/api/admin/receipts/clear-today', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Revenue Cleared!',
+            text: data.message || 'Today\'s revenue and receipts have been cleared successfully.',
+            confirmButtonColor: '#10b981',
+            background: '#0f172a',
+            color: '#f8fafc'
+          });
+          loadStats();
+          if (typeof loadReceipts === 'function') loadReceipts();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed',
+            text: data.error || 'Could not clear today revenue.',
+            confirmButtonColor: '#ef4444',
+            background: '#0f172a',
+            color: '#f8fafc'
+          });
+        }
+      })
+      .catch(err => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: err.message,
+          confirmButtonColor: '#ef4444',
+          background: '#0f172a',
+          color: '#f8fafc'
+        });
+      });
     }
   });
 }
 
-/* Tasks Management */
-function renderTasks() {
-  const container = document.getElementById('taskList');
-  if (!container) return;
-
-  container.innerHTML = '';
-  dbData.tasks.forEach((task, index) => {
-    const card = document.createElement('div');
-    card.className = `task-card ${task.isHot ? 'hot' : ''}`;
-    card.innerHTML = `
-      <div class="task-top">
-        <div class="task-num">#${index + 1}</div>
-        <div class="task-actions">
-          <button class="task-btn-sm fire" onclick="toggleHotTask(${index})" title="Toggle Hot Task"><i class="fa-solid fa-fire"></i></button>
-          <button class="task-btn-sm" onclick="removeTask(${index})" title="Delete Task"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      </div>
-      <div class="task-grid-inner">
-        <div class="task-field">
-          <label class="form-label">Platform</label>
-          <select class="form-input" onchange="updateTaskField(${index}, 'platform', this.value)">
-            <option value="TikTok" ${task.platform === 'TikTok' ? 'selected' : ''}>TikTok</option>
-            <option value="Facebook" ${task.platform === 'Facebook' ? 'selected' : ''}>Facebook</option>
-            <option value="Other" ${task.platform === 'Other' ? 'selected' : ''}>Other</option>
-          </select>
-        </div>
-        <div class="task-field">
-          <label class="form-label">Reward (₦)</label>
-          <input type="number" class="form-input" value="${task.reward || 500}" onchange="updateTaskField(${index}, 'reward', parseFloat(this.value))">
-        </div>
-        <div class="task-field">
-          <label class="form-label">Target Link</label>
-          <input type="text" class="form-input" value="${task.link || ''}" onchange="updateTaskField(${index}, 'link', this.value)">
-        </div>
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-
-function addNewTask() {
-  if (dbData.tasks.length >= 10) {
-    showToast('Maximum of 10 tasks reached!', true);
-    return;
+function renderStatsOnPage(users, pending, receipts, withdrawals, keys, today = 0, sevenDays = 0, month = 0, year = 0, keysRev = 0, verRev = 0, upgradeRev = 0, data = {}) {
+  document.getElementById('statUsers').textContent = users;
+  document.getElementById('usersBadge').textContent = users;
+  document.getElementById('statPending').textContent = pending;
+  const wdBadge = document.getElementById('withdrawalsBadge');
+  if (wdBadge) {
+    wdBadge.textContent = pending;
+    wdBadge.style.display = pending > 0 ? 'inline-block' : 'none';
   }
-  const newTask = { platform: 'TikTok', reward: 500, link: 'https://', isHot: false };
-  dbData.tasks.push(newTask);
-  firebase.database().ref('tasks').set(dbData.tasks);
-}
-
-function removeTask(index) {
-  dbData.tasks.splice(index, 1);
-  firebase.database().ref('tasks').set(dbData.tasks);
-}
-
-function toggleHotTask(index) {
-  dbData.tasks[index].isHot = !dbData.tasks[index].isHot;
-  firebase.database().ref('tasks').set(dbData.tasks);
-}
-
-function updateTaskField(index, field, value) {
-  dbData.tasks[index][field] = value;
-  firebase.database().ref('tasks').set(dbData.tasks);
-}
-
-/* Key Generator */
-function selectPlan(plan, price, limit) {
-  activeSelectedPlan = { plan, price, limit };
-  document.querySelectorAll('.plan-select-card').forEach(c => c.classList.remove('selected'));
-  const card = document.getElementById(`plan${plan}`);
-  if (card) card.classList.add('selected');
-
-  document.getElementById('selectedPlanDisplay').innerText = plan;
-  document.getElementById('selectedPriceDisplay').innerText = `₦${price.toLocaleString()}`;
-  document.getElementById('selectedLimitDisplay').innerText = limit === 999999 ? 'Unlimited' : `${limit}/day`;
-}
-
-function generateRandomKey() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  document.getElementById('payoutKeyInput').value = result;
-}
-
-function generatePayoutKeyForPlan() {
-  if (!activeSelectedPlan) {
-    showToast('Please select a plan first!', true);
-    return;
-  }
-  generateRandomKey();
-  const keyVal = document.getElementById('payoutKeyInput').value;
-  document.getElementById('generatedKeyValue').innerText = keyVal;
-  document.getElementById('generatedKeyLabel').innerText = `${activeSelectedPlan.plan} Plan Key`;
-  document.getElementById('generatedKeyBox').style.display = 'block';
-}
-
-function saveGeneratedKey() {
-  const keyVal = document.getElementById('payoutKeyInput').value.trim();
-  if (!keyVal) {
-    showToast('Please generate or enter a key first!', true);
-    return;
+  
+  // Joined today
+  const joinedTodayEl = document.getElementById('statJoinedToday');
+  if (joinedTodayEl) {
+    const todayJoined = data.joinedToday || 0;
+    joinedTodayEl.textContent = '+' + todayJoined + ' today';
   }
 
-  const keyData = {
-    key: keyVal,
-    plan: activeSelectedPlan ? activeSelectedPlan.plan : 'Custom',
-    limit: activeSelectedPlan ? activeSelectedPlan.limit : 5,
-    createdAt: new Date().toISOString()
-  };
+  // Volume & plan breakdowns
+  const statApprovedReceiptsCount = document.getElementById('statApprovedReceiptsCount');
+  if (statApprovedReceiptsCount) {
+    statApprovedReceiptsCount.textContent = (data.totalApprovedCount || 0).toLocaleString();
+  }
+  const statDeclinedReceiptsCount = document.getElementById('statDeclinedReceiptsCount');
+  if (statDeclinedReceiptsCount) {
+    statDeclinedReceiptsCount.textContent = (data.totalDeclinedCount || 0).toLocaleString();
+  }
+  const statVerifiedUsersCount = document.getElementById('statVerifiedUsersCount');
+  if (statVerifiedUsersCount) {
+    statVerifiedUsersCount.textContent = (data.totalVerifiedUsers || 0).toLocaleString();
+  }
+  if (data.planCounts) {
+    const silverEl = document.getElementById('statPlanSilver');
+    if (silverEl) silverEl.textContent = (data.planCounts.silver || 0).toLocaleString();
+    const goldEl = document.getElementById('statPlanGold');
+    if (goldEl) goldEl.textContent = (data.planCounts.gold || 0).toLocaleString();
+    const diamondEl = document.getElementById('statPlanDiamond');
+    if (diamondEl) diamondEl.textContent = (data.planCounts.diamond || 0).toLocaleString();
+  }
+  
+  depositsCache.today = today;
+  depositsCache.yesterday = data.yesterday || 0;
+  depositsCache.sevenDays = sevenDays;
+  depositsCache.month = month;
+  depositsCache.year = year;
+  depositsCache.total = receipts;
 
-  firebase.database().ref('settings/currentKey').set(keyVal);
-  firebase.database().ref('keys_history').push(keyData)
-    .then(() => showToast(`Key ${keyVal} activated successfully!`));
-}
-
-function renderKeysHistory() {
-  const container = document.getElementById('keyHistory');
-  if (!container) return;
-
-  if (dbData.keysHistory.length === 0) {
-    container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No history yet</div>`;
-    return;
+  function normalizeCache(dataVal) {
+    if (dataVal && typeof dataVal === 'object') {
+      return {
+        today: dataVal.today || 0,
+        yesterday: dataVal.yesterday || 0,
+        sevenDays: dataVal.sevenDays || 0,
+        month: dataVal.month || 0,
+        year: dataVal.year || 0,
+        total: dataVal.total || dataVal.amount || 0
+      };
+    }
+    const val = Number(dataVal) || 0;
+    return { today: val, yesterday: val, sevenDays: val, month: val, year: val, total: val };
   }
 
-  container.innerHTML = dbData.keysHistory.reverse().map(item => `
-    <div class="history-item">
-      <div>
-        <div class="history-key">${item.key}</div>
-        <div class="history-date">${item.plan || 'Standard'} • ${new Date(item.createdAt).toLocaleString()}</div>
-      </div>
-      <button onclick="copyToClipboard('${item.key}')" class="task-btn-sm" title="Copy Key"><i class="fa-solid fa-copy"></i></button>
-    </div>
-  `).join('');
+  keysCache = normalizeCache(keysRev);
+  verCache = normalizeCache(verRev);
+  upgradeCache = normalizeCache(upgradeRev);
+  keysSoldCache = normalizeCache(data.keysSold || keys);
+
+  updateDepositTimeframeDisplay();
+  updateKeysSoldTimeframeDisplay();
+
+  document.getElementById('statApprovedWithdrawals').textContent = '₦' + withdrawals.toLocaleString();
 }
 
-/* Receipts Verification */
-function switchReceiptCategory() {
-  const cat = document.getElementById('receiptCategorySelect').value;
-  document.getElementById('receiptPanel_key').style.display = cat === 'key' ? 'block' : 'none';
-  document.getElementById('receiptPanel_upgrade').style.display = cat === 'upgrade' ? 'block' : 'none';
-  document.getElementById('receiptPanel_verification').style.display = cat === 'verification' ? 'block' : 'none';
+function parseLocaleDate(dateStr) {
+  if (!dateStr) return 0;
+  const parsed = Date.parse(dateStr);
+  if (!isNaN(parsed)) return parsed;
+  try {
+    const cleanStr = dateStr.replace(/[^0-9\/\-:\s,ap]/gi, '').trim();
+    const parts = cleanStr.split(/[\s,]+/);
+    if (parts.length >= 2) {
+      const datePart = parts[0];
+      const timePart = parts[1];
+      const isPM = dateStr.toLowerCase().includes('pm');
+      const isAM = dateStr.toLowerCase().includes('am');
+      const dateSubparts = datePart.split(/[\/\-]/);
+      const timeSubparts = timePart.split(':');
+      if (dateSubparts.length === 3 && timeSubparts.length >= 2) {
+        let year = parseInt(dateSubparts[2]);
+        if (year < 100) year += 2000;
+        let month = parseInt(dateSubparts[1]) - 1;
+        let day = parseInt(dateSubparts[0]);
+        if (day > 12) {
+          month = parseInt(dateSubparts[1]) - 1;
+          day = parseInt(dateSubparts[0]);
+        } else if (month + 1 > 12) {
+          month = parseInt(dateSubparts[0]) - 1;
+          day = parseInt(dateSubparts[1]);
+        }
+        let hour = parseInt(timeSubparts[0]);
+        const min = parseInt(timeSubparts[1]);
+        const sec = timeSubparts[2] ? parseInt(timeSubparts[2]) : 0;
+        if (isPM && hour < 12) hour += 12;
+        if (isAM && hour === 12) hour = 0;
+        const d = new Date(year, month, day, hour, min, sec);
+        if (!isNaN(d.getTime())) return d.getTime();
+      }
+    }
+  } catch (e) {
+    console.warn("Manual date parse failed:", dateStr, e);
+  }
+  return 0;
 }
+
+// ========== RECEIPTS CONTROLLERS ==========
+let allReceipts = [];
 
 function loadAllReceipts() {
-  renderReceipts();
-}
-
-function renderReceipts() {
-  ['key', 'upgrade', 'verification'].forEach(cat => {
-    const tbody = document.getElementById(`receiptListTable_${cat}`);
-    if (!tbody) return;
-
-    const filtered = dbData.receipts.filter(r => (r.type || 'key') === cat);
-
-    if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No receipts found for this category.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = filtered.map(r => `
-      <tr style="border-bottom:1px solid var(--border);">
-        <td style="padding:12px; text-align:center;"><input type="checkbox" class="receipt-select-${cat}" value="${r.id}" onchange="updateBulkButtons('${cat}')"></td>
-        <td style="padding:12px; font-size:12px;">${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : 'N/A'}</td>
-        <td style="padding:12px; font-size:12px;"><strong>${r.userName || 'User'}</strong><br><span style="color:var(--text3);">${r.userPhone || ''}</span></td>
-        <td style="padding:12px; font-size:12px; text-transform:uppercase;"><span class="badge" style="background:var(--surface2); color:var(--accent);">${r.type || 'key'}</span></td>
-        <td style="padding:12px; font-size:12px; font-family:'JetBrains Mono';">₦${(parseFloat(r.amount) || 0).toLocaleString()}</td>
-        <td style="padding:12px;"><a href="${r.imageUrl}" target="_blank" style="color:var(--accent); text-decoration:underline; font-size:12px;">View Proof</a></td>
-        <td style="padding:12px; text-align:right;">
-          ${r.status === 'pending' ? `
-            <button onclick="approveReceipt('${r.id}')" style="background:#10b981; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; margin-right:4px;">Approve</button>
-            <button onclick="declineReceipt('${r.id}')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;">Decline</button>
-          ` : `<span style="font-size:11px; font-weight:700; color:${r.status === 'approved' ? '#10b981' : '#ef4444'}; text-transform:uppercase;">${r.status}</span>`}
-        </td>
-      </tr>
-    `).join('');
-  });
-}
-
-function approveReceipt(id) {
-  const r = dbData.receipts.find(item => item.id === id);
-  if (!r) return;
-
-  const updates = {};
-  updates[`receipts/${id}/status`] = 'approved';
-
-  // If receipt is for account verification, grant verified status to user
-  if (r.type === 'verification' && r.userId) {
-    updates[`users/${r.userId}/isVerified`] = true;
-  }
-  // If receipt is for plan upgrade, update user plan
-  if (r.type === 'upgrade' && r.userId && r.targetPlan) {
-    updates[`users/${r.userId}/plan`] = r.targetPlan;
-  }
-
-  firebase.database().ref().update(updates)
-    .then(() => showToast('Receipt approved successfully!'));
-}
-
-function declineReceipt(id) {
-  firebase.database().ref(`receipts/${id}/status`).set('declined')
-    .then(() => showToast('Receipt declined.'));
-}
-
-function toggleSelectAll(checkbox, cat) {
-  document.querySelectorAll(`.receipt-select-${cat}`).forEach(cb => cb.checked = checkbox.checked);
-  updateBulkButtons(cat);
-}
-
-function updateBulkButtons(cat) {
-  const selected = Array.from(document.querySelectorAll(`.receipt-select-${cat}:checked`));
-  const count = selected.length;
+  const badgeEl = document.getElementById('receiptsBadge');
   
-  const approveBtn = document.getElementById(`bulkApproveBtn_${cat}`);
-  const deleteBtn = document.getElementById(`bulkDeleteBtn_${cat}`);
-
-  if (approveBtn) {
-    approveBtn.style.display = count > 0 ? 'inline-flex' : 'none';
-    document.getElementById(`bulkApproveCount_${cat}`).innerText = count;
-  }
-  if (deleteBtn) {
-    deleteBtn.style.display = count > 0 ? 'inline-flex' : 'none';
-    document.getElementById(`bulkDeleteCount_${cat}`).innerText = count;
-  }
-}
-
-function bulkAction(cat, action) {
-  const selected = Array.from(document.querySelectorAll(`.receipt-select-${cat}:checked`)).map(cb => cb.value);
-  if (selected.length === 0) return;
-
-  const updates = {};
-  selected.forEach(id => {
-    if (action === 'approve') updates[`receipts/${id}/status`] = 'approved';
-    if (action === 'delete') updates[`receipts/${id}`] = null;
-  });
-
-  firebase.database().ref().update(updates)
-    .then(() => showToast(`Bulk ${action} executed!`));
+  document.getElementById('receiptListTable_key').innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center; color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading payout key receipts...</td></tr>';
+  document.getElementById('receiptListTable_upgrade').innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center; color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading plan upgrade receipts...</td></tr>';
+  document.getElementById('receiptListTable_verification').innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center; color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading verification receipts...</td></tr>';
+  
+  fetch(API_URL + '/api/receipts/list')
+    .then(res => res.json())
+    .then(data => {
+      let receipts = data.receipts || [];
+      allReceipts = receipts;
+      
+      const pendingCount = receipts.filter(r => {
+        const s = (r.status || '').toLowerCase();
+        return s === 'pending' || s === 'pending_verification';
+      }).length;
+      
+      if (badgeEl) badgeEl.textContent = pendingCount;
+      if (badgeEl) badgeEl.style.display = pendingCount > 0 ? 'flex' : 'none';
+      
+      renderReceiptsTable(receipts);
+    })
+    .catch(err => {
+      console.error('Error fetching receipts:', err);
+      const errRow = '<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">Failed to load receipts.</td></tr>';
+      document.getElementById('receiptListTable_key').innerHTML = errRow;
+      document.getElementById('receiptListTable_upgrade').innerHTML = errRow;
+      document.getElementById('receiptListTable_verification').innerHTML = errRow;
+    });
 }
 
 function purgeAllReceipts() {
   Swal.fire({
-    title: 'Purge All Receipts?',
-    text: 'This action will permanently delete all uploaded payment proofs from the database!',
+    title: 'Purge Receipts History?',
+    text: 'This will delete ALL old receipts permanently from the database. Going forward, only NEW user receipts will be recorded.',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ef4444',
-    confirmButtonText: 'Yes, Purge All'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      firebase.database().ref('receipts').remove()
-        .then(() => showToast('All receipts purged!'));
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Yes, Purge All',
+    background: '#1e293b',
+    color: '#f8fafc'
+  }).then(res => {
+    if (res.isConfirmed) {
+      Swal.fire({ title: 'Purging receipts...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      
+      fetch(API_URL + '/api/receipts/purge', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.status) {
+            Swal.fire({ icon: 'success', title: 'Purged!', text: 'All old receipts deleted. Now only new user submissions will be recorded.', confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+            loadAllReceipts();
+          } else {
+            Swal.fire({ icon: 'error', title: 'Purge Failed', text: data.error || 'Delete failed', confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+          }
+        })
+        .catch(err => {
+          console.error('Purge error:', err);
+          Swal.fire({ icon: 'error', title: 'Purge Failed', text: err.message, confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+        });
     }
   });
 }
 
-/* Notifications Broadcast */
-function sendAdminNotification() {
-  const recipient = document.getElementById('msgRecipient').value.trim();
-  const title = document.getElementById('msgTitle').value.trim();
-  const body = document.getElementById('msgBody').value.trim();
+function renderReceiptsTable(receipts) {
+  const tableKey = document.getElementById('receiptListTable_key');
+  const tableUpgrade = document.getElementById('receiptListTable_upgrade');
+  const tableVerification = document.getElementById('receiptListTable_verification');
 
-  if (!title || !body) {
-    showToast('Please enter both title and message body', true);
+  tableKey.innerHTML = '';
+  tableUpgrade.innerHTML = '';
+  tableVerification.innerHTML = '';
+
+  let countKey = 0, countUpgrade = 0, countVerification = 0;
+
+  receipts.forEach(function(r) {
+    const isPending = r.status === 'pending_verification' || r.status === 'pending';
+    let statusClass = 'badge-pending';
+    let statusLabel = 'Pending';
+    
+    if (r.status === 'Approved' || r.status === 'approved' || r.status === 'verified') {
+      statusClass = 'badge-approved';
+      statusLabel = 'Approved ✅';
+    } else if (r.status === 'Declined' || r.status === 'declined' || r.status === 'rejected') {
+      statusClass = 'badge-rejected';
+      statusLabel = 'Declined ❌';
+    }
+    
+    const typeLabel = r.type === 'account_verification' 
+      ? 'Account Verification' 
+      : (r.type === 'junior_settlement' || r.type === 'junior_payment' ? 'Junior Commission' : (r.flowType || r.type || 'Payment'));
+    
+    const details = (r.type === 'junior_settlement' || r.type === 'junior_payment')
+      ? `Commission Paid: ₦${parseFloat(r.amount || 0).toLocaleString()}`
+      : (r.plan ? `${r.plan} (₦${parseFloat(r.amount || 0).toLocaleString()})` : `Verify Fee (₦${parseFloat(r.feeAmount || 35200).toLocaleString()})`);
+    
+    const rType = (r.type || '').toLowerCase();
+    const isKeyType = (rType === 'payout' || rType === 'key' || rType === 'payout_key_purchase' || rType === 'payout_key' || rType === 'payoutkey' || (r.plan && r.plan.toLowerCase().includes('key')));
+    const isUpgradeType = (rType === 'upgrade');
+
+    let suffix = 'verification';
+    let targetTable = tableVerification;
+
+    if (isKeyType) {
+      suffix = 'key';
+      targetTable = tableKey;
+      countKey++;
+    } else if (isUpgradeType) {
+      suffix = 'upgrade';
+      targetTable = tableUpgrade;
+      countUpgrade++;
+    } else {
+      countVerification++;
+    }
+
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--border)';
+    
+    tr.innerHTML = `
+      <td style="padding:12px; text-align:center; vertical-align:middle;">
+        <input type="checkbox" class="receipt-select-chk-${suffix}" value="${r.id}" onchange="updateBulkButtons('${suffix}')" style="cursor:pointer; width:15px; height:15px; accent-color:#10b981;">
+      </td>
+      <td style="padding:12px; font-size:12px; color:var(--text);">${r.date || '—'}</td>
+      <td style="padding:12px; font-size:12px;">
+        <div style="font-weight:700; color:var(--text);">${r.userName || r.accountName || 'Unknown'}</div>
+        <div style="font-size:11px; color:var(--text3); font-family:monospace;">${r.userId || r.phone || '—'}</div>
+      </td>
+      <td style="padding:12px; font-size:12px;"><span style="background:var(--surface2); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700; color:var(--accent);">${typeLabel.toUpperCase()}</span></td>
+      <td style="padding:12px; font-size:12px; color:var(--text); font-weight:600;">${details}</td>
+      <td style="padding:12px; font-size:12px;">
+        <button onclick="viewReceiptImage('${r.id}')" style="background:#4f46e5; border:none; padding:6px 12px; border-radius:6px; color:white; font-size:11px; font-weight:700; cursor:pointer;">
+          <i class="fa-solid fa-image"></i> View Proof
+        </button>
+      </td>
+      <td style="padding:12px; font-size:12px; text-align:right;">
+        <div style="display:inline-flex; gap:8px; align-items:center; justify-content:flex-end;">
+          ${isPending ? `
+            <button onclick="approveReceipt('${r.id}', '${r._collection || 'receipts'}')" style="background:#10b981; border:none; padding:6px 12px; border-radius:8px; color:white; font-weight:800; cursor:pointer;">Approve</button>
+            <button onclick="declineReceipt('${r.id}', '${r._collection || 'receipts'}')" style="background:#ef4444; border:none; padding:6px 12px; border-radius:8px; color:white; font-weight:800; cursor:pointer;">Decline</button>
+          ` : `<span class="${statusClass}" style="padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700;">${statusLabel}</span>`}
+          
+          <button onclick="deleteReceipt('${r.id}')" style="background:#ef4444; border:none; padding:6px 10px; border-radius:8px; color:white; font-weight:700; cursor:pointer; margin-left:6px;" title="Delete Receipt">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      </td>
+    `;
+    targetTable.appendChild(tr);
+  });
+
+  if (countKey === 0) {
+    tableKey.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No new payout key receipts.</td></tr>';
+  }
+  if (countUpgrade === 0) {
+    tableUpgrade.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No new plan upgrade receipts.</td></tr>';
+  }
+  if (countVerification === 0) {
+    tableVerification.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No new account verification receipts.</td></tr>';
+  }
+}
+
+// Switch receipts display category using the top dropdown selector
+function switchReceiptCategory() {
+  const category = document.getElementById('receiptCategorySelect').value;
+  document.getElementById('receiptPanel_key').style.display = category === 'key' ? 'block' : 'none';
+  document.getElementById('receiptPanel_upgrade').style.display = category === 'upgrade' ? 'block' : 'none';
+  document.getElementById('receiptPanel_verification').style.display = category === 'verification' ? 'block' : 'none';
+}
+
+function deleteReceipt(id) {
+  Swal.fire({
+    title: 'Delete Receipt?',
+    text: 'This will permanently delete the payment receipt from the database.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Yes, Delete',
+    background: '#1e293b',
+    color: '#f8fafc'
+  }).then(res => {
+    if (res.isConfirmed) {
+      Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      
+      fetch(API_URL + `/api/admin/receipts/${id}`, {
+        method: 'DELETE'
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({ icon: 'success', title: 'Deleted', text: 'Receipt deleted successfully.', confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+          loadAllReceipts();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Deletion Failed', text: data.error || 'Operation failed', confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Deletion Failed', text: err.message || 'Operation failed', confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+      });
+    }
+  });
+}
+
+function toggleSelectAll(master, suffix) {
+  const checkboxes = document.querySelectorAll(`.receipt-select-chk-${suffix}`);
+  checkboxes.forEach(chk => {
+    chk.checked = master.checked;
+  });
+  updateBulkButtons(suffix);
+}
+
+function updateBulkButtons(suffix) {
+  const checked = document.querySelectorAll(`.receipt-select-chk-${suffix}:checked`);
+  const count = checked.length;
+  
+  const delBtn = document.getElementById(`bulkDeleteBtn_${suffix}`);
+  const delCountSpan = document.getElementById(`bulkDeleteCount_${suffix}`);
+  const appBtn = document.getElementById(`bulkApproveBtn_${suffix}`);
+  const appCountSpan = document.getElementById(`bulkApproveCount_${suffix}`);
+  
+  if (delBtn && delCountSpan) {
+    delBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+    delCountSpan.textContent = count;
+  }
+  if (appBtn && appCountSpan) {
+    appBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+    appCountSpan.textContent = count;
+  }
+}
+
+function bulkAction(type, action, suffix) {
+  const checked = document.querySelectorAll(`.receipt-select-chk-${suffix}:checked`);
+  if (checked.length === 0) return;
+  const ids = Array.from(checked).map(chk => chk.value);
+
+  if (action === 'delete') {
+    Swal.fire({
+      title: 'Delete Selected Receipts?',
+      text: `Are you sure you want to permanently delete these ${ids.length} selected receipts?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#2c3b63',
+      confirmButtonText: 'Yes, Delete All',
+      cancelButtonText: 'Cancel',
+      background: '#131a2e',
+      color: '#f1f5f9'
+    }).then(res => {
+      if (res.isConfirmed) {
+        Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+        fetch(API_URL + '/api/admin/receipts/bulk-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.status) {
+            Swal.fire({ icon: 'success', title: 'Deleted', text: data.message, confirmButtonColor: '#10b981', background: '#131a2e', color: '#f1f5f9' });
+            const master = document.getElementById(`selectAll_${suffix}`);
+            if (master) master.checked = false;
+            updateBulkButtons(suffix);
+            loadAllReceipts();
+          } else {
+            showToast(data.error || 'Failed to delete selected receipts', 'error');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          showToast('Connection error', 'error');
+        });
+      }
+    });
+  } else if (action === 'approve') {
+    Swal.fire({
+      title: 'Approve Selected Receipts?',
+      text: `Are you sure you want to verify and approve these ${ids.length} selected receipts? This will credit their accounts and generate payout keys/upgrades immediately.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#2c3b63',
+      confirmButtonText: 'Yes, Approve All',
+      cancelButtonText: 'Cancel',
+      background: '#131a2e',
+      color: '#f1f5f9'
+    }).then(res => {
+      if (res.isConfirmed) {
+        Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+        fetch(API_URL + '/api/admin/receipts/bulk-approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.status) {
+            Swal.fire({ icon: 'success', title: 'Approved', text: data.message, confirmButtonColor: '#10b981', background: '#131a2e', color: '#f1f5f9' });
+            const master = document.getElementById(`selectAll_${suffix}`);
+            if (master) master.checked = false;
+            updateBulkButtons(suffix);
+            loadAllReceipts();
+          } else {
+            showToast(data.error || 'Failed to approve selected receipts', 'error');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          showToast('Connection error', 'error');
+        });
+      }
+    });
+  }
+}
+
+function viewReceiptImage(id) {
+  const receipt = allReceipts.find(r => r.id === id);
+  if (!receipt) return;
+  
+  const imageUrl = API_URL + '/api/receipts/image/' + id;
+  
+  Swal.fire({
+    title: 'Payment Proof',
+    html: `
+      <div style="font-size:12px; color:#94a3b8; margin-bottom:10px;">Submitted by ${receipt.userName || 'User'} (${receipt.userId || receipt.phone})</div>
+      <div style="min-height:200px; display:flex; align-items:center; justify-content:center; background:#0f172a; border-radius:12px; border:1px solid #334155; padding:8px;">
+        <img src="${imageUrl}" style="max-width:100%; border-radius:8px; max-height:450px; object-fit:contain;" onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Attachment';" />
+      </div>
+    `,
+    confirmButtonText: 'Close',
+    confirmButtonColor: '#6366f1',
+    background: '#1e293b',
+    color: '#f8fafc'
+  });
+}
+
+function approveReceipt(id, collectionName) {
+  const receipt = allReceipts.find(r => r.id === id);
+  if (!receipt) return;
+  
+  const phone = receipt.userId || receipt.phone;
+  
+  Swal.fire({
+    title: 'Approve Payment?',
+    text: `Are you sure you want to approve this ${receipt.type || 'payment'} for ₦${parseFloat(receipt.amount || receipt.feeAmount || 0).toLocaleString()}?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#10b981',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Yes, Approve'
+  }).then(res => {
+    if (res.isConfirmed) {
+      Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      
+      fetch(API_URL + '/api/admin/receipts/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id, phone: phone })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({ icon: 'success', title: 'Approved', text: 'Payment approved and user account verified!', confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+          loadAllReceipts();
+          loadAllUsersList();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Approval Failed', text: data.error || 'Operation failed', confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Approval Failed', text: err.message || 'Operation failed', confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+      });
+    }
+  });
+}
+
+function declineReceipt(id, collectionName) {
+  const receipt = allReceipts.find(r => r.id === id);
+  if (!receipt) return;
+  
+  const phone = receipt.userId || receipt.phone;
+  
+  Swal.fire({
+    title: 'Decline Payment?',
+    text: 'Reason for decline:',
+    input: 'text',
+    inputPlaceholder: 'e.g. Invalid bank reference / receipt image not readable',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Yes, Decline'
+  }).then(res => {
+    if (res.isConfirmed) {
+      const reason = res.value || 'Payment proof could not be verified.';
+      Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      
+      fetch(API_URL + '/api/admin/receipts/decline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id, phone: phone, reason: reason })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({ icon: 'info', title: 'Declined', text: 'Payment receipt declined.', confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+          loadAllReceipts();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Decline Failed', text: data.error || 'Operation failed', confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Decline Failed', text: err.message || 'Operation failed', confirmButtonColor: '#6366f1', background: '#1e293b', color: '#f8fafc' });
+      });
+    }
+  });
+}
+
+function sendAdminNotification() {
+  const phone = document.getElementById('msgRecipient').value.trim();
+  const title = document.getElementById('msgTitle').value.trim();
+  const content = document.getElementById('msgBody').value.trim();
+  
+  if (!phone || !title || !content) {
+    Swal.fire({ icon: 'error', title: 'Input Error', text: 'All message fields are required.', confirmButtonColor: '#6366f1' });
     return;
   }
-
-  const notification = {
-    recipient,
-    title,
-    body,
-    createdAt: new Date().toISOString()
-  };
-
-  firebase.database().ref('notifications').push(notification)
-    .then(() => {
-      showToast('Notification broadcast sent!');
+  
+  Swal.fire({ title: 'Sending...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+  
+  fetch(API_URL + '/api/admin/super/send-message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, title, content, type: 'alert' })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status) {
+      Swal.fire({ icon: 'success', title: 'Message Sent', text: 'Your notification has been dispatched successfully!', confirmButtonColor: '#6366f1' });
       document.getElementById('msgTitle').value = '';
       document.getElementById('msgBody').value = '';
+    } else {
+      Swal.fire({ icon: 'error', title: 'Failed', text: data.error || 'Could not send message', confirmButtonColor: '#6366f1' });
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Server connection offline.', confirmButtonColor: '#6366f1' });
+  });
+}
+
+// ========== SUPER WITHDRAWALS ==========
+let withdrawalsCurrentPage = 1;
+const withdrawalsLimit = 50;
+let withdrawalsTotalPages = 1;
+
+function loadSuperWithdrawals(page = 1) {
+  withdrawalsCurrentPage = page;
+  
+  const table = document.getElementById('superWithdrawalsTable');
+  if (table) {
+    table.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color:var(--text3);"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading withdrawals...</td></tr>';
+  }
+
+  fetch(`${API_URL}/api/admin/super/withdrawals?page=${page}&limit=${withdrawalsLimit}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status && Array.isArray(data.withdrawals)) {
+        withdrawalsTotalPages = data.pages || 1;
+        renderSuperWithdrawals(data.withdrawals);
+        updateWithdrawalsPaginationUI(data.page || page, withdrawalsTotalPages);
+      } else {
+        table.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color:var(--text3);">No withdrawal requests found</td></tr>';
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      table.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color:var(--danger);">Failed to load withdrawals</td></tr>';
     });
 }
 
-function triggerDailyReminders() {
-  showToast('Daily mining reminders triggered for active users!');
+function updateWithdrawalsPaginationUI(currentPage, totalPages) {
+  const prevBtn = document.getElementById('btnWithdrawalsPrev');
+  const nextBtn = document.getElementById('btnWithdrawalsNext');
+  const txtPage = document.getElementById('txtWithdrawalsPage');
+  const paginationContainer = document.getElementById('withdrawalsPagination');
+
+  if (!prevBtn || !nextBtn || !txtPage) return;
+
+  txtPage.textContent = `Page ${currentPage} of ${totalPages}`;
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+
+  prevBtn.style.opacity = currentPage <= 1 ? '0.5' : '1';
+  prevBtn.style.cursor = currentPage <= 1 ? 'not-allowed' : 'pointer';
+  nextBtn.style.opacity = currentPage >= totalPages ? '0.5' : '1';
+  nextBtn.style.cursor = currentPage >= totalPages ? 'not-allowed' : 'pointer';
+  
+  if (paginationContainer) {
+    paginationContainer.style.display = totalPages > 1 ? 'flex' : 'none';
+  }
 }
 
-/* Withdrawals Table & Actions */
-function loadSuperWithdrawals() {
-  renderWithdrawalsTable();
+function changeWithdrawalsPage(delta) {
+  const targetPage = withdrawalsCurrentPage + delta;
+  if (targetPage >= 1 && targetPage <= withdrawalsTotalPages) {
+    loadSuperWithdrawals(targetPage);
+  }
 }
 
-function renderWithdrawalsTable() {
-  const tbody = document.getElementById('superWithdrawalsTable');
-  if (!tbody) return;
+function renderSuperWithdrawals(withdrawals) {
+  const table = document.getElementById('superWithdrawalsTable');
+  const selectAll = document.getElementById('selectAllSuperWithdrawals');
+  if (selectAll) selectAll.checked = false;
+  updateSuperWithdrawalBulkButtons();
 
-  if (dbData.withdrawals.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No withdrawal requests found.</td></tr>`;
+  if (withdrawals.length === 0) {
+    table.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No withdrawal requests found</td></tr>';
     return;
   }
 
-  const start = (currentWithdrawalsPage - 1) * ITEMS_PER_PAGE;
-  const pageItems = dbData.withdrawals.slice(start, start + ITEMS_PER_PAGE);
+  table.innerHTML = '';
+  withdrawals.forEach(w => {
+    let statusClass = 'badge-pending';
+    let statusLabel = 'Pending';
+    if (w.status === 'Approved' || w.status === 'approved') {
+      statusClass = 'badge-approved';
+      statusLabel = 'Approved ✅';
+    } else if (w.status === 'Rejected' || w.status === 'rejected') {
+      statusClass = 'badge-rejected';
+      statusLabel = 'Declined ❌';
+    }
 
-  tbody.innerHTML = pageItems.map(w => `
-    <tr style="border-bottom:1px solid var(--border);">
-      <td style="padding:12px; text-align:center;"><input type="checkbox" class="super-wd-select" value="${w.id}" onchange="updateSuperWdBulkButtons()"></td>
-      <td style="padding:12px; font-size:12px;">${w.createdAt ? new Date(w.createdAt).toLocaleDateString() : 'N/A'}</td>
-      <td style="padding:12px; font-size:12px;"><strong>${w.userName || 'User'}</strong><br><span style="color:var(--text3);">${w.userPhone || ''}</span></td>
-      <td style="padding:12px; font-size:12px;">${w.bankName || 'Bank'}<br><span style="font-family:'JetBrains Mono';">${w.accountNumber || ''}</span></td>
-      <td style="padding:12px; font-size:12px; font-family:'JetBrains Mono'; color:var(--accent);">₦${(parseFloat(w.amount) || 0).toLocaleString()}</td>
-      <td style="padding:12px;"><span style="font-size:11px; font-weight:700; color:${w.status === 'approved' ? '#10b981' : (w.status === 'declined' ? '#ef4444' : '#f59e0b')}; text-transform:uppercase;">${w.status || 'pending'}</span></td>
-      <td style="padding:12px; text-align:right;">
-        ${w.status === 'pending' ? `
-          <button onclick="approveWithdrawal('${w.id}')" style="background:#10b981; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; margin-right:4px;">Approve</button>
-          <button onclick="declineWithdrawal('${w.id}')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;">Decline</button>
-        ` : '—'}
+    const isPending = w.status === 'Pending' || w.status === 'pending';
+    const isUserVerified = w.is_verified === 1 || w.is_verified === true || w.is_verified === '1';
+
+    let actionsHtml = `<span style="background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.2); color:#818cf8; padding:5px 10px; border-radius:6px; font-weight:700; font-size:11px; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-eye"></i> Logged Attempt (₦${parseFloat(w.amount || 0).toLocaleString()})</span>`;
+
+    if (isPending) {
+      if (isUserVerified) {
+        actionsHtml = `
+          <div style="display:flex; gap:8px; justify-content:flex-end;">
+            <button onclick="approveSuperWithdrawal('${w.id}')" style="background:#10b981; border:none; padding:6px 12px; border-radius:8px; color:white; font-weight:700; cursor:pointer;" title="Approve Payout">
+              <i class="fa-solid fa-check"></i> Approve
+            </button>
+            <button onclick="rejectSuperWithdrawal('${w.id}')" style="background:#ef4444; border:none; padding:6px 12px; border-radius:8px; color:white; font-weight:700; cursor:pointer;" title="Reject (Bounce) Payout">
+              <i class="fa-solid fa-rotate-left"></i> Reject
+            </button>
+          </div>
+        `;
+      } else {
+        actionsHtml = `
+          <span style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); color:#fbbf24; padding:5px 10px; border-radius:6px; font-weight:700; font-size:11px; display:inline-flex; align-items:center; gap:5px;" title="This first withdrawal bounces back automatically">
+            <i class="fa-solid fa-clock-rotate-left"></i> Auto-Bouncing (Unverified)
+          </span>
+        `;
+      }
+    }
+
+    const chkHtml = isPending ? `<input type="checkbox" class="super-withdrawal-chk" value="${w.id}" onchange="updateSuperWithdrawalBulkButtons()" style="cursor:pointer; width:15px; height:15px; accent-color:#10b981;">` : '—';
+
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--border)';
+    tr.innerHTML = `
+      <td style="padding:12px; text-align:center;">${chkHtml}</td>
+      <td style="padding:12px; font-size:12px; color:var(--text3);">${new Date(w.created_at).toLocaleString()}</td>
+      <td style="padding:12px;">
+        <div style="color:white; font-weight:700;">${w.full_name || '—'}</div>
+        <div style="font-size:11px; color:var(--text3); font-family:monospace; margin-top:2px;">${w.phone || '—'}</div>
       </td>
-    </tr>
-  `).join('');
-
-  // Pagination Controls
-  const totalPages = Math.ceil(dbData.withdrawals.length / ITEMS_PER_PAGE) || 1;
-  document.getElementById('withdrawalsPagination').style.display = totalPages > 1 ? 'flex' : 'none';
-  document.getElementById('txtWithdrawalsPage').innerText = `Page ${currentWithdrawalsPage} of ${totalPages}`;
+      <td style="padding:12px;">
+        <div style="color:var(--text);">${w.bank_name || '—'}</div>
+        <div style="font-size:11px; color:var(--text3); font-family:monospace; margin-top:2px;">${w.account_number || '—'}</div>
+      </td>
+      <td style="padding:12px; color:#10b981; font-weight:800; font-size:14px;">₦${parseFloat(w.amount || 0).toLocaleString()}</td>
+      <td style="padding:12px;"><span class="${statusClass}" style="padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700;">${w.status}</span></td>
+      <td style="padding:12px; text-align:right;">${actionsHtml}</td>
+    `;
+    table.appendChild(tr);
+  });
 }
 
-function changeWithdrawalsPage(dir) {
-  const totalPages = Math.ceil(dbData.withdrawals.length / ITEMS_PER_PAGE) || 1;
-  currentWithdrawalsPage = Math.max(1, Math.min(totalPages, currentWithdrawalsPage + dir));
-  renderWithdrawalsTable();
-}
+function updateSuperWithdrawalBulkButtons() {
+  const chks = document.querySelectorAll('.super-withdrawal-chk:checked');
+  const count = chks.length;
+  const btnApprove = document.getElementById('btnSuperBulkApproveWithdrawals');
+  const btnDecline = document.getElementById('btnSuperBulkDeclineWithdrawals');
+  const txtApproveCount = document.getElementById('txtSuperBulkApproveCount');
+  const txtDeclineCount = document.getElementById('txtSuperBulkDeclineCount');
 
-function approveWithdrawal(id) {
-  firebase.database().ref(`withdrawals/${id}/status`).set('approved')
-    .then(() => showToast('Withdrawal approved!'));
-}
-
-function declineWithdrawal(id) {
-  firebase.database().ref(`withdrawals/${id}/status`).set('declined')
-    .then(() => showToast('Withdrawal declined.'));
+  if (btnApprove && btnDecline) {
+    if (count > 0) {
+      btnApprove.style.display = 'inline-flex';
+      btnDecline.style.display = 'inline-flex';
+      if (txtApproveCount) txtApproveCount.textContent = count;
+      if (txtDeclineCount) txtDeclineCount.textContent = count;
+    } else {
+      btnApprove.style.display = 'none';
+      btnDecline.style.display = 'none';
+    }
+  }
 }
 
 function toggleSelectAllSuperWithdrawals(checked) {
-  document.querySelectorAll('.super-wd-select').forEach(cb => cb.checked = checked);
-  updateSuperWdBulkButtons();
-}
-
-function updateSuperWdBulkButtons() {
-  const selected = Array.from(document.querySelectorAll('.super-wd-select:checked'));
-  const count = selected.length;
-  document.getElementById('btnSuperBulkApproveWithdrawals').style.display = count > 0 ? 'inline-flex' : 'none';
-  document.getElementById('btnSuperBulkDeclineWithdrawals').style.display = count > 0 ? 'inline-flex' : 'none';
-  document.getElementById('txtSuperBulkApproveCount').innerText = count;
-  document.getElementById('txtSuperBulkDeclineCount').innerText = count;
+  const chks = document.querySelectorAll('.super-withdrawal-chk');
+  chks.forEach(chk => chk.checked = checked);
+  updateSuperWithdrawalBulkButtons();
 }
 
 function bulkApproveSuperWithdrawals() {
-  const selected = Array.from(document.querySelectorAll('.super-wd-select:checked')).map(cb => cb.value);
-  const updates = {};
-  selected.forEach(id => updates[`withdrawals/${id}/status`] = 'approved');
-  firebase.database().ref().update(updates).then(() => showToast('Withdrawals approved!'));
+  const chks = document.querySelectorAll('.super-withdrawal-chk:checked');
+  const ids = Array.from(chks).map(c => c.value);
+  if (ids.length === 0) return;
+
+  Swal.fire({
+    title: `Approve ${ids.length} Withdrawals?`,
+    text: `Are you sure you want to MASS APPROVE these ${ids.length} selected payouts?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#10b981',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: `Yes, Approve (${ids.length})`,
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(res => {
+    if (res.isConfirmed) {
+      Swal.fire({ title: 'Approving Payouts...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      fetch(API_URL + '/api/admin/super/bulk-approve-withdrawals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({ icon: 'success', title: 'Approved!', text: data.message || 'Withdrawals approved successfully.', confirmButtonColor: '#10b981', background: '#0f1623', color: '#c8d6e5' });
+          const selectAll = document.getElementById('selectAllSuperWithdrawals');
+          if (selectAll) selectAll.checked = false;
+          loadSuperWithdrawals(withdrawalsCurrentPage);
+          loadSuperStats();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Failed', text: data.error || 'Bulk approval failed', confirmButtonColor: '#10b981', background: '#0f1623', color: '#c8d6e5' });
+        }
+      })
+      .catch(err => {
+        Swal.fire({ icon: 'error', title: 'Network Error', text: err.message, confirmButtonColor: '#10b981', background: '#0f1623', color: '#c8d6e5' });
+      });
+    }
+  });
 }
 
 function bulkDeclineSuperWithdrawals() {
-  const selected = Array.from(document.querySelectorAll('.super-wd-select:checked')).map(cb => cb.value);
-  const updates = {};
-  selected.forEach(id => updates[`withdrawals/${id}/status`] = 'declined');
-  firebase.database().ref().update(updates).then(() => showToast('Withdrawals declined!'));
-}
+  const chks = document.querySelectorAll('.super-withdrawal-chk:checked');
+  const ids = Array.from(chks).map(c => c.value);
+  if (ids.length === 0) return;
 
-/* Registered Users Management */
-function loadAllUsersList() {
-  renderUsersTable();
-}
-
-function renderUsersTable() {
-  const tbody = document.getElementById('allUsersListTable');
-  if (!tbody) return;
-
-  const query = (document.getElementById('userSearchInput')?.value || '').toLowerCase();
-  const filtered = dbData.users.filter(u => 
-    (u.name || '').toLowerCase().includes(query) ||
-    (u.phone || '').toLowerCase().includes(query) ||
-    (u.email || '').toLowerCase().includes(query)
-  );
-
-  document.getElementById('usersListCount').innerText = filtered.length;
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="padding:15px; text-align:center; color:var(--text3);">No users found.</td></tr>`;
-    return;
-  }
-
-  const start = (currentUsersPage - 1) * ITEMS_PER_PAGE;
-  const pageItems = filtered.slice(start, start + ITEMS_PER_PAGE);
-
-  tbody.innerHTML = pageItems.map(u => `
-    <tr style="border-bottom:1px solid var(--border);">
-      <td style="padding:10px; font-size:12px;">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
-      <td style="padding:10px; font-size:12px; font-weight:700;">${u.name || 'User'}</td>
-      <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono';">${u.phone || ''}</td>
-      <td style="padding:10px; font-size:12px;">${u.email || ''}</td>
-      <td style="padding:10px; font-size:12px;">${u.referredBy || 'Direct'}</td>
-      <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono'; color:var(--accent);">${u.payoutKey || 'None'}</td>
-      <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono';">₦${(parseFloat(u.balance) || 0).toLocaleString()}</td>
-      <td style="padding:10px;">
-        <span class="badge" style="background:${u.isVerified ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color:${u.isVerified ? '#10b981' : '#ef4444'};">
-          ${u.isVerified ? 'Verified' : 'Unverified'}
-        </span>
-      </td>
-      <td style="padding:10px; text-align:right;">
-        <div class="action-dropdown">
-          <button class="action-dropdown-btn" onclick="toggleUserDropdown('${u.uid}')">Actions <i class="fa-solid fa-chevron-down"></i></button>
-          <div class="action-dropdown-menu" id="userMenu_${u.uid}">
-            <a href="javascript:void(0)" onclick="toggleUserVerify('${u.uid}', ${!u.isVerified})"><i class="fa-solid fa-shield"></i> ${u.isVerified ? 'Unverify' : 'Verify Account'}</a>
-            <a href="javascript:void(0)" onclick="editUserBalance('${u.uid}', ${u.balance || 0})"><i class="fa-solid fa-wallet"></i> Edit Balance</a>
-            <div class="dropdown-divider"></div>
-            <a href="javascript:void(0)" onclick="deleteUserAccount('${u.uid}')" style="color:#ef4444;"><i class="fa-solid fa-trash"></i> Delete Account</a>
-          </div>
-        </div>
-      </td>
-    </tr>
-  `).join('');
-
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE) || 1;
-  document.getElementById('usersPagination').style.display = totalPages > 1 ? 'flex' : 'none';
-  document.getElementById('txtUsersPage').innerText = `Page ${currentUsersPage} of ${totalPages}`;
-}
-
-function filterUsers() {
-  currentUsersPage = 1;
-  renderUsersTable();
-}
-
-function changeUsersPage(dir) {
-  currentUsersPage += dir;
-  renderUsersTable();
-}
-
-function toggleUserDropdown(uid) {
-  document.querySelectorAll('.action-dropdown-menu').forEach(m => {
-    if (m.id !== `userMenu_${uid}`) m.classList.remove('show');
-  });
-  const menu = document.getElementById(`userMenu_${uid}`);
-  if (menu) menu.classList.toggle('show');
-}
-
-function toggleUserVerify(uid, targetState) {
-  firebase.database().ref(`users/${uid}/isVerified`).set(targetState)
-    .then(() => showToast(`User verification updated to ${targetState}`));
-}
-
-function editUserBalance(uid, currentBal) {
   Swal.fire({
-    title: 'Edit User Balance',
-    input: 'number',
-    inputValue: currentBal,
+    title: `Decline ${ids.length} Withdrawals?`,
+    text: `Enter reason for rejecting these ${ids.length} withdrawals (user balances will be refunded):`,
+    input: 'text',
+    inputValue: 'Bank account details mismatch or invalid credentials.',
     showCancelButton: true,
-    confirmButtonText: 'Update Balance'
-  }).then((result) => {
-    if (result.isConfirmed && result.value !== '') {
-      firebase.database().ref(`users/${uid}/balance`).set(parseFloat(result.value))
-        .then(() => showToast('User balance updated!'));
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: `Yes, Reject & Refund (${ids.length})`,
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(res => {
+    if (res.isConfirmed && res.value) {
+      Swal.fire({ title: 'Rejecting & Refund...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      fetch(API_URL + '/api/admin/super/bulk-reject-withdrawals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, reason: res.value })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({ icon: 'success', title: 'Declined & Refunded!', text: data.message || 'Withdrawals rejected successfully.', confirmButtonColor: '#10b981', background: '#0f1623', color: '#c8d6e5' });
+          const selectAll = document.getElementById('selectAllSuperWithdrawals');
+          if (selectAll) selectAll.checked = false;
+          loadSuperWithdrawals(withdrawalsCurrentPage);
+          loadSuperStats();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Failed', text: data.error || 'Bulk rejection failed', confirmButtonColor: '#10b981', background: '#0f1623', color: '#c8d6e5' });
+        }
+      })
+      .catch(err => {
+        Swal.fire({ icon: 'error', title: 'Network Error', text: err.message, confirmButtonColor: '#10b981', background: '#0f1623', color: '#c8d6e5' });
+      });
     }
   });
 }
 
-function deleteUserAccount(uid) {
+function approveSuperWithdrawal(id) {
   Swal.fire({
-    title: 'Delete User?',
-    text: 'This will permanently delete this user profile from real-time database.',
+    title: 'Approve Payout?',
+    text: 'Are you sure you want to approve this withdrawal?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#10b981',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Yes, Approve',
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(res => {
+    if (res.isConfirmed) {
+      Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      fetch(API_URL + '/api/admin/super/approve-withdrawal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({ icon: 'success', title: 'Approved', text: 'Payout approved successfully!', confirmButtonColor: '#6366f1' });
+          loadSuperWithdrawals(withdrawalsCurrentPage);
+          loadSuperStats();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Failed', text: data.error || 'Approval failed', confirmButtonColor: '#6366f1' });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Server connection failed', confirmButtonColor: '#6366f1' });
+      });
+    }
+  });
+}
+
+function rejectSuperWithdrawal(id) {
+  Swal.fire({
+    title: 'Decline Payout?',
+    text: 'Reason for decline:',
+    input: 'text',
+    inputPlaceholder: 'e.g. Account number / name mismatch',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ef4444',
-    confirmButtonText: 'Yes, Delete'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      firebase.database().ref(`users/${uid}`).remove()
-        .then(() => showToast('User deleted successfully!'));
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Yes, Decline',
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(res => {
+    if (res.isConfirmed) {
+      const reason = res.value || 'Bank transfer details could not be verified.';
+      Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      fetch(API_URL + '/api/admin/super/reject-withdrawal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, reason })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({ icon: 'success', title: 'Declined', text: 'Payout declined and balance refunded!', confirmButtonColor: '#6366f1' });
+          loadSuperWithdrawals(withdrawalsCurrentPage);
+          loadSuperStats();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Failed', text: data.error || 'Operation failed', confirmButtonColor: '#6366f1' });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Server connection failed', confirmButtonColor: '#6366f1' });
+      });
     }
   });
 }
 
-/* Junior Admins Management */
-function createJuniorAdmin(e) {
-  e.preventDefault();
-  const email = document.getElementById('juniorEmail').value.trim();
-  const password = document.getElementById('juniorPassword').value.trim();
-  const refCode = document.getElementById('juniorRefCode').value.trim();
-  const bankName = document.getElementById('juniorBankName').value.trim();
-  const accountNumber = document.getElementById('juniorAccountNumber').value.trim();
-  const accountName = document.getElementById('juniorAccountName').value.trim();
-
-  const newJunior = {
-    email,
-    password,
-    refCode,
-    bankName,
-    accountNumber,
-    accountName,
-    createdAt: new Date().toISOString()
-  };
-
-  firebase.database().ref('junior_admins').push(newJunior)
-    .then(() => {
-      showToast('Junior Admin account created!');
-      document.getElementById('createJuniorForm').reset();
-    })
-    .catch(err => showToast(err.message, true));
+function triggerDailyReminders() {
+  Swal.fire({
+    title: 'Send Daily Reminders?',
+    text: 'This will send a mining reminder email via Resend to all registered users who have linked a real email address.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#6366f1',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Yes, Send Reminders',
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(result => {
+    if (result.isConfirmed) {
+      Swal.fire({ title: 'Sending...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      
+      fetch(API_URL + '/api/admin/super/trigger-reminders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({ icon: 'success', title: 'Sent', text: data.message, confirmButtonColor: '#6366f1' });
+        } else {
+          Swal.fire({ icon: 'error', title: 'Failed', text: data.error || 'Could not send reminders', confirmButtonColor: '#6366f1' });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Server connection failed', confirmButtonColor: '#6366f1' });
+      });
+    }
+  });
 }
 
-function renderJuniorAdminsTable() {
-  const tbody = document.getElementById('juniorAdminsListTable');
-  if (!tbody) return;
-
-  if (dbData.juniors.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="padding:15px; text-align:center; color:var(--text3);">No Junior Admins created yet.</td></tr>`;
-    return;
-  }
-
-  const adminPct = dbData.settings.adminPercentage || 20;
-
-  let grossTotal = 0;
-  let adminTotal = 0;
-  let netTotal = 0;
-
-  tbody.innerHTML = dbData.juniors.map(j => {
-    const refCount = dbData.users.filter(u => u.referredBy === j.refCode).length;
-    const weeklyGross = (j.weeklyGross || 0);
-    const adminShare = (weeklyGross * adminPct) / 100;
-    const netShare = weeklyGross - adminShare;
-
-    grossTotal += weeklyGross;
-    adminTotal += adminShare;
-    netTotal += netShare;
-
-    return `
-      <tr style="border-bottom:1px solid var(--border);">
-        <td style="padding:10px; font-size:12px; font-weight:700;">${j.email}</td>
-        <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono'; color:var(--accent);">${j.refCode}</td>
-        <td style="padding:10px; font-size:12px;">${refCount} users</td>
-        <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono';">₦${weeklyGross.toLocaleString()}</td>
-        <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono'; color:#ef4444;">₦${adminShare.toLocaleString()}</td>
-        <td style="padding:10px; font-size:12px; font-family:'JetBrains Mono'; color:#10b981;">₦${netShare.toLocaleString()}</td>
-        <td style="padding:10px; font-size:12px;">${j.bankName || 'N/A'}<br><span style="font-family:'JetBrains Mono';">${j.accountNumber || ''}</span></td>
-        <td style="padding:10px; text-align:right;">
-          <button onclick="resetJuniorWeekly('${j.id}')" style="background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; margin-right:4px;">Reset Weekly</button>
-          <button onclick="deleteJuniorAdmin('${j.id}')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;"><i class="fa-solid fa-trash"></i></button>
-        </td>
-      </tr>
-    `;
-  }).join('');
-
-  document.getElementById('juniorTotalGross').innerText = `₦${grossTotal.toLocaleString()}`;
-  document.getElementById('juniorTotalAdminShare').innerText = `₦${adminTotal.toLocaleString()}`;
-  document.getElementById('juniorTotalNetShare').innerText = `₦${netTotal.toLocaleString()}`;
-}
-
-function resetJuniorWeekly(id) {
-  firebase.database().ref(`junior_admins/${id}/weeklyGross`).set(0)
-    .then(() => showToast('Weekly commission reset for junior admin.'));
-}
-
-function deleteJuniorAdmin(id) {
-  firebase.database().ref(`junior_admins/${id}`).remove()
-    .then(() => showToast('Junior admin removed.'));
-}
-
-/* Videos Panel */
-function loadPromoVideos() {
-  renderPromoVideos();
-}
+// ========== VIDEO SUBMISSIONS CONTROLLERS ==========
+let allVideoSubmissions = [];
 
 function loadAllVideoSubmissions() {
-  renderVideoSubmissions();
-}
-
-function addPromoVideo() {
-  const title = document.getElementById('promoVideoTitle').value.trim();
-  const url = document.getElementById('promoVideoUrl').value.trim();
-
-  if (!title || !url) {
-    showToast('Please enter both title and video URL', true);
-    return;
-  }
-
-  firebase.database().ref('promo_videos').push({ title, url, createdAt: new Date().toISOString() })
-    .then(() => {
-      showToast('Promo video added!');
-      document.getElementById('promoVideoTitle').value = '';
-      document.getElementById('promoVideoUrl').value = '';
+  const table = document.getElementById('videoSubmissionListTable');
+  const badgeEl = document.getElementById('videosBadge');
+  
+  if (!table) return;
+  table.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align: center; color: var(--text-muted);">Loading submissions...</td></tr>';
+  
+  fetch(API_URL + '/api/admin/video-submissions')
+    .then(r => r.json())
+    .then(data => {
+      if (data.status && data.submissions) {
+        allVideoSubmissions = data.submissions;
+        const pendingCount = allVideoSubmissions.filter(s => s.status === 'Pending').length;
+        if (badgeEl) {
+          badgeEl.textContent = pendingCount;
+          badgeEl.style.display = pendingCount > 0 ? 'flex' : 'none';
+        }
+        renderVideoSubmissionsTable(allVideoSubmissions);
+      } else {
+        table.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align: center; color: var(--text-muted);">Failed to load video submissions.</td></tr>';
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      table.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align: center; color: var(--text-muted);">Connection error.</td></tr>';
     });
 }
 
-function renderPromoVideos() {
-  const tbody = document.getElementById('promoVideosListTable');
-  if (!tbody) return;
-
-  if (dbData.promoVideos.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="3" style="padding:15px; text-align:center; color:var(--text3);">No promo videos added yet.</td></tr>`;
+function renderVideoSubmissionsTable(subs) {
+  const table = document.getElementById('videoSubmissionListTable');
+  if (!table) return;
+  if (subs.length === 0) {
+    table.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align: center; color: var(--text-muted);">No video submissions yet.</td></tr>';
     return;
   }
-
-  tbody.innerHTML = dbData.promoVideos.map(v => `
-    <tr style="border-bottom:1px solid var(--border);">
-      <td style="padding:10px; font-size:12px; font-weight:700;">${v.title}</td>
-      <td style="padding:10px;"><a href="${v.url}" target="_blank" style="color:var(--accent); font-size:12px; text-decoration:underline;">Watch Video Stream</a></td>
-      <td style="padding:10px; text-align:right;">
-        <button onclick="deletePromoVideo('${v.id}')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;"><i class="fa-solid fa-trash"></i> Delete</button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-function deletePromoVideo(id) {
-  firebase.database().ref(`promo_videos/${id}`).remove()
-    .then(() => showToast('Promo video deleted.'));
-}
-
-function renderVideoSubmissions() {
-  const tbody = document.getElementById('videoSubmissionsListTable');
-  if (!tbody) return;
-
-  if (dbData.videoSubmissions.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="padding:15px; text-align:center; color:var(--text3);">No video submissions yet.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = dbData.videoSubmissions.map(s => `
-    <tr style="border-bottom:1px solid var(--border);">
-      <td style="padding:10px; font-size:12px;">${s.createdAt ? new Date(s.createdAt).toLocaleDateString() : 'N/A'}</td>
-      <td style="padding:10px; font-size:12px;"><strong>${s.userName || 'User'}</strong></td>
-      <td style="padding:10px;"><a href="${s.videoUrl}" target="_blank" style="color:var(--accent); font-size:12px; text-decoration:underline;">Watch Video</a></td>
-      <td style="padding:10px;"><span style="font-size:11px; font-weight:700; color:${s.status === 'approved' ? '#10b981' : '#f59e0b'}; text-transform:uppercase;">${s.status || 'pending'}</span></td>
-      <td style="padding:10px; text-align:right;">
-        ${s.status === 'pending' ? `
-          <button onclick="approveVideoSubmission('${s.id}', '${s.userId}')" style="background:#10b981; color:#fff; border:none; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;">Approve & Reward</button>
-        ` : '—'}
-      </td>
-    </tr>
-  `).join('');
-}
-
-function approveVideoSubmission(id, userId) {
-  const updates = {};
-  updates[`video_submissions/${id}/status`] = 'approved';
   
-  if (userId) {
-    // Reward user with video challenge bonus (e.g. 2000 NGN)
-    firebase.database().ref(`users/${userId}/balance`).transaction(bal => (bal || 0) + 2000);
+  table.innerHTML = '';
+  subs.forEach(function(s) {
+    const isPending = s.status === 'Pending';
+    let statusClass = 'badge-pending';
+    let statusLabel = 'Pending';
+    
+    if (s.status === 'Approved') {
+      statusClass = 'badge-approved';
+      statusLabel = 'Approved ✅';
+    } else if (s.status === 'Rejected') {
+      statusClass = 'badge-rejected';
+      statusLabel = 'Declined ❌';
+    }
+    
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--border)';
+    tr.innerHTML = `
+      <td style="padding: 12px 10px; font-size: 13px; font-weight: 600; color: var(--text);">${s.full_name || '—'}</td>
+      <td style="padding: 12px 10px; font-size: 12px; font-weight: 500; color: var(--text-muted); font-family: monospace;">${s.phone || '—'}</td>
+      <td style="padding: 12px 10px; font-size: 12px; color: var(--text-muted);">
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <a href="${s.video_url}" target="_blank" class="text-indigo-400 font-bold hover:underline" style="color:var(--accent); text-decoration:underline;">
+            <i class="fa-solid fa-play"></i> Watch Video
+          </a>
+          <a href="${s.video_url}" download="video_${s.phone}.mp4" class="text-emerald-400 font-bold hover:underline" style="color:var(--success); text-decoration:underline;">
+            <i class="fa-solid fa-download"></i> Save to Phone
+          </a>
+        </div>
+      </td>
+      <td style="padding: 12px 10px; font-size: 12px; color: var(--text-muted);">${new Date(s.created_at).toLocaleString('en-NG')}</td>
+      <td style="padding: 12px 10px; font-size: 11px;">
+        <span class="badge ${statusClass}" style="padding: 4px 8px; border-radius: 6px; font-weight: 700; display: inline-block;">${statusLabel}</span>
+      </td>
+      <td style="padding: 12px 10px; text-align: right;">
+        ${isPending ? `
+          <button class="btn" onclick="approveVideo('${s.id}')" style="background:var(--success); color:#fff; border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer; margin-right:5px;"><i class="fa-solid fa-circle-check"></i> Approve</button>
+          <button class="btn" onclick="declineVideo('${s.id}')" style="background:var(--danger); color:#fff; border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer; margin-right:5px;"><i class="fa-solid fa-circle-xmark"></i> Decline</button>
+        ` : `<span style="font-weight: 500; font-size: 11px; margin-right:10px; color:var(--text3);">Processed</span>`}
+        <button class="btn" onclick="deleteVideo('${s.id}')" style="background:#57606f; color:#fff; border:none; padding:6px 12px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+      </td>
+    `;
+    table.appendChild(tr);
+  });
+}
+
+function approveVideo(id) {
+  Swal.fire({
+    title: 'Approve Submission',
+    text: 'Reward amount to credit user (₦):',
+    input: 'number',
+    inputValue: '500000',
+    showCancelButton: true,
+    confirmButtonColor: '#10b981',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Approve & Credit',
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(res => {
+    if (res.isConfirmed) {
+      const reward = parseFloat(res.value) || 500000;
+      Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      
+      fetch(API_URL + '/api/admin/approve-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id, rewardAmount: reward })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({ icon: 'success', title: 'Approved', text: `Submission approved and ₦${reward.toLocaleString()} credited successfully!`, confirmButtonColor: '#6366f1' });
+          loadAllVideoSubmissions();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Approval Failed', text: data.error || 'Unable to approve video.', confirmButtonColor: '#6366f1' });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Network connection issue.', confirmButtonColor: '#6366f1' });
+      });
+    }
+  });
+}
+
+function declineVideo(id) {
+  Swal.fire({
+    title: 'Decline Submission',
+    text: 'Reason for decline:',
+    input: 'text',
+    inputPlaceholder: 'e.g. Invalid link / Video does not talk about 9jaCash',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Decline',
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(res => {
+    if (res.isConfirmed) {
+      const reason = res.value || 'Video does not meet guidelines.';
+      Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      
+      fetch(API_URL + '/api/admin/reject-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id, reason: reason })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({ icon: 'success', title: 'Declined', text: 'Submission successfully declined.', confirmButtonColor: '#6366f1' });
+          loadAllVideoSubmissions();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Operation Failed', text: data.error || 'Unable to decline video.', confirmButtonColor: '#6366f1' });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Network connection issue.', confirmButtonColor: '#6366f1' });
+      });
+    }
+  });
+}
+
+function deleteVideo(id) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'This will permanently delete this video submission record.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#2f3542',
+    confirmButtonText: 'Yes, delete it!',
+    background: '#0f1623',
+    color: '#c8d6e5'
+  }).then(res => {
+    if (res.isConfirmed) {
+      Swal.fire({ title: 'Deleting...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      
+      fetch(API_URL + '/api/admin/delete-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire({ icon: 'success', title: 'Deleted', text: 'Submission record successfully deleted.', confirmButtonColor: '#6366f1' });
+          loadAllVideoSubmissions();
+        } else {
+          Swal.fire({ icon: 'error', title: 'Operation Failed', text: data.error || 'Unable to delete video record.', confirmButtonColor: '#6366f1' });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Network connection issue.', confirmButtonColor: '#6366f1' });
+      });
+    }
+  });
+}
+
+function loadPromoVideos() {
+  const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
+  fetch(API_URL + '/api/login-videos')
+    .then(res => res.json())
+    .then(data => {
+      if (data.status && data.videos) {
+        const grid = document.getElementById('promoVideosGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        data.videos.forEach(v => {
+          const hasVideo = !!(v.video_url);
+          const statusDot = hasVideo
+            ? `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 8px;font-size:10px;font-weight:800;color:#10b981;"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;box-shadow:0 0 6px #10b981;"></span>Online</span>`
+            : `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(100,116,139,0.12);border:1px solid rgba(100,116,139,0.3);border-radius:20px;padding:3px 8px;font-size:10px;font-weight:800;color:#64748b;"><span style="width:6px;height:6px;border-radius:50%;background:#64748b;display:inline-block;"></span>Offline</span>`;
+
+          const card = document.createElement('div');
+          card.style.background = 'rgba(255,255,255,0.02)';
+          card.style.border = hasVideo ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(255,255,255,0.05)';
+          card.style.padding = '16px';
+          card.style.borderRadius = '12px';
+          card.style.margin = '0';
+          card.style.transition = 'border-color 0.3s';
+          card.innerHTML = `
+            <div style="font-weight: 800; font-size: 13px; color: var(--accent); margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+              <span>Slide Video #${v.id}</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                ${statusDot}
+                <span style="font-size: 10px; color: var(--text-muted);">Max 10 mins</span>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label class="form-label" style="font-size: 11px;">Direct Video URL</label>
+              <input type="text" id="promoVideoUrl_${v.id}" class="form-input" value="${v.video_url || ''}" style="padding: 8px 12px; font-size: 12px;" oninput="updatePromoStatusDot(${v.id}, this.value)">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 6px;">
+              <label class="form-label" style="font-size: 11px;">Or Upload Video File</label>
+              <input type="file" id="promoVideoFile_${v.id}" accept="video/*" class="form-input" style="padding: 8px 12px; font-size: 12px;" onchange="previewPromoFileName(${v.id}, this)">
+            </div>
+
+            <!-- Progress Bar -->
+            <div id="promoUploadProgress_${v.id}" style="display:none; margin-bottom:10px; padding:10px 12px; background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.2); border-radius:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:11px;font-weight:700;color:#8b5cf6;" id="promoProgressText_${v.id}">Uploading... 0%</span>
+                <span style="font-size:10px;color:#94a3b8;" id="promoProgressStatus_${v.id}">Please wait</span>
+              </div>
+              <div style="width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
+                <div id="promoProgressBar_${v.id}" style="height:100%;width:0%;background:linear-gradient(90deg,#8b5cf6,#10b981);border-radius:3px;transition:width 0.3s ease;"></div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label class="form-label" style="font-size: 11px;">Video Caption</label>
+              <textarea id="promoVideoCaption_${v.id}" class="form-input" style="padding: 8px 12px; font-size: 12px; height: 56px; resize: none; font-family: inherit;">${v.caption || ''}</textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 10px;">Likes</label>
+                <input type="number" id="promoVideoLikes_${v.id}" class="form-input" value="${v.likes_count || 0}" style="padding: 8px 10px; font-size: 12px;">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 10px;">Favorites</label>
+                <input type="number" id="promoVideoFavs_${v.id}" class="form-input" value="${v.favorites_count || 0}" style="padding: 8px 10px; font-size: 12px;">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 10px;">Shares</label>
+                <input type="number" id="promoVideoShares_${v.id}" class="form-input" value="${v.shares_count || 0}" style="padding: 8px 10px; font-size: 12px;">
+              </div>
+            </div>
+
+            <button onclick="savePromoVideo(${v.id}, this)" class="save-btn" id="savePromoBtn_${v.id}" style="width: 100%; padding: 10px; font-size: 12px; background: var(--accent); color: #000; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i class="fa-solid fa-floppy-disk"></i> Save Slide #${v.id}
+            </button>
+            <button onclick="clearPromoVideo(${v.id}, this)" class="save-btn" style="width: 100%; padding: 10px; font-size: 12px; background: #e11d48; color: #fff; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px;">
+              <i class="fa-solid fa-trash-can"></i> Delete/Clear Video #${v.id}
+            </button>
+          `;
+          grid.appendChild(card);
+        });
+      }
+    })
+    .catch(err => console.error("Error loading promo videos:", err));
+}
+
+function clearPromoVideo(id, btn) {
+  if (!confirm(`Are you sure you want to delete the video for Slide #${id}?`)) return;
+  const origHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Clearing...';
+
+  const likesInput = document.getElementById(`promoVideoLikes_${id}`);
+  const favsInput = document.getElementById(`promoVideoFavs_${id}`);
+  const sharesInput = document.getElementById(`promoVideoShares_${id}`);
+  const captionInput = document.getElementById(`promoVideoCaption_${id}`);
+
+  const payload = {
+    id: id,
+    videoUrl: "",
+    likes: likesInput ? parseInt(likesInput.value) || 0 : 0,
+    favorites: favsInput ? parseInt(favsInput.value) || 0 : 0,
+    shares: sharesInput ? parseInt(sharesInput.value) || 0 : 0,
+    caption: captionInput ? captionInput.value.trim() : ""
+  };
+
+  const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
+  fetch(API_URL + '/api/admin/login-video/update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+    .then(res => res.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+      if (data.status) {
+        alert(`Slide #${id} cleared successfully!`);
+        loadPromoVideos();
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+      alert("Network error clearing video slide.");
+    });
+}
+
+function savePromoVideo(id, btn) {
+  const origHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+  const videoUrlInput = document.getElementById(`promoVideoUrl_${id}`);
+  const likesInput    = document.getElementById(`promoVideoLikes_${id}`);
+  const favsInput     = document.getElementById(`promoVideoFavs_${id}`);
+  const sharesInput   = document.getElementById(`promoVideoShares_${id}`);
+  const fileInput     = document.getElementById(`promoVideoFile_${id}`);
+  const captionInput  = document.getElementById(`promoVideoCaption_${id}`);
+
+  const payload = {
+    id,
+    videoUrl: videoUrlInput.value.trim(),
+    likes:     parseInt(likesInput.value)  || 0,
+    favorites: parseInt(favsInput.value)   || 0,
+    shares:    parseInt(sharesInput.value) || 0,
+    caption:   captionInput ? captionInput.value.trim() : ''
+  };
+
+  // Progress bar helpers
+  const progressWrap   = document.getElementById(`promoUploadProgress_${id}`);
+  const progressText   = document.getElementById(`promoProgressText_${id}`);
+  const progressStatus = document.getElementById(`promoProgressStatus_${id}`);
+  const progressBar    = document.getElementById(`promoProgressBar_${id}`);
+
+  function showProgress(pct, label, status) {
+    if (progressWrap)   progressWrap.style.display = 'block';
+    if (progressText)   { progressText.textContent = label; progressText.style.color = '#8b5cf6'; }
+    if (progressBar)    progressBar.style.width = pct + '%';
+    if (progressStatus) progressStatus.textContent = status || '';
+  }
+  function hideProgress() { if (progressWrap) progressWrap.style.display = 'none'; }
+  function doneProgress(label) {
+    if (progressText) { progressText.textContent = label; progressText.style.color = '#10b981'; }
+    if (progressBar)  progressBar.style.width = '100%';
+    if (progressStatus) progressStatus.textContent = 'Done!';
+    setTimeout(hideProgress, 4000);
+  }
+  function errorProgress(msg) {
+    if (progressText) { progressText.textContent = '❌ ' + msg; progressText.style.color = '#ef4444'; }
+    if (progressStatus) progressStatus.textContent = 'Failed';
+    setTimeout(hideProgress, 5000);
   }
 
-  firebase.database().ref().update(updates)
-    .then(() => showToast('Video submission approved & reward credited!'));
-}
+  function handleUploadError(msg) {
+    btn.disabled = false;
+    btn.innerHTML = origHtml;
+    errorProgress(msg);
+    alert(msg);
+  }
 
-/* Indicators */
-function updateChallengeVideoIndicator() {
-  const active = document.getElementById('videoChallengeActive').value === 'true';
-  const ind = document.getElementById('challengeVideoIndicator');
-  const txt = document.getElementById('challengeVideoIndicatorText');
+  function sendUpdateReq(body) {
+    const _API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
+    fetch(_API + '/api/admin/login-video/update', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body)
+    })
+    .then(r => r.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+      if (data.status) {
+        doneProgress(`✅ Slide #${id} saved — 🟢 Online`);
+        loadPromoVideos();
+      } else {
+        errorProgress(data.error || 'Save failed');
+        alert(`Error: ${data.error}`);
+      }
+    })
+    .catch(() => {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+      errorProgress('Network error saving slide');
+      alert('Network error saving video slide.');
+    });
+  }
 
-  ind.style.backgroundColor = active ? '#10b981' : '#ef4444';
-  txt.innerText = active ? 'Online' : 'Offline';
-  txt.style.color = active ? '#10b981' : '#ef4444';
-}
+  const file = fileInput ? fileInput.files[0] : null;
 
-function updateVerificationVideoIndicator() {
-  const active = document.getElementById('verificationVideoActive').value === 'true';
-  const ind = document.getElementById('verificationVideoIndicator');
-  const txt = document.getElementById('verificationVideoIndicatorText');
+  if (file) {
+    if (file.size > 100 * 1024 * 1024) {
+      alert('Video file is too large! Max limit is 100MB.');
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+      return;
+    }
 
-  ind.style.backgroundColor = active ? '#10b981' : '#ef4444';
-  txt.innerText = active ? 'Online' : 'Offline';
-  txt.style.color = active ? '#10b981' : '#ef4444';
-}
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Initializing...';
+    showProgress(0, 'Preparing upload...', 'Connecting to Cloudinary');
 
-function uploadVerificationVideoFile() {
-  showToast('Please upload direct Cloudinary link or MP4 URL.', true);
-}
+    const _API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
+    fetch(_API + '/api/cloudinary-signature?folder=promo_videos')
+      .then(r => r.json())
+      .then(sig => {
+        if (!sig.status) throw new Error(sig.error || 'Failed to sign upload.');
+        const { signature, timestamp, apiKey, cloudName, folder } = sig;
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('folder', folder);
+        fd.append('timestamp', timestamp);
+        fd.append('api_key', apiKey);
+        fd.append('signature', signature);
 
-/* Toast Utility */
-function showToast(msg, isError = false) {
-  const toast = document.getElementById('toast');
-  const toastMsg = document.getElementById('toastMsg');
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, true);
 
-  toastMsg.innerText = msg;
-  if (isError) {
-    toast.classList.add('error');
-    toast.querySelector('i').className = 'fa-solid fa-circle-xmark';
+        xhr.upload.onprogress = function(evt) {
+          if (evt.lengthComputable) {
+            const pct = Math.round((evt.loaded / evt.total) * 100);
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading ${pct}%`;
+            showProgress(pct, `Uploading... ${pct}%`, pct < 100 ? 'Please wait...' : 'Processing...');
+          }
+        };
+
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            try {
+              const resp = JSON.parse(xhr.responseText);
+              let rawUrl = resp.secure_url || resp.url;
+              if (rawUrl && rawUrl.includes('cloudinary.com')) {
+                rawUrl = rawUrl.replace(/\.(mov|MOV|avi|AVI|mkv|MKV|webm|WEBM|flv|FLV|wmv|WMV)$/, '.mp4');
+                if (!rawUrl.includes('/f_auto') && !rawUrl.includes('/f_mp4') && !rawUrl.includes('/vc_h264')) {
+                  rawUrl = rawUrl.replace(/\/video\/upload\/(v\d+\/)/, '/video/upload/f_mp4,vc_h264,q_auto/$1');
+                  rawUrl = rawUrl.replace(/\/video\/upload\/(?!f_mp4|f_auto|vc_h264)/, '/video/upload/f_mp4,vc_h264,q_auto/');
+                }
+              }
+              payload.videoUrl = rawUrl;
+              showProgress(100, '✅ Upload complete! Saving to database...', 'Finalizing');
+              if (videoUrlInput) videoUrlInput.value = payload.videoUrl;
+              sendUpdateReq(payload);
+            } catch(e) { handleUploadError('Failed to parse Cloudinary response.'); }
+          } else {
+            if (file.size <= 5 * 1024 * 1024) {
+              showProgress(80, 'Cloudinary failed. Trying local upload...', '');
+              const reader = new FileReader();
+              reader.onload = e => { payload.videoData = e.target.result; sendUpdateReq(payload); };
+              reader.readAsDataURL(file);
+            } else { handleUploadError('Cloudinary upload failed. Video too large for local fallback (max 5MB).'); }
+          }
+        };
+
+        xhr.onerror = function() {
+          if (file.size <= 5 * 1024 * 1024) {
+            showProgress(50, 'Connection failed. Trying local...', '');
+            const reader = new FileReader();
+            reader.onload = e => { payload.videoData = e.target.result; sendUpdateReq(payload); };
+            reader.readAsDataURL(file);
+          } else { handleUploadError('Network error. Video too large for local fallback.'); }
+        };
+
+        xhr.send(fd);
+      })
+      .catch(err => {
+        if (file.size <= 5 * 1024 * 1024) {
+          showProgress(30, 'Signature failed. Trying local...', '');
+          const reader = new FileReader();
+          reader.onload = e => { payload.videoData = e.target.result; sendUpdateReq(payload); };
+          reader.readAsDataURL(file);
+        } else { handleUploadError('Cloudinary init failed: ' + err.message); }
+      });
   } else {
-    toast.classList.remove('error');
-    toast.querySelector('i').className = 'fa-solid fa-circle-check';
+    sendUpdateReq(payload);
   }
-
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text);
-  showToast('Copied to clipboard!');
 }
 </script>
 </body>
