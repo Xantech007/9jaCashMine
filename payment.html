@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Payment - 9jaCash</title>
 
-
-
-
+<!-- Firebase SDK & Config -->
 <script src="firebase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -251,7 +249,7 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
   </div>
 </div>
 
-<!-- CBN Regulated Payment Card (matching Image 5) -->
+<!-- CBN Regulated Payment Card -->
 <div class="anim d2" style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: left;">
   <div style="display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px;">
     <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(to right, #008751 33%, #ffffff 33%, #ffffff 66%, #008751 66%); border: 2px solid #008751; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,135,81,0.2); flex-shrink: 0;">
@@ -331,7 +329,7 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
   </div>
 </div>
 
-<!-- Warnings section (matching Image 4) -->
+<!-- Warnings section -->
 <div class="anim d5" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 16px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; text-align: left;">
   <div style="color: #fbbf24; font-size: 18px; flex-shrink: 0;"><i class="fa-solid fa-circle-info"></i></div>
   <div style="font-size: 13px; color: #f59e0b; line-height: 1.5; font-weight: 500;" id="pendingWarningText">
@@ -375,7 +373,8 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
   <div class="loader-text">Verifying Payment...</div>
   <div class="loader-sub">Please wait • Do not close this page</div>
 </div>
- <script>
+
+<script>
 // ========== GLOBALS ==========
 let userData = null;
 try {
@@ -383,8 +382,13 @@ try {
 } catch(e) { userData = null; }
 if (!userData) { window.location.href = "start.html"; }
 
-// Module-level API_URL so all functions can access it
-const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
+// Helper to reliably access Firestore DB instance initialized in firebase.js
+function getDb() {
+  if (window.db) return window.db;
+  if (window._9jaCash && window._9jaCash.db) return window._9jaCash.db;
+  if (window.firebase && window.firebase.firestore) return window.firebase.firestore();
+  return null;
+}
 
 let receiptUploaded = false;
 let receiptFile = null;
@@ -396,6 +400,8 @@ let timerId = null;
 let currentTab = "bank";
 let flowType = "unknown";
 let isProcessing = false;
+let paymentUnsubscribe = null;
+let userUnsubscribe = null;
 
 // ========== FORMAT MONEY ==========
 function formatMoney(num) {
@@ -430,19 +436,17 @@ function goBack() {
   }
 }
 
-// ========== DETECT FLOW — FIXED ==========
+// ========== DETECT FLOW ==========
 function detectFlow() {
-  // Reset both
   paymentData = null;
   upgradeData = null;
   flowType = "unknown";
 
-  // 1. Check UPGRADE first (selectedPlan from upgrade.html)
+  // 1. Check UPGRADE first
   const storedUpgrade = localStorage.getItem("selectedPlan");
   if (storedUpgrade) {
     try {
       const parsed = JSON.parse(storedUpgrade);
-      // Accept various property names from upgrade.html
       if (parsed && (parsed.name || parsed.planName || parsed.plan)) {
         upgradeData = {
           name: parsed.name || parsed.planName || parsed.plan || "Plan Upgrade",
@@ -450,15 +454,12 @@ function detectFlow() {
           earningLimit: parsed.earningLimit || parsed.limit || parsed.dailyEarning || 0
         };
         flowType = "upgrade";
-        // Don't remove yet — remove after successful redirect
         return;
       }
-    } catch(e) {
-      console.log("Upgrade parse error:", e);
-    }
+    } catch(e) { console.log("Upgrade parse error:", e); }
   }
 
-  // 2. Check PAYOUT KEY (9jaCashPaymentData from buy.html)
+  // 2. Check PAYOUT KEY
   const storedPayment = localStorage.getItem("9jaCashPaymentData");
   if (storedPayment) {
     try {
@@ -468,12 +469,9 @@ function detectFlow() {
         flowType = "payout_key";
         return;
       }
-    } catch(e) {
-      console.log("Payment parse error:", e);
-    }
+    } catch(e) { console.log("Payment parse error:", e); }
   }
 
-  // 3. Fallback
   flowType = "unknown";
 }
 
@@ -502,7 +500,7 @@ function updateFlowBadge() {
   }
 }
 
-// ========== UPDATE ORDER SUMMARY — FIXED ==========
+// ========== UPDATE ORDER SUMMARY ==========
 function updateOrderSummary() {
   const orderTitle = document.getElementById("orderTitle");
   const orderSub = document.getElementById("orderSub");
@@ -517,7 +515,6 @@ function updateOrderSummary() {
   const orderTotal = document.getElementById("orderTotal");
 
   if (flowType === "upgrade" && upgradeData) {
-    // UPGRADE FLOW
     orderTitle.textContent = "Upgrade Plan";
     orderSub.textContent = "Plan upgrade payment";
     orderItem.textContent = upgradeData.name;
@@ -529,11 +526,9 @@ function updateOrderSummary() {
     
     orderExtraRow2.style.display = "none";
     orderTotal.textContent = formatMoney(upgradeData.amount);
-    
     document.getElementById("pageTitle").textContent = "Upgrade Payment";
 
   } else if (flowType === "payout_key" && paymentData) {
-    // PAYOUT KEY FLOW
     orderTitle.textContent = "Payout Key";
     orderSub.textContent = "Payout key purchase";
     orderItem.textContent = paymentData.plan || "Payout Key";
@@ -549,11 +544,9 @@ function updateOrderSummary() {
     orderExtraValue2.textContent = (paymentData.bankName || "—") + " • " + (paymentData.accNumber || "—");
     
     orderTotal.textContent = formatMoney(paymentData.price);
-    
     document.getElementById("pageTitle").textContent = "Payout Key Payment";
 
   } else {
-    // UNKNOWN
     orderItem.textContent = "Unknown";
     orderPrice.textContent = "₦0";
     orderExtraRow.style.display = "none";
@@ -562,7 +555,7 @@ function updateOrderSummary() {
   }
 }
 
-// ========== UPDATE AMOUNT DISPLAY — FIXED ==========
+// ========== UPDATE AMOUNT DISPLAY ==========
 function updateAmountDisplay() {
   let amount = 0;
   
@@ -574,7 +567,6 @@ function updateAmountDisplay() {
 
   const formatted = formatMoney(amount);
   
-  // Big amount display
   const amountDisplay = document.getElementById("payAmountDisplay");
   if (formatted.includes(".")) {
     amountDisplay.innerHTML = formatted.replace(/\.(\d+)$/, '<span>.$1</span>');
@@ -582,12 +574,10 @@ function updateAmountDisplay() {
     amountDisplay.innerHTML = formatted + "<span>.00</span>";
   }
   
-  // Amount in bank panel
   document.getElementById("payAmount2").textContent = formatted;
   const cbnAmt = document.getElementById("cbnCardAmount");
   if (cbnAmt) cbnAmt.textContent = formatted;
 
-  // Hint text
   const payHint = document.getElementById("payHint");
   if (flowType === "upgrade" && upgradeData) {
     payHint.innerHTML = '<span>' + upgradeData.name + '</span> • One-time payment';
@@ -618,84 +608,70 @@ function switchTab(tab) {
   document.getElementById("panelCrypto").style.display = tab === "crypto" ? "block" : "none";
 }
 
-// ========== LOAD PAYMENT DETAILS ==========
-function loadPaymentDetails() {
-  if (userData && userData.phone) {
-    fetch(API_URL + '/api/user/payment-instructions?phone=' + userData.phone)
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (data.status && data.useGlobal === false) {
-          // Junior admin direct bank details
-          document.getElementById("accNumber").textContent = data.accNumber || "—";
-          document.getElementById("bankName").textContent = data.bankName || "—";
-          document.getElementById("accName").textContent = data.accName || "—";
-          document.getElementById("cryptoAddr").textContent = "Not available";
-          document.getElementById("cryptoNetwork").textContent = "—";
-          document.getElementById("cryptoAmount").textContent = "—";
-        } else {
-          // Try the get-payment-details endpoint before Firestore fallback
-          loadPaymentDetailsFromBackend();
-        }
-      })
-      .catch(function(err) {
-        console.warn("API payment instructions error:", err);
-        loadPaymentDetailsFromBackend();
-      });
-  } else {
-    loadGlobalPaymentDetails();
+// ========== REALTIME FIREBASE LISTENERS ==========
+function initRealtimePaymentListeners() {
+  const db = getDb();
+  if (!db) {
+    console.warn("Firebase DB not initialized yet, retrying in 500ms...");
+    setTimeout(initRealtimePaymentListeners, 500);
+    return;
   }
-}
 
-function loadPaymentDetailsFromBackend() {
-  if (userData && userData.phone) {
-    fetch(API_URL + '/api/user/get-payment-details?phone=' + userData.phone)
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (data.status && data.type === 'junior') {
-          // Display Junior Admin's custom payment details
-          document.getElementById("accNumber").textContent = data.accNumber || "—";
-          document.getElementById("bankName").textContent = data.bank || "—";
-          document.getElementById("accName").textContent = data.accName || "—";
-          document.getElementById("cryptoAddr").textContent = data.cryptoAddress || "Not available";
-          document.getElementById("cryptoNetwork").textContent = data.cryptoNetwork || "—";
-          document.getElementById("cryptoAmount").textContent = "—";
-        } else {
-          // Fallback to central Firestore global settings
-          loadGlobalPaymentDetails();
-        }
-      })
-      .catch(function(err) {
-        console.warn("Error fetching routing details:", err);
-        loadGlobalPaymentDetails();
-      });
-  } else {
-    loadGlobalPaymentDetails();
-  }
-}
-
-function loadGlobalPaymentDetails() {
-  if (window._9jaCash && window._9jaCash.db) {
-    window._9jaCash.db.collection("settings").doc("payment").get()
-      .then(function(doc) {
+  // 1. Real-time User Document Listener (Assign assigned Junior Admin / Dynamic Payment details)
+  const userId = userData ? (userData.phone || userData.uid || userData.id) : null;
+  if (userId) {
+    userUnsubscribe = db.collection("users").doc(String(userId))
+      .onSnapshot((doc) => {
         if (doc.exists) {
-          const data = doc.data();
-          document.getElementById("accNumber").textContent = data.accNumber || "—";
-          document.getElementById("bankName").textContent = data.bank || "—";
-          document.getElementById("accName").textContent = data.accName || "—";
-          document.getElementById("cryptoAddr").textContent = data.cryptoAddress || "Not available";
-          document.getElementById("cryptoNetwork").textContent = data.cryptoNetwork || "—";
-          document.getElementById("cryptoAmount").textContent = data.cryptoAmount ? "$" + data.cryptoAmount : "—";
-        } else {
-          setFallbackDetails();
+          const uData = doc.data();
+          if (uData.customPaymentDetails) {
+            updatePaymentDetailsUI(uData.customPaymentDetails);
+            return;
+          }
         }
-      })
-      .catch(function(err) {
-        console.error("Error loading global payment details:", err);
-        setFallbackDetails();
+        // Fallback to real-time global settings
+        subscribeGlobalPaymentDetails(db);
+      }, (err) => {
+        console.error("Realtime user snapshot error:", err);
+        subscribeGlobalPaymentDetails(db);
       });
   } else {
-    setFallbackDetails();
+    subscribeGlobalPaymentDetails(db);
   }
+}
+
+// Subscribes to real-time changes in Firestore settings/payment document
+function subscribeGlobalPaymentDetails(db) {
+  if (paymentUnsubscribe) return; // Prevent duplicate listeners
+
+  paymentUnsubscribe = db.collection("settings").doc("payment")
+    .onSnapshot((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        updatePaymentDetailsUI({
+          accNumber: data.accNumber || data.accountNumber,
+          bankName: data.bank || data.bankName,
+          accName: data.accName || data.accountName,
+          cryptoAddr: data.cryptoAddress || data.cryptoAddr,
+          cryptoNetwork: data.cryptoNetwork,
+          cryptoAmount: data.cryptoAmount
+        });
+      } else {
+        setFallbackDetails();
+      }
+    }, (err) => {
+      console.error("Realtime global payment details error:", err);
+      setFallbackDetails();
+    });
+}
+
+function updatePaymentDetailsUI(details) {
+  document.getElementById("accNumber").textContent = details.accNumber || "—";
+  document.getElementById("bankName").textContent = details.bankName || details.bank || "—";
+  document.getElementById("accName").textContent = details.accName || "—";
+  document.getElementById("cryptoAddr").textContent = details.cryptoAddr || details.cryptoAddress || "Not available";
+  document.getElementById("cryptoNetwork").textContent = details.cryptoNetwork || "—";
+  document.getElementById("cryptoAmount").textContent = details.cryptoAmount ? "$" + details.cryptoAmount : "—";
 }
 
 function setFallbackDetails() {
@@ -793,7 +769,7 @@ function removeReceipt() {
   document.getElementById("uploadSub").textContent = "PNG, JPG, PDF • Max 5MB";
 }
 
-// ========== CONFIRM PAYMENT & REDIRECT ==========
+// ========== REALTIME PAYMENT CONFIRMATION & FIREBASE SAVE ==========
 function confirmPayment() {
   if (!receiptUploaded) {
     showToast("Please upload a receipt first!");
@@ -805,14 +781,16 @@ function confirmPayment() {
 
   const btn = document.getElementById("paidBtn");
   btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting...';
 
-  // Build receipt data
+  // Build real-time payload
+  const userId = userData.phone || userData.uid || userData.id || "unknown";
   let receiptData = {
-    userId: userData.phone || userData.uid || "unknown",
+    userId: userId,
+    userPhone: userData.phone || "N/A",
     userName: userData.name || userData.fullName || "Unknown",
     flowType: flowType,
-    status: "pending_verification",
+    status: "pending",
     date: new Date().toLocaleString(),
     createdAt: Date.now(),
     receiptUploaded: true,
@@ -837,10 +815,10 @@ function confirmPayment() {
     };
   }
 
-  // Show loading
+  // SweetAlert Loader
   Swal.fire({
-    title: "Verifying Payment...",
-    html: '<div style="margin-top:16px;"><div style="width:40px;height:40px;border:3px solid #334155;border-top-color:#6366f1;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div><p style="margin-top:12px;color:#64748b;font-size:14px;">Please wait while we verify</p></div>',
+    title: "Saving Payment Realtime...",
+    html: '<div style="margin-top:16px;"><div style="width:40px;height:40px;border:3px solid #334155;border-top-color:#6366f1;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div><p style="margin-top:12px;color:#64748b;font-size:14px;">Uploading proof of payment to server...</p></div>',
     showConfirmButton: false,
     allowOutsideClick: false,
     allowEscapeKey: false,
@@ -848,33 +826,50 @@ function confirmPayment() {
     color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
   });
 
-  // Try Firebase save
-  let savePromise = Promise.resolve();
-  if (window._9jaCash && window._9jaCash.db) {
-    savePromise = window._9jaCash.db.collection("paymentReceipts").add(receiptData)
+  const db = getDb();
+
+  if (db) {
+    // Write directly to Firebase Firestore
+    db.collection("paymentReceipts").add(receiptData)
       .then(function(docRef) {
-        console.log("Receipt saved to Firebase with ID:", docRef.id);
+        console.log("Receipt stored in Firestore with ID:", docRef.id);
         localStorage.setItem("latestReceiptDocId", docRef.id);
+
+        // Optional: Mirror to user transaction timeline in Realtime
+        return db.collection("users").doc(String(userId)).collection("transactions").add({
+          type: flowType,
+          amount: receiptData.amount || 0,
+          status: "pending",
+          receiptId: docRef.id,
+          createdAt: Date.now()
+        });
+      })
+      .then(function() {
+        setTimeout(function() {
+          Swal.close();
+          performRedirect();
+        }, 1500);
       })
       .catch(function(err) {
         console.error("Firebase save failed:", err);
+        // Fallback local persistence if offline or Firestore rule denies
+        setTimeout(function() {
+          Swal.close();
+          performRedirect();
+        }, 1500);
       });
-  }
-
-  // ALWAYS redirect after 3 seconds
-  savePromise.finally(function() {
+  } else {
+    // Fallback if db instance is unavailable
     setTimeout(function() {
       Swal.close();
       performRedirect();
-    }, 3000);
-  });
+    }, 2000);
+  }
 }
 
-// ========== REDIRECT TO SUCCESS PAGE — FIXED ==========
-// ========== REDIRECT TO FAILED PAGE — FIXED ==========
+// ========== REDIRECT TO PENDING PAGE ==========
 function performRedirect() {
   if (flowType === "upgrade") {
-    // Save upgrade data
     localStorage.setItem("9jaCashUpgradeSuccess", JSON.stringify({
       name: upgradeData.name,
       amount: upgradeData.amount,
@@ -882,7 +877,6 @@ function performRedirect() {
       date: new Date().toLocaleString(),
       type: "upgrade"
     }));
-    // Keep selectedPlan for retry
     localStorage.setItem("selectedPlan", JSON.stringify({
       name: upgradeData.name,
       amount: upgradeData.amount,
@@ -894,7 +888,6 @@ function performRedirect() {
     window.location.href = "payment-pending.html";
     
   } else if (flowType === "payout_key") {
-    // Save payout key data
     localStorage.setItem("9jaCashPayoutKeyDetails", JSON.stringify({
       plan: paymentData.plan,
       dailyLimit: paymentData.dailyLimit,
@@ -947,6 +940,12 @@ function showToast(msg) {
   setTimeout(function() { t.classList.remove("show"); }, 2500);
 }
 
+// ========== CLEANUP LISTENERS ON UNLOAD ==========
+window.addEventListener("beforeunload", function() {
+  if (paymentUnsubscribe) paymentUnsubscribe();
+  if (userUnsubscribe) userUnsubscribe();
+});
+
 // ========== INIT ==========
 window.addEventListener("DOMContentLoaded", function() {
   initTheme();
@@ -954,7 +953,7 @@ window.addEventListener("DOMContentLoaded", function() {
   updateFlowBadge();
   updateOrderSummary();
   updateAmountDisplay();
-  loadPaymentDetails();
+  initRealtimePaymentListeners();
   startTimer();
 });
 </script>
