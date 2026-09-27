@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,7 +81,7 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 .live-pill{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:50px;background:var(--surface2);border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text2);}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:liveBlink 2s infinite;}
 @keyframes liveBlink{0%,100%{opacity:1;}50%{opacity:0.3;}}
-.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;transition:all 0.3s;position:relative;overflow:hidden;}
 .stat-card:hover{border-color:var(--border2);transform:translateY(-2px);}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
@@ -101,72 +102,6 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 .stat-label{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:20px;transition:all 0.3s;}
 .panel:hover{border-color:var(--border2);}
-/* Action Dropdown Styles */
-.action-dropdown {
-  position: relative;
-  display: inline-block;
-}
-.action-dropdown-btn {
-  background: var(--surface2);
-  color: var(--text);
-  border: 1px solid var(--border);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s;
-}
-.action-dropdown-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.action-dropdown-menu {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 100%;
-  margin-top: 4px;
-  background: #161f30;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  min-width: 140px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-  z-index: 50;
-  overflow: hidden;
-  text-align: left;
-}
-.action-dropdown-menu.show {
-  display: block;
-}
-.action-dropdown-menu a {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  color: var(--text);
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-.action-dropdown-menu a:hover {
-  background: var(--surface3);
-}
-.action-dropdown-menu .dropdown-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 4px 0;
-}
-.action-dropdown-menu .dropdown-status-label {
-  padding: 8px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text2);
-}
 .panel-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
 .panel-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;}
 .panel-icon.green{background:rgba(0,212,170,0.1);color:var(--accent);}
@@ -259,76 +194,12 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
 .plan-select-card.selected{border-color:var(--accent);background:linear-gradient(135deg,rgba(0,212,170,0.05),transparent);}
 .plan-select-card.selected .plan-check{opacity:1 !important;}
 @media(max-width:768px){
-  .nav-sidebar {
-    position: fixed !important;
-    top: auto !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    height: 60px !important;
-    flex-direction: row !important;
-    justify-content: flex-start !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    padding: 0 12px !important;
-    gap: 6px !important;
-    border-right: none !important;
-    border-top: 1px solid var(--border) !important;
-    white-space: nowrap !important;
-    -webkit-overflow-scrolling: touch !important;
-    background: var(--surface) !important;
-  }
-  .nav-logo {
-    display: none !important;
-  }
-  .nav-item {
-    width: 40px !important;
-    height: 40px !important;
-    flex-shrink: 0 !important;
-  }
-  .nav-bottom {
-    margin-top: 0 !important;
-    margin-left: auto !important;
-    flex-direction: row !important;
-    gap: 6px !important;
-  }
-  .logout-btn {
-    width: 40px !important;
-    height: 40px !important;
-    flex-shrink: 0 !important;
-  }
-  .content {
-    margin-left: 0 !important;
-    padding: 16px 12px 80px !important;
-  }
-  .stats-row {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-  }
-  .form-row {
-    grid-template-columns: 1fr !important;
-  }
-  .task-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .key-value {
-    font-size: 24px !important;
-    letter-spacing: 6px !important;
-  }
-  .key-actions {
-    grid-template-columns: 1fr !important;
-  }
-}
-@media(max-width:480px){
-  .stats-row {
-    grid-template-columns: 1fr !important;
-  }
-  .content-header {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 12px !important;
-  }
+  .nav-sidebar{width:60px;}
+  .content{margin-left:60px;padding:16px 12px;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .form-row{grid-template-columns:1fr;}
+  .task-grid{grid-template-columns:1fr;}
+  .key-value{font-size:24px;letter-spacing:6px;}
 }
 </style>
 </head>
@@ -377,12 +248,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
   <div class="nav-item" onclick="switchTab('payments',this)" title="Payments"><i class="fa-solid fa-credit-card"></i></div>
   <div class="nav-item" onclick="switchTab('tasks',this)" title="Tasks"><i class="fa-solid fa-list-check"></i></div>
   <div class="nav-item" onclick="switchTab('keys',this)" title="Keys"><i class="fa-solid fa-key"></i><span class="badge" id="keyBadge">0</span></div>
-  <div class="nav-item" onclick="switchTab('users',this); loadAllUsersList();" title="All Users"><i class="fa-solid fa-users"></i><span class="badge" id="usersBadge" style="background:#8b5cf6;">0</span></div>
-  <div class="nav-item" onclick="switchTab('receipts',this); loadAllReceipts();" title="Verify Receipts"><i class="fa-solid fa-file-invoice-dollar"></i><span class="badge" id="receiptsBadge" style="background:#f59e0b; display:none;">0</span></div>
-  <div class="nav-item" onclick="switchTab('withdrawals',this); loadSuperWithdrawals();" title="Withdrawals"><i class="fa-solid fa-money-bill-transfer"></i><span class="badge" id="withdrawalsBadge" style="background:#10b981; display:none;">0</span></div>
-  <div class="nav-item" onclick="switchTab('juniors',this)" title="Junior Admins"><i class="fa-solid fa-users-gear"></i></div>
   <div class="nav-item" onclick="switchTab('redirects',this)" title="Redirects"><i class="fa-solid fa-route"></i></div>
-  <div class="nav-item" onclick="switchTab('videos',this); loadAllVideoSubmissions(); loadPromoVideos();" title="Videos Panel"><i class="fa-solid fa-video"></i><span class="badge" id="videosBadge" style="background:#8b5cf6; display:none;">0</span></div>
   <div class="nav-bottom">
     <div class="logout-btn" onclick="doLogout()" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></div>
   </div>
@@ -419,123 +285,10 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
       <div class="stat-num amber" id="statKeys">0</div>
       <div class="stat-label">Key History</div>
     </div>
-    <div class="stat-card purple" style="border: 1px solid var(--border); background: var(--surface);">
-      <div class="stat-icon purple" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;"><i class="fa-solid fa-users"></i></div>
-      <div style="display:flex; justify-content:space-between; align-items:baseline;">
-        <div class="stat-num purple" id="statUsers" style="color: #8b5cf6; font-size: 26px;">0</div>
-        <div style="font-size: 11px; font-weight: bold; color: #10b981; font-family: 'JetBrains Mono', monospace;" id="statJoinedToday">+0 today</div>
-      </div>
-      <div class="stat-label">Total Users</div>
-    </div>
     <div class="stat-card red">
       <div class="stat-icon red"><i class="fa-solid fa-bolt"></i></div>
       <div class="stat-num red" id="statStatus">OFF</div>
       <div class="stat-label">Withdrawal</div>
-    </div>
-  </div>
-
-  <div class="stats-row" style="grid-template-columns: repeat(3, 1fr); display: grid; gap: 16px; margin-bottom: 24px;">
-    <!-- Deposits Card (OPay Style Dropdown) -->
-    <div class="stat-card green" style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); padding: 16px; position: relative;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 8px;">
-        <div class="stat-icon green" style="background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px;"><i class="fa-solid fa-vault"></i></div>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <button onclick="clearTodayRevenue()" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" title="Clear Today's Revenue & Approved Receipts" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">
-            <i class="fa-solid fa-trash-can"></i> Clear Today
-          </button>
-          <select id="depositTimeframeSelect" onchange="updateDepositTimeframeDisplay()" style="background: #1e293b; color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
-            <option value="today" selected>Today</option>
-            <option value="yesterday">Yesterday</option>
-            <option value="sevenDays">Past 7 Days</option>
-            <option value="month">This Month</option>
-            <option value="year">This Year</option>
-            <option value="total">All Time</option>
-          </select>
-        </div>
-      </div>
-      <div class="stat-num green" id="statDepositsDisplay" style="color: #10b981; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Deposits Revenue</div>
-    </div>
-
-    <!-- Total Payouts Card -->
-    <div class="stat-card red" style="background: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.15); padding: 16px;">
-      <div class="stat-icon red" style="background: rgba(239, 68, 68, 0.08); color: #ef4444; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-      <div class="stat-num red" id="statApprovedWithdrawals" style="color: #ef4444; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Total Payouts</div>
-    </div>
-
-    <!-- Total Keys Sold Card -->
-    <div class="stat-card blue" style="background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.15); padding: 16px; position: relative;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-        <div class="stat-icon blue" style="background: rgba(59, 130, 246, 0.08); color: #3b82f6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px;"><i class="fa-solid fa-key"></i></div>
-        <select id="keysSoldTimeframeSelect" onchange="updateKeysSoldTimeframeDisplay()" style="background: #1e293b; color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
-          <option value="today" selected>Today</option>
-          <option value="yesterday">Yesterday</option>
-          <option value="sevenDays">Past 7 Days</option>
-          <option value="month">This Month</option>
-          <option value="year">This Year</option>
-          <option value="total">All Time</option>
-        </select>
-      </div>
-      <div class="stat-num blue" id="statKeysSold" style="color: #3b82f6; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Total Payout Keys Sold</div>
-    </div>
-  </div>
-
-  <div class="stats-row" style="grid-template-columns: repeat(3, 1fr); display: grid; gap: 16px; margin-bottom: 24px;">
-    <!-- Payout Keys Revenue Card -->
-    <div class="stat-card blue" style="background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.15); padding: 16px;">
-      <div class="stat-icon blue" style="background: rgba(59, 130, 246, 0.08); color: #3b82f6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-key"></i></div>
-      <div class="stat-num blue" id="statKeysRevenue" style="color: #3b82f6; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Payout Keys Revenue</div>
-    </div>
-
-    <!-- Verification Revenue Card -->
-    <div class="stat-card green" style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); padding: 16px;">
-      <div class="stat-icon green" style="background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-user-check"></i></div>
-      <div class="stat-num green" id="statVerificationRevenue" style="color: #10b981; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Verification Revenue</div>
-    </div>
-
-    <!-- Plan Upgrade Revenue Card -->
-    <div class="stat-card purple" style="background: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.15); padding: 16px;">
-      <div class="stat-icon purple" style="background: rgba(139, 92, 246, 0.08); color: #8b5cf6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-circle-up"></i></div>
-      <div class="stat-num purple" id="statUpgradeRevenue" style="color: #8b5cf6; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Plan Upgrades Revenue</div>
-    </div>
-  </div>
-
-  <div class="stats-row" style="grid-template-columns: repeat(4, 1fr); display: grid; gap: 16px; margin-bottom: 24px;">
-    <!-- Approved Receipts Card -->
-    <div class="stat-card green" style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); padding: 16px;">
-      <div class="stat-icon green" style="background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-file-circle-check"></i></div>
-      <div class="stat-num green" id="statApprovedReceiptsCount" style="color: #10b981; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Approved Proofs</div>
-    </div>
-
-    <!-- Declined Receipts Card -->
-    <div class="stat-card red" style="background: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.15); padding: 16px;">
-      <div class="stat-icon red" style="background: rgba(239, 68, 68, 0.08); color: #ef4444; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-file-circle-xmark"></i></div>
-      <div class="stat-num red" id="statDeclinedReceiptsCount" style="color: #ef4444; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Declined Proofs</div>
-    </div>
-
-    <!-- Verified Users Card -->
-    <div class="stat-card blue" style="background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.15); padding: 16px;">
-      <div class="stat-icon blue" style="background: rgba(59, 130, 246, 0.08); color: #3b82f6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-user-shield"></i></div>
-      <div class="stat-num blue" id="statVerifiedUsersCount" style="color: #3b82f6; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Verified Accounts</div>
-    </div>
-
-    <!-- Plan Upgrade Counts Card -->
-    <div class="stat-card purple" style="background: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.15); padding: 16px;">
-      <div class="stat-icon purple" style="background: rgba(139, 92, 246, 0.08); color: #8b5cf6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-gem"></i></div>
-      <div style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#fff; font-weight:700; margin:8px 0; line-height:1.5;">
-        <div>Silver: <span id="statPlanSilver" style="color:#8b5cf6;">0</span></div>
-        <div>Gold: <span id="statPlanGold" style="color:#f59e0b;">0</span></div>
-        <div>Diamond: <span id="statPlanDiamond" style="color:#10b981;">0</span></div>
-      </div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Plan Upgrade Split</div>
     </div>
   </div>
 
@@ -588,228 +341,6 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
     </div>
     <div class="form-group" style="margin-bottom:0;">
       <textarea id="noticeText" class="form-input" placeholder="Do NOT use Opay for transfers..."></textarea>
-    </div>
-  </div>
-</div>
-
-<!-- RECEIPTS TAB -->
-<div class="tab-panel" id="tab-receipts">
-  <div class="content-header">
-    <div class="header-left">
-      <div>
-        <div class="header-title">Payment & Verification Receipts</div>
-        <div class="header-sub">Verify user plan upgrades, payout key purchases, and account verifications</div>
-      </div>
-    </div>
-    <div class="flex items-center gap-3" style="flex-wrap: wrap;">
-      <button onclick="loadAllReceipts()" class="btn btn-secondary" style="border:1px solid var(--border); padding: 8px 16px; border-radius:10px; background:var(--surface); color:var(--text); cursor:pointer;"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
-      <button onclick="purgeAllReceipts()" class="btn btn-secondary" style="border:1px solid var(--danger); padding: 8px 16px; border-radius:10px; background:var(--surface); color:var(--danger); cursor:pointer; font-weight: 700;"><i class="fa-solid fa-trash-can"></i> Purge All History</button>
-    </div>
-  </div>
-
-  <!-- Send Notification Message Section -->
-  <div class="panel mb-6" style="margin-bottom:20px;">
-    <div class="panel-header">
-      <div class="panel-icon purple" style="background:rgba(139,92,246,0.1); color:#8b5cf6;"><i class="fa-solid fa-paper-plane"></i></div>
-      <div><div class="panel-title">Send Broadcast Message</div><div class="panel-sub">Send alert announcements to user activities feed</div></div>
-    </div>
-    <div style="display:flex; flex-direction:column; gap:12px; margin-top:15px;">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div class="form-group">
-          <label class="form-label">Recipient Phone Number (or 'all' for everyone)</label>
-          <input type="text" id="msgRecipient" class="form-input" placeholder="e.g. all or 08012345678" value="all" style="width:100%;">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Message Title</label>
-          <input type="text" id="msgTitle" class="form-input" placeholder="e.g. System Upgrade / Payment Successful" style="width:100%;">
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Message Content</label>
-        <textarea id="msgBody" class="form-input" style="height:80px; width:100%; resize:none; font-family:inherit; padding:10px;" placeholder="Type your notification message details here..."></textarea>
-      </div>
-      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <button onclick="sendAdminNotification()" class="btn-primary" style="padding: 12px 24px; font-weight: 700; border-radius: 12px; background: var(--accent); color: white; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-paper-plane"></i> Send Message
-        </button>
-        <button onclick="triggerDailyReminders()" class="btn-secondary" style="padding: 12px 24px; font-weight: 700; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-clock"></i> Send Daily Mining Reminders
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Receipts Category Selector Dropdown -->
-  <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); padding: 16px; border-radius: 16px;">
-    <div style="font-size: 14px; font-weight: 700; color: var(--text);">Select Receipts Type to View:</div>
-    <select id="receiptCategorySelect" onchange="switchReceiptCategory()" style="background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
-      <option value="key" selected>Payout Key Receipts</option>
-      <option value="upgrade">Plan Upgrade Receipts</option>
-      <option value="verification">Verification Receipts</option>
-    </select>
-  </div>
-
-  <!-- ─── PANEL 1: Payout Key Receipts ─── -->
-  <div class="panel" id="receiptPanel_key" style="margin-bottom: 24px;">
-    <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="panel-icon blue" style="background:rgba(59,130,246,0.1); color:#3b82f6;"><i class="fa-solid fa-key"></i></div>
-        <div><div class="panel-title">Payout Key Receipts</div><div class="panel-sub">Inspect uploaded payout key transaction proofs</div></div>
-      </div>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <button id="bulkApproveBtn_key" onclick="bulkAction('key', 'approve', 'key')" class="btn-success" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#10b981; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
-          <i class="fa-solid fa-check"></i> Approve Selected (<span id="bulkApproveCount_key">0</span>)
-        </button>
-        <button id="bulkDeleteBtn_key" onclick="bulkAction('key', 'delete', 'key')" class="btn-danger" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#ef4444; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
-          <i class="fa-solid fa-trash-can"></i> Delete Selected (<span id="bulkDeleteCount_key">0</span>)
-        </button>
-      </div>
-    </div>
-    <div class="table-wrap overflow-x-auto">
-      <table class="w-full text-left" style="width:100%; border-collapse:collapse; min-width:800px;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border);">
-            <th style="padding:12px; font-size:11px; width:40px; text-align:center;"><input type="checkbox" id="selectAll_key" onchange="toggleSelectAll(this, 'key')" style="cursor:pointer; width:15px; height:15px; accent-color:#10b981;"></th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Date</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">User</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Type</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Amount / Details</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Receipt Image</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); text-align:right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="receiptListTable_key">
-          <tr>
-            <td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No new payout key receipts.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ─── PANEL 2: Plan Upgrade Receipts ─── -->
-  <div class="panel" id="receiptPanel_upgrade" style="margin-bottom: 24px; display: none;">
-    <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="panel-icon purple" style="background:rgba(139,92,246,0.1); color:#8b5cf6;"><i class="fa-solid fa-circle-up"></i></div>
-        <div><div class="panel-title">Plan Upgrade Receipts</div><div class="panel-sub">Inspect uploaded plan upgrade transaction proofs</div></div>
-      </div>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <button id="bulkApproveBtn_upgrade" onclick="bulkAction('upgrade', 'approve', 'upgrade')" class="btn-success" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#10b981; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
-          <i class="fa-solid fa-check"></i> Approve Selected (<span id="bulkApproveCount_upgrade">0</span>)
-        </button>
-        <button id="bulkDeleteBtn_upgrade" onclick="bulkAction('upgrade', 'delete', 'upgrade')" class="btn-danger" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#ef4444; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
-          <i class="fa-solid fa-trash-can"></i> Delete Selected (<span id="bulkDeleteCount_upgrade">0</span>)
-        </button>
-      </div>
-    </div>
-    <div class="table-wrap overflow-x-auto">
-      <table class="w-full text-left" style="width:100%; border-collapse:collapse; min-width:800px;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border);">
-            <th style="padding:12px; font-size:11px; width:40px; text-align:center;"><input type="checkbox" id="selectAll_upgrade" onchange="toggleSelectAll(this, 'upgrade')" style="cursor:pointer; width:15px; height:15px; accent-color:#10b981;"></th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Date</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">User</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Type</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Amount / Details</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Receipt Image</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); text-align:right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="receiptListTable_upgrade">
-          <tr>
-            <td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No new plan upgrade receipts.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ─── PANEL 3: Account Verification Receipts ─── -->
-  <div class="panel" id="receiptPanel_verification" style="margin-bottom: 24px; display: none;">
-    <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="panel-icon green" style="background:rgba(16,185,129,0.1); color:#10b981;"><i class="fa-solid fa-user-check"></i></div>
-        <div><div class="panel-title">Verification Receipts</div><div class="panel-sub">Inspect uploaded account verification transaction proofs</div></div>
-      </div>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <button id="bulkApproveBtn_verification" onclick="bulkAction('verification', 'approve', 'verification')" class="btn-success" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#10b981; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
-          <i class="fa-solid fa-check"></i> Approve Selected (<span id="bulkApproveCount_verification">0</span>)
-        </button>
-        <button id="bulkDeleteBtn_verification" onclick="bulkAction('verification', 'delete', 'verification')" class="btn-danger" style="display:none; padding:8px 16px; font-weight:800; border-radius:8px; background:#ef4444; color:white; border:none; cursor:pointer; font-size:11px; align-items:center; gap:6px; transition: all 0.2s;">
-          <i class="fa-solid fa-trash-can"></i> Delete Selected (<span id="bulkDeleteCount_verification">0</span>)
-        </button>
-      </div>
-    </div>
-    <div class="table-wrap overflow-x-auto">
-      <table class="w-full text-left" style="width:100%; border-collapse:collapse; min-width:800px;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border);">
-            <th style="padding:12px; font-size:11px; width:40px; text-align:center;"><input type="checkbox" id="selectAll_verification" onchange="toggleSelectAll(this, 'verification')" style="cursor:pointer; width:15px; height:15px; accent-color:#10b981;"></th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Date</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">User</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Type</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Amount / Details</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted);">Receipt Image</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); text-align:right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="receiptListTable_verification">
-          <tr>
-            <td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">No new account verification receipts.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- WITHDRAWALS TAB -->
-<div class="tab-panel" id="tab-withdrawals">
-  <div class="content-header">
-    <div class="header-left">
-      <div>
-        <div class="header-title">Withdrawal Requests</div>
-        <div class="header-sub">Approve or reject user payout withdrawals</div>
-      </div>
-    </div>
-    <div class="flex items-center gap-3">
-      <button id="btnSuperBulkApproveWithdrawals" onclick="bulkApproveSuperWithdrawals()" style="display:none; background:#10b981; border:none; padding: 8px 16px; border-radius:10px; color:white; font-weight:700; cursor:pointer; align-items:center; gap:6px;"><i class="fa-solid fa-check-double"></i> Mass Approve (<span id="txtSuperBulkApproveCount">0</span>)</button>
-      <button id="btnSuperBulkDeclineWithdrawals" onclick="bulkDeclineSuperWithdrawals()" style="display:none; background:#ef4444; border:none; padding: 8px 16px; border-radius:10px; color:white; font-weight:700; cursor:pointer; align-items:center; gap:6px;"><i class="fa-solid fa-ban"></i> Mass Decline (<span id="txtSuperBulkDeclineCount">0</span>)</button>
-      <button onclick="loadSuperWithdrawals()" class="btn btn-secondary" style="border:1px solid var(--border); padding: 8px 16px; border-radius:10px; background:var(--surface); color:var(--text); cursor:pointer;"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-icon green" style="background:rgba(16,185,129,0.1); color:#10b981;"><i class="fa-solid fa-money-bill-transfer"></i></div>
-      <div><div class="panel-title">Pending & Past Withdrawals</div><div class="panel-sub">Inspect and process users payouts</div></div>
-    </div>
-    <div class="table-wrap overflow-x-auto">
-      <table class="w-full text-left" style="width:100%; border-collapse:collapse; min-width:800px;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border);">
-            <th style="padding:12px; width:40px; text-align:center;"><input type="checkbox" id="selectAllSuperWithdrawals" onclick="toggleSelectAllSuperWithdrawals(this.checked)" style="cursor:pointer; width:15px; height:15px; accent-color:#10b981;"></th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:15%;">Date</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:23%;">User Name / Phone</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:23%;">Bank Details</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:14%;">Amount</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:10%;">Status</th>
-            <th style="padding:12px; font-size:11px; text-transform:uppercase; color:var(--text-muted); width:15%; text-align:right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="superWithdrawalsTable">
-          <tr>
-            <td colspan="7" style="padding:20px; text-align:center; color:var(--text3);">Loading withdrawals...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <!-- Withdrawals Pagination -->
-    <div id="withdrawalsPagination" style="display: none; align-items: center; justify-content: space-between; margin-top: 15px; padding: 10px 0; border-top: 1px solid var(--border); font-size: 13px;">
-      <button onclick="changeWithdrawalsPage(-1)" id="btnWithdrawalsPrev" style="background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">Previous</button>
-      <span id="txtWithdrawalsPage" style="color: var(--text3);">Page 1 of 1</span>
-      <button onclick="changeWithdrawalsPage(1)" id="btnWithdrawalsNext" style="background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">Next</button>
     </div>
   </div>
 </div>
@@ -881,58 +412,12 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
 
   <div class="panel">
     <div class="panel-header">
-      <div class="panel-icon orange" style="background:rgba(245,158,11,0.1); color:#f59e0b;"><i class="fa-solid fa-percent"></i></div>
-      <div><div class="panel-title">Admin Commission Setting</div><div class="panel-sub">Set the percentage you collect from Junior Admins</div></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group" style="margin-bottom:0;">
-        <label class="form-label">Super Admin Commission Percentage (%)</label>
-        <input type="number" id="adminPercentageInput" class="form-input" min="0" max="100" placeholder="20" value="20">
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-icon orange" style="background:rgba(245,158,11,0.1); color:#f59e0b;"><i class="fa-solid fa-gift"></i></div>
-      <div><div class="panel-title">Referral Bonus Settings</div><div class="panel-sub">Set the amount users earn for referring verified friends</div></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group" style="margin-bottom:0;">
-        <label class="form-label">Referral Reward Amount (₦)</label>
-        <input type="number" id="referralBonusInput" class="form-input" min="0" placeholder="10000" value="10000">
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
       <div class="panel-icon blue"><i class="fa-brands fa-telegram"></i></div>
-      <div><div class="panel-title">Community & Support Links</div><div class="panel-sub">Configure community channel and customer care links</div></div>
+      <div><div class="panel-title">Telegram</div><div class="panel-sub">Support channel link</div></div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Telegram Channel URL (Community)</label>
-        <input type="url" id="telegramLink" class="form-input" placeholder="https://t.me/9jaCash_Community">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Telegram Support URL (Customer Care)</label>
-        <input type="url" id="telegramSupportLink" class="form-input" placeholder="https://t.me/9jaCash_Support">
-      </div>
-    </div>
-    <div class="form-group" style="margin-top:12px; margin-bottom:0;">
-      <label class="form-label">WhatsApp Support URL (Customer Care)</label>
-      <input type="url" id="whatsappLink" class="form-input" placeholder="https://wa.me/2349000000000">
-    </div>
-    <div class="form-row" style="margin-top:16px;">
-      <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#94a3b8; cursor:pointer;">
-        <input type="checkbox" id="telegramSupportLinkActive" style="width:16px; height:16px; cursor:pointer;" checked>
-        Activate Telegram Support Link
-      </label>
-      <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#94a3b8; cursor:pointer;">
-        <input type="checkbox" id="whatsappLinkActive" style="width:16px; height:16px; cursor:pointer;" checked>
-        Activate WhatsApp Support Link
-      </label>
+    <div class="form-group" style="margin-bottom:0;">
+      <label class="form-label">Channel URL</label>
+      <input type="url" id="telegramLink" class="form-input" placeholder="https://t.me/9jaCashSupport">
     </div>
   </div>
 
@@ -950,72 +435,6 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
         <label class="form-label">Network</label>
         <input type="text" id="cryptoNetwork" class="form-input" placeholder="TRC20, BEP20, ERC20">
       </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-icon green" style="background:rgba(16,185,129,0.1); color:#10b981;"><i class="fa-solid fa-circle-play"></i></div>
-      <div>
-        <div class="panel-title" style="display:flex; align-items:center; gap:8px;">
-          Video Testimonial Challenge
-          <span id="challengeVideoIndicator" style="width:8px; height:8px; border-radius:50%; background-color:#9ca3af; display:inline-block; margin-left:4px;"></span>
-          <span id="challengeVideoIndicatorText" style="font-size:10px; font-weight:bold; color:var(--text3);">Offline</span>
-        </div>
-        <div class="panel-sub">Configure user campaign and Cloudinary settings</div>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Video Challenge Status</label>
-      <select id="videoChallengeActive" onchange="updateChallengeVideoIndicator()" class="form-input" style="margin-bottom:12px;">
-        <option value="true">Active (Enabled)</option>
-        <option value="false">Inactive (Disabled)</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <div class="form-group" style="margin-bottom:0;">
-        <label class="form-label">Cloudinary Cloud Name</label>
-        <input type="text" id="cloudinaryCloudName" class="form-input" placeholder="e.g. dxpxxxxx">
-      </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label class="form-label">Cloudinary Upload Preset (Unsigned)</label>
-        <input type="text" id="cloudinaryUploadPreset" class="form-input" placeholder="e.g. video_unsigned">
-      </div>
-    </div>
-  </div>
-  
-  <div class="card" style="margin-top:20px;">
-    <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div class="panel-icon purple" style="background:rgba(139,92,246,0.1); color:#8b5cf6;"><i class="fa-solid fa-graduation-cap"></i></div>
-        <div>
-          <div class="panel-title" style="display:flex; align-items:center; gap:8px;">
-            Verification Tutorial Video
-            <span id="verificationVideoIndicator" style="width:8px; height:8px; border-radius:50%; background-color:#9ca3af; display:inline-block; margin-left:4px;"></span>
-            <span id="verificationVideoIndicatorText" style="font-size:10px; font-weight:bold; color:var(--text3);">Offline</span>
-          </div>
-          <div class="panel-sub">Show tutorial on how users can verify their account</div>
-        </div>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Verification Tutorial Status</label>
-      <select id="verificationVideoActive" onchange="updateVerificationVideoIndicator()" class="form-input" style="margin-bottom:12px;">
-        <option value="true">Active (Enabled)</option>
-        <option value="false">Inactive (Disabled)</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Tutorial Video Source Link (MP4/Direct Link)</label>
-      <input type="text" id="verificationVideoUrl" class="form-input" placeholder="e.g. https://domain.com/videos/tutorial.mp4">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Or Upload Verification Tutorial Video File</label>
-      <input type="file" id="verificationVideoFile" accept="video/*" class="form-input" style="padding:8px 12px; font-size:12px;">
-      <button onclick="uploadVerificationVideoFile()" id="verificationVideoUploadBtn" class="btn btn-primary" style="margin-top:10px; font-size:12px; padding:10px 20px;">
-        <i class="fa-solid fa-upload"></i> Upload Video to Cloud
-      </button>
-      <div id="verificationVideoUploadProgress" style="display:none; margin-top:8px; font-size:12px; color:var(--accent);">Uploading... 0%</div>
     </div>
   </div>
 </div>
@@ -1178,210 +597,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
     </div>
     <div class="form-group" style="margin-bottom:0;">
       <label class="form-label">Telegram Handle</label>
-      <input type="text" id="supportHandle" class="form-input" placeholder="@9jaCash_Support">
-    </div>
-  </div>
-</div>
-
-<!-- USERS TAB -->
-<div class="tab-panel" id="tab-users">
-  <div class="content-header">
-    <div class="header-left">
-      <div>
-        <div class="header-title">Registered Users</div>
-        <div class="header-sub">View and manage all registered members on the platform</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div class="panel-icon purple"><i class="fa-solid fa-users"></i></div>
-        <div><div class="panel-title">Users Directory</div><div class="panel-sub">Total: <span id="usersListCount">0</span> users</div></div>
-      </div>
-      <div>
-        <input type="text" id="userSearchInput" oninput="filterUsers()" placeholder="Search users by name, phone or email..." class="form-input" style="width: 280px; margin-bottom: 0; padding: 8px 12px; font-size: 13px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text);">
-      </div>
-    </div>
-    <div class="table-wrap overflow-x-auto" style="max-height: 500px; overflow-y: auto;">
-      <table class="w-full text-left" style="border-collapse: collapse; width:100%;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Joined</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Name</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Phone</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Email</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Referred By</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Payout Key</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Balance</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Status</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="allUsersListTable">
-          <tr>
-            <td colspan="9" style="padding: 15px; text-align: center; color: var(--text3);">Loading registered users...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <!-- Users Pagination -->
-    <div id="usersPagination" style="display: none; align-items: center; justify-content: space-between; margin-top: 15px; padding: 10px 0; border-top: 1px solid var(--border); font-size: 13px;">
-      <button onclick="changeUsersPage(-1)" id="btnUsersPrev" style="background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">Previous</button>
-      <span id="txtUsersPage" style="color: var(--text3);">Page 1 of 1</span>
-      <button onclick="changeUsersPage(1)" id="btnUsersNext" style="background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">Next</button>
-    </div>
-  </div>
-</div>
-
-<!-- JUNIOR ADMINS TAB -->
-<div class="tab-panel" id="tab-juniors">
-  <div class="content-header">
-    <div class="header-left">
-      <div>
-        <div class="header-title">Junior Admins</div>
-        <div class="header-sub">Manage referred-user network administrators</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="stats-row" style="grid-template-columns: repeat(3, 1fr); display: grid; gap: 16px; margin-bottom: 24px;">
-    <!-- Total Junior Gross Revenue -->
-    <div class="stat-card green" style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); padding: 16px;">
-      <div class="stat-icon green" style="background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-vault"></i></div>
-      <div class="stat-num green" id="juniorTotalGross" style="color: #10b981; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Total Junior Gross</div>
-    </div>
-
-    <!-- Total Admin Share -->
-    <div class="stat-card red" style="background: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.15); padding: 16px;">
-      <div class="stat-icon red" style="background: rgba(239, 68, 68, 0.08); color: #ef4444; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-percent"></i></div>
-      <div class="stat-num red" id="juniorTotalAdminShare" style="color: #ef4444; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Your Commission (Cut)</div>
-    </div>
-
-    <!-- Total Junior Net Share -->
-    <div class="stat-card blue" style="background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.15); padding: 16px;">
-      <div class="stat-icon blue" style="background: rgba(59, 130, 246, 0.08); color: #3b82f6; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 12px;"><i class="fa-solid fa-wallet"></i></div>
-      <div class="stat-num blue" id="juniorTotalNetShare" style="color: #3b82f6; font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; margin: 8px 0;">₦0</div>
-      <div class="stat-label" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Junior Admins Net Share</div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-icon green"><i class="fa-solid fa-user-plus"></i></div>
-      <div><div class="panel-title">Create New Junior Admin</div><div class="panel-sub">Enter credentials and unique referral code</div></div>
-    </div>
-    <form id="createJuniorForm" onsubmit="createJuniorAdmin(event)" class="space-y-4">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Email Address</label>
-          <input type="email" id="juniorEmail" class="form-input" placeholder="junior1@9jacash.com" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <input type="password" id="juniorPassword" class="form-input" placeholder="Enter secure password" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Referral Code</label>
-          <input type="text" id="juniorRefCode" class="form-input" placeholder="e.g. JUNIOR01" required>
-        </div>
-      </div>
-      <div class="form-row" style="margin-top: 10px;">
-        <div class="form-group">
-          <label class="form-label">Bank Name</label>
-          <input type="text" id="juniorBankName" class="form-input" placeholder="Moniepoint, GTBank...">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Account Number</label>
-          <input type="text" id="juniorAccountNumber" class="form-input" maxlength="10" placeholder="10 digits">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Account Name</label>
-          <input type="text" id="juniorAccountName" class="form-input" placeholder="Account holder name">
-        </div>
-      </div>
-      <div class="form-group flex items-end" style="margin-top: 15px;">
-        <button type="submit" class="save-btn" style="margin-bottom:0; height:48px; width:100%; background:linear-gradient(135deg,var(--purple),var(--accent));">
-          <i class="fa-solid fa-user-plus"></i> Create Junior Account
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-icon blue"><i class="fa-solid fa-users-line"></i></div>
-      <div><div class="panel-title">Active Junior Admins</div><div class="panel-sub">Manage network coordinators & 1-week rolling commissions (resets weekly)</div></div>
-    </div>
-    <div class="table-wrap overflow-x-auto">
-      <table class="w-full text-left" style="border-collapse: collapse; width:100%;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Email</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Referral Code</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Bank Details</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Weekly Gross</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Admin Cut (20%)</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Junior Share (80%)</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Status</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Action</th>
-          </tr>
-        </thead>
-        <tbody id="juniorAdminListTable">
-          <tr>
-            <td colspan="8" style="padding: 15px; text-align: center; color: var(--text3);">Loading junior admins...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- Videos Panel -->
-<div class="tab-panel" id="tab-videos">
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-icon purple" style="background:rgba(139,92,246,0.1); color:var(--accent);"><i class="fa-solid fa-video"></i></div>
-      <div>
-        <div class="panel-title">Video Testimony Challenge</div>
-        <div class="panel-sub">Review user testimonial videos and approve rewards</div>
-      </div>
-    </div>
-    <div class="table-wrap overflow-x-auto">
-      <table class="w-full text-left" style="border-collapse: collapse; width:100%;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">User Name</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Phone Number</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Video URL Link</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Submitted Date</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted);">Status</th>
-            <th style="padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right;">Action</th>
-          </tr>
-        </thead>
-        <tbody id="videoSubmissionListTable">
-          <tr>
-            <td colspan="6" style="padding: 15px; text-align: center; color: var(--text-muted);">No video submissions yet.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  
-  <!-- Onboarding Scroll Videos (matching Image 1 / TikTok scroll request) -->
-  <div class="panel" style="margin-top: 24px;">
-    <div class="panel-header">
-      <div class="panel-icon blue" style="background:rgba(59,130,246,0.1); color:#3b82f6;"><i class="fa-solid fa-film"></i></div>
-      <div>
-        <div class="panel-title">Onboarding &amp; Login Scroll Videos</div>
-        <div class="panel-sub">Manage the 4 TikTok-style scroll videos on Login/Start screens (max 10 minutes)</div>
-      </div>
-    </div>
-    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 12px 0;" id="promoVideosGrid">
-      <!-- Generated dynamically by loadPromoVideos() -->
+      <input type="text" id="supportHandle" class="form-input" placeholder="@New_9jacash_support">
     </div>
   </div>
 </div>
@@ -1409,8 +625,433 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
 <!-- TOAST -->
 <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Saved!</span></div>
 
+<script>
+const firebaseConfig={apiKey: "AIzaSyAN_9d137mx7SkgGyY1nMwD36wC8xgk6oI",
+  authDomain: "jacashmine.firebaseapp.com",
+  projectId: "jacashmine",
+  storageBucket: "jacashmine.firebasestorage.app",
+  messagingSenderId: "375336303263",
+  appId: "1:375336303263:web:5888b4630b7be2998500aa",
+  measurementId: "G-0N8TJ3MPKJ"
+};
 
-<-- admin-script.js -->
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
 
+let wdSuccess=false;
+let pmSuccess=false;
+let payoutKey='';
+let keyHistory=[];
+let tasks=[];
+let selectedPlanData=null;
+let generatedKey='';
+const MAX_TASKS=10;
+const CATS=['tiktok','facebook','other'];
+const CAT_LABELS={tiktok:'TikTok',facebook:'Facebook',other:'Other'};
+const CAT_ICONS={tiktok:'fa-brands fa-tiktok',facebook:'fa-brands fa-facebook',other:'fa-solid fa-globe'};
+const DEFAULT_TASKS=[
+  {id:'t1',name:'Follow TikTok',cat:'tiktok',link:'',amt:500,hot:false},
+  {id:'t2',name:'Like TikTok',cat:'tiktok',link:'',amt:500,hot:false},
+  {id:'t3',name:'Share TikTok',cat:'tiktok',link:'',amt:500,hot:false},
+  {id:'t4',name:'Like Facebook',cat:'facebook',link:'',amt:500,hot:false},
+  {id:'t5',name:'Share Facebook',cat:'facebook',link:'',amt:500,hot:false},
+  {id:'t6',name:'Comment FB',cat:'facebook',link:'',amt:500,hot:false},
+  {id:'t7',name:'Join FB Group',cat:'facebook',link:'',amt:500,hot:false},
+  {id:'t8',name:'Watch YouTube',cat:'other',link:'',amt:500,hot:false},
+  {id:'t9',name:'Subscribe',cat:'other',link:'',amt:500,hot:false},
+  {id:'t10',name:'Download App',cat:'other',link:'',amt:500,hot:false}
+];
+
+// ========== AUTH ==========
+function initAuth(){
+  auth.onAuthStateChanged(user=>{
+    if(user){
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('loadingScreen').classList.add('active');
+      loadData();
+    }else{
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('mainApp').classList.add('hidden');
+      document.getElementById('loadingScreen').classList.remove('active');
+    }
+  });
+}
+
+function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPassword').value;
+  const errDiv=document.getElementById('loginError');
+  const errText=document.getElementById('loginErrorText');
+  const btn=document.getElementById('loginBtn');
+  
+  if(!email||!pass){
+    errText.textContent='Enter email and password';
+    errDiv.classList.add('show');
+    return;
+  }
+  
+  btn.disabled=true;
+  btn.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i> Accessing...';
+  errDiv.classList.remove('show');
+  
+  auth.signInWithEmailAndPassword(email,pass)
+    .then(()=>{errDiv.classList.remove('show');})
+    .catch(e=>{
+      let msg=e.message;
+      if(msg.includes('user-not-found'))msg='No account found';
+      else if(msg.includes('wrong-password'))msg='Wrong password';
+      else if(msg.includes('invalid-email'))msg='Invalid email';
+      else if(msg.includes('invalid-credential'))msg='Invalid credentials';
+      else msg=msg.replace('Firebase: ','').replace(/\(.+\)/,'');
+      errText.textContent=msg;
+      errDiv.classList.add('show');
+      btn.disabled=false;
+      btn.innerHTML='<i class="fa-solid fa-arrow-right-to-bracket"></i> Access Control';
+    });
+}
+
+function doLogout(){auth.signOut().then(()=>location.reload());}
+
+['loginEmail','loginPassword'].forEach(id=>{
+  document.getElementById(id).addEventListener('keypress',e=>{
+    if(e.key==='Enter')doLogin();
+  });
+});
+
+// ========== TABS ==========
+function switchTab(tab,el){
+  document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ========== TOGGLES ==========
+function toggleWithdrawal(){
+  wdSuccess=!wdSuccess;
+  const t=document.getElementById('wdToggle');
+  const s=document.getElementById('wdState');
+  const r=document.getElementById('wdRedirect');
+  const p=document.getElementById('previewWithdrawal');
+  const stat=document.getElementById('statStatus');
+  if(wdSuccess){
+    t.classList.add('on');s.textContent='ON';s.style.background='rgba(0,212,170,0.1)';s.style.color='var(--accent)';
+    r.textContent='success.html';r.style.color='var(--accent)';
+    p.textContent='Success';p.style.color='var(--accent)';
+    stat.textContent='ON';stat.style.color='var(--accent)';
+  }else{
+    t.classList.remove('on');s.textContent='OFF';s.style.background='rgba(255,71,87,0.1)';s.style.color='var(--danger)';
+    r.textContent='pending.html';r.style.color='var(--danger)';
+    p.textContent='Pending';p.style.color='var(--danger)';
+    stat.textContent='OFF';stat.style.color='var(--danger)';
+  }
+  showToast(wdSuccess?'Withdrawal success ON':'Withdrawal pending ON');
+}
+
+function togglePayment(){
+  pmSuccess=!pmSuccess;
+  const t=document.getElementById('pmToggle');
+  const s=document.getElementById('pmState');
+  const r=document.getElementById('pmRedirect');
+  const p=document.getElementById('previewPayment');
+  if(pmSuccess){
+    t.classList.add('on');s.textContent='ON';s.style.background='rgba(0,212,170,0.1)';s.style.color='var(--accent)';
+    r.textContent='payment-success.html';r.style.color='var(--accent)';
+    p.textContent='Success';p.style.color='var(--accent)';
+  }else{
+    t.classList.remove('on');s.textContent='OFF';s.style.background='rgba(255,71,87,0.1)';s.style.color='var(--danger)';
+    r.textContent='payment-failed.html';r.style.color='var(--danger)';
+    p.textContent='Failed';p.style.color='var(--danger)';
+  }
+  showToast(pmSuccess?'Payment success ON':'Payment failed ON');
+}
+
+// ========== PAYOUT KEY ==========
+function selectPlan(name, price, limit) {
+  document.querySelectorAll('.plan-select-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('plan' + name).classList.add('selected');
+  
+  selectedPlanData = { name, price, limit };
+  document.getElementById('selectedPlanDisplay').textContent = name + ' Key';
+  document.getElementById('selectedPriceDisplay').textContent = '₦' + price.toLocaleString();
+  document.getElementById('selectedLimitDisplay').textContent = limit === 999999 ? 'Unlimited' : limit + '/day';
+  
+  showToast(name + ' Key selected — ready to generate');
+}
+
+function generatePayoutKeyForPlan() {
+  if (!selectedPlanData) {
+    showToast('Select a plan first!', 'error');
+    document.querySelectorAll('.plan-select-card').forEach(c => {
+      c.style.animation = 'shake 0.5s ease';
+      setTimeout(() => c.style.animation = '', 500);
+    });
+    return;
+  }
+  
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let key = '';
+  for (let i = 0; i < 8; i++) {
+    key += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  generatedKey = key;
+  
+  document.getElementById('generatedKeyBox').style.display = 'block';
+  document.getElementById('currentKeyBox').style.display = 'none';
+  document.getElementById('generatedKeyValue').textContent = key;
+  document.getElementById('generatedKeyLabel').textContent = 'Generated for ' + selectedPlanData.name + ' Key (₦' + selectedPlanData.price.toLocaleString() + ')';
+  
+  document.getElementById('payoutKeyInput').value = key;
+  
+  showToast('Key generated for ' + selectedPlanData.name + '!');
+}
+
+function generateRandomKey() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let key = '';
+  for (let i = 0; i < 8; i++) {
+    key += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  document.getElementById('payoutKeyInput').value = key;
+  showToast('Random key generated');
+}
+
+function saveGeneratedKey() {
+  const k = generatedKey || document.getElementById('payoutKeyInput').value.trim().toUpperCase();
+  if (!k || k.length < 4) {
+    showToast('Enter valid key (min 4 chars)', 'error');
+    return;
+  }
+  
+  if (payoutKey && payoutKey !== k && !keyHistory.includes(payoutKey)) {
+    keyHistory.unshift(payoutKey);
+    if (keyHistory.length > 10) keyHistory.pop();
+  }
+  
+  payoutKey = k;
+  if (!keyHistory.includes(k)) keyHistory.unshift(k);
+  if (keyHistory.length > 10) keyHistory.pop();
+  
+  document.getElementById('payoutKeyDisplay').textContent = k;
+  document.getElementById('previewPayoutKey').textContent = k;
+  document.getElementById('statKeys').textContent = keyHistory.length;
+  document.getElementById('keyBadge').textContent = keyHistory.length;
+  
+  document.getElementById('generatedKeyBox').style.display = 'none';
+  document.getElementById('currentKeyBox').style.display = 'block';
+  
+  showToast('Payout key saved! Click "Save All Changes" to store in Firebase.');
+  renderKeyHistory();
+}
+
+function renderKeyHistory(){
+  const el=document.getElementById('keyHistory');
+  if(keyHistory.length===0){
+    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No history yet</div>';
+    return;
+  }
+  el.innerHTML='';
+  keyHistory.forEach((k,i)=>{
+    const div=document.createElement('div');
+    div.className='history-item';
+    div.innerHTML='<span class="history-key">'+k+'</span><span class="history-date">'+(i===0?'Current':'#'+(i+1))+'</span>';
+    el.appendChild(div);
+  });
+}
+
+// ========== TASKS ==========
+function renderTasks(){
+  const el=document.getElementById('taskList');
+  el.innerHTML='';
+  tasks.forEach((t,i)=>{
+    const div=document.createElement('div');
+    div.className='task-card'+(t.hot?' hot':'');
+    div.innerHTML='<div class="task-top"><div style="display:flex;align-items:center;gap:10px;"><div class="task-num">'+(i+1)+'</div><input type="text" class="form-input" style="padding:8px 12px;font-size:13px;min-width:160px;" value="'+t.name+'" onchange="updateTask('+i+',\'name\',this.value)" placeholder="Task name"></div><div class="task-actions"><button class="task-btn-sm fire" onclick="toggleHot('+i+')" title="Hot"><i class="fa-solid fa-fire" style="color:'+(t.hot?'var(--warning)':'var(--text3)')+'"></i></button><button class="task-btn-sm" onclick="deleteTask('+i+')" title="Delete"><i class="fa-solid fa-trash"></i></button></div></div><div class="task-grid-inner"><div class="task-field"><label class="form-label">Category</label><select class="form-input" onchange="updateTask('+i+',\'cat\',this.value)">'+CATS.map(c=>'<option value="'+c+'"'+(t.cat===c?' selected':'')+'>'+CAT_LABELS[c]+'</option>').join('')+'</select></div><div class="task-field"><label class="form-label">Amount</label><input type="number" class="form-input" value="'+t.amt+'" onchange="updateTask('+i+',\'amt\',Number(this.value))" placeholder="500"></div><div class="task-field"><label class="form-label">Link</label><input type="url" class="form-input" value="'+t.link+'" onchange="updateTask('+i+',\'link\',this.value)" placeholder="https://..."></div></div><span class="task-tag tag-'+t.cat+'"><i class="'+CAT_ICONS[t.cat]+'"></i> '+CAT_LABELS[t.cat]+'</span>';
+    el.appendChild(div);
+  });
+  updateTaskBtn();
+  document.getElementById('previewTasks').textContent=tasks.length+' ('+tasks.filter(t=>t.hot).length+' hot)';
+  document.getElementById('statTasks').textContent=tasks.length;
+}
+
+function updateTask(i,f,v){tasks[i][f]=v;if(f==='cat'||f==='hot')renderTasks();}
+function toggleHot(i){tasks[i].hot=!tasks[i].hot;renderTasks();}
+function deleteTask(i){
+  if(tasks.length<=1){showToast('Need at least 1 task','error');return;}
+  Swal.fire({title:'Delete?',text:'Remove "'+tasks[i].name+'"?',icon:'warning',showCancelButton:true,confirmButtonColor:'#ff4757',cancelButtonColor:'#576574',confirmButtonText:'Delete',background:'#0f1623',color:'#c8d6e5'}).then(r=>{if(r.isConfirmed){tasks.splice(i,1);renderTasks();showToast('Deleted');}});
+}
+function addNewTask(){
+  if(tasks.length>=MAX_TASKS){showToast('Max '+MAX_TASKS,'error');return;}
+  tasks.push({id:'t'+Date.now(),name:'New Task',cat:CATS[Math.floor(Math.random()*3)],link:'',amt:500,hot:false});
+  renderTasks();showToast('Task added');
+}
+function updateTaskBtn(){
+  const btn=document.getElementById('addTaskBtn');
+  if(tasks.length>=MAX_TASKS){btn.style.opacity='0.5';btn.style.pointerEvents='none';btn.innerHTML='<i class="fa-solid fa-lock"></i> Max 10';}
+  else{btn.style.opacity='1';btn.style.pointerEvents='auto';btn.innerHTML='<i class="fa-solid fa-plus"></i> Add ('+tasks.length+'/'+MAX_TASKS+')';}
+}
+
+// ========== LOAD DATA (NO USERS) ==========
+async function loadData(){
+  try{
+    const [payDoc,feeDoc,taskDoc,wdDoc,pmDoc,keyDoc,redirDoc]=await Promise.all([
+      db.collection('settings').doc('payment').get(),
+      db.collection('settings').doc('secondBilling').get(),
+      db.collection('settings').doc('tasks').get(),
+      db.collection('settings').doc('withdrawalStatus').get(),
+      db.collection('settings').doc('paymentStatus').get(),
+      db.collection('settings').doc('payoutKeys').get(),
+      db.collection('settings').doc('redirects').get()
+    ]);
+    
+    const pay=payDoc.exists?payDoc.data():{};
+    const fee=feeDoc.exists?feeDoc.data():{};
+    const taskData=taskDoc.exists?taskDoc.data():{};
+    const wdData=wdDoc.exists?wdDoc.data():{};
+    const pmData=pmDoc.exists?pmDoc.data():{};
+    const keyData=keyDoc.exists?keyDoc.data():{};
+    const redirData=redirDoc.exists?redirDoc.data():{};
+    
+    document.getElementById('telegramLink').value=pay.telegramLink||'';
+    document.getElementById('accNumber').value=pay.accNumber||'';
+    document.getElementById('bankName').value=pay.bank||'';
+    document.getElementById('accName').value=pay.accName||'';
+    document.getElementById('amount').value=pay.amount||'';
+    document.getElementById('cryptoAddress').value=pay.cryptoAddress||'';
+    document.getElementById('cryptoNetwork').value=pay.cryptoNetwork||'';
+    document.getElementById('noticeText').value=pay.notice||'';
+    document.getElementById('feeAccNumber').value=fee.accNumber||'';
+    document.getElementById('feeBank').value=fee.bank||'';
+    document.getElementById('feeAccName').value=fee.accName||'';
+    document.getElementById('feeAmount').value=fee.amount||'12500';
+    
+    wdSuccess=wdData.success===true;updateWdToggleUI();
+    pmSuccess=pmData.success===true;updatePmToggleUI();
+    
+    payoutKey=keyData.currentKey||'';
+    keyHistory=keyData.history||[];
+    document.getElementById('payoutKeyDisplay').textContent=payoutKey||'NOT SET';
+    document.getElementById('payoutKeyInput').value=payoutKey;
+    document.getElementById('previewPayoutKey').textContent=payoutKey||'Not set';
+    document.getElementById('statKeys').textContent=keyHistory.length;
+    document.getElementById('keyBadge').textContent=keyHistory.length;
+    renderKeyHistory();
+    
+    if(redirData.successPrimaryRedirect)document.getElementById('successPrimary').value=redirData.successPrimaryRedirect;
+    if(redirData.successSecondaryRedirect)document.getElementById('successSecondary').value=redirData.successSecondaryRedirect;
+    if(redirData.successDelay)document.getElementById('successDelay').value=redirData.successDelay;
+    if(redirData.failedRetryRedirect)document.getElementById('failedRetry').value=redirData.failedRetryRedirect;
+    if(redirData.failedDashboardRedirect)document.getElementById('failedDashboard').value=redirData.failedDashboardRedirect;
+    if(redirData.failedSupportHandle)document.getElementById('supportHandle').value=redirData.failedSupportHandle;
+    
+    tasks=taskData.tasks||DEFAULT_TASKS;renderTasks();
+    
+    // No user collection reads — stats show local data only
+    document.getElementById('statPending').textContent='0';
+    
+    updatePreview();
+    
+    document.getElementById('loadingScreen').classList.remove('active');
+    document.getElementById('mainApp').classList.remove('hidden');
+  }catch(err){
+    console.error('Load error:',err);
+    document.getElementById('loadingScreen').classList.remove('active');
+    showToast('Failed to load: '+err.message,'error');
+  }
+}
+
+function updateWdToggleUI(){
+  const t=document.getElementById('wdToggle');
+  const s=document.getElementById('wdState');
+  const r=document.getElementById('wdRedirect');
+  const p=document.getElementById('previewWithdrawal');
+  const stat=document.getElementById('statStatus');
+  if(wdSuccess){
+    t.classList.add('on');s.textContent='ON';s.style.background='rgba(0,212,170,0.1)';s.style.color='var(--accent)';
+    r.textContent='success.html';r.style.color='var(--accent)';
+    p.textContent='Success';p.style.color='var(--accent)';
+    stat.textContent='ON';stat.style.color='var(--accent)';
+  }else{
+    t.classList.remove('on');s.textContent='OFF';s.style.background='rgba(255,71,87,0.1)';s.style.color='var(--danger)';
+    r.textContent='pending.html';r.style.color='var(--danger)';
+    p.textContent='Pending';p.style.color='var(--danger)';
+    stat.textContent='OFF';stat.style.color='var(--danger)';
+  }
+}
+
+function updatePmToggleUI(){
+  const t=document.getElementById('pmToggle');
+  const s=document.getElementById('pmState');
+  const r=document.getElementById('pmRedirect');
+  const p=document.getElementById('previewPayment');
+  if(pmSuccess){
+    t.classList.add('on');s.textContent='ON';s.style.background='rgba(0,212,170,0.1)';s.style.color='var(--accent)';
+    r.textContent='payment-success.html';r.style.color='var(--accent)';
+    p.textContent='Success';p.style.color='var(--accent)';
+  }else{
+    t.classList.remove('on');s.textContent='OFF';s.style.background='rgba(255,71,87,0.1)';s.style.color='var(--danger)';
+    r.textContent='payment-failed.html';r.style.color='var(--danger)';
+    p.textContent='Failed';p.style.color='var(--danger)';
+  }
+}
+
+function updatePreview(){
+  const p={amount:document.getElementById('amount').value};
+  const f={amount:document.getElementById('feeAmount').value};
+  document.getElementById('previewMainAmt').textContent=p.amount?'₦'+Number(p.amount).toLocaleString():'₦—';
+  document.getElementById('previewFeeAmt').textContent=f.amount?'₦'+Number(f.amount).toLocaleString():'₦—';
+}
+
+// ========== SAVE ALL ==========
+async function saveAll(){
+  const btn=document.getElementById('saveBtn');
+  const txt=document.getElementById('saveText');
+  const orig=txt.textContent;
+  
+  const pay={telegramLink:document.getElementById('telegramLink').value.trim(),accNumber:document.getElementById('accNumber').value.trim(),bank:document.getElementById('bankName').value.trim(),accName:document.getElementById('accName').value.trim(),amount:Number(document.getElementById('amount').value)||0,cryptoAddress:document.getElementById('cryptoAddress').value.trim(),cryptoNetwork:document.getElementById('cryptoNetwork').value.trim(),notice:document.getElementById('noticeText').value.trim(),updatedAt:new Date().toISOString()};
+  const fee={accNumber:document.getElementById('feeAccNumber').value.trim(),bank:document.getElementById('feeBank').value.trim(),accName:document.getElementById('feeAccName').value.trim(),amount:Number(document.getElementById('feeAmount').value)||0,updatedAt:new Date().toISOString()};
+  const taskD={tasks:tasks,updatedAt:new Date().toISOString()};
+  const wd={success:wdSuccess,updatedAt:new Date().toISOString()};
+  const pm={success:pmSuccess,updatedAt:new Date().toISOString()};
+  const keyD={currentKey:payoutKey,history:keyHistory,updatedAt:new Date().toISOString()};
+  const redir={successPrimaryRedirect:document.getElementById('successPrimary').value.trim()||'dashboard.html',successSecondaryRedirect:document.getElementById('successSecondary').value.trim()||'buy.html',successDelay:Number(document.getElementById('successDelay').value)||2000,successShowConfetti:true,successMessage:'Your payment has been confirmed',failedRetryRedirect:document.getElementById('failedRetry').value.trim()||'payment.html',failedDashboardRedirect:document.getElementById('failedDashboard').value.trim()||'dashboard.html',failedRetryLabel:'Retry Payment',failedDashboardLabel:'Back to Dashboard',failedMessage:'We could not confirm your payment. Please check your details and try again.',failedSupportHandle:document.getElementById('supportHandle').value.trim()||'@New_9jacash_support',failedShowSenderDetails:true,updatedAt:new Date().toISOString()};
+  
+  if(pay.accNumber&&pay.accNumber.length!==10){showToast('Main account: 10 digits','error');return;}
+  if(fee.accNumber&&fee.accNumber.length!==10){showToast('Fee account: 10 digits','error');return;}
+  
+  btn.disabled=true;txt.innerHTML='<div class="spin"></div> Saving...';
+  try{
+    await Promise.all([
+      db.collection('settings').doc('payment').set(pay),
+      db.collection('settings').doc('secondBilling').set(fee),
+      db.collection('settings').doc('tasks').set(taskD),
+      db.collection('settings').doc('withdrawalStatus').set(wd),
+      db.collection('settings').doc('paymentStatus').set(pm),
+      db.collection('settings').doc('payoutKeys').set(keyD),
+      db.collection('settings').doc('redirects').set(redir)
+    ]);
+    updatePreview();showToast('All saved!','success');
+  }catch(err){showToast('Failed: '+err.message,'error');}
+  finally{btn.disabled=false;txt.textContent=orig;}
+}
+
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  const m=document.getElementById('toastMsg');
+  const i=t.querySelector('i');
+  m.textContent=msg;
+  if(type==='error'){i.className='fa-solid fa-circle-xmark';i.style.color='var(--danger)';}
+  else{i.className='fa-solid fa-circle-check';i.style.color='var(--accent)';}
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+document.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input',updatePreview));
+
+window.addEventListener('load',initAuth);
+</script>
 </body>
 </html>
