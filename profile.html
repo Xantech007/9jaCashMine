@@ -12,6 +12,12 @@
     rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+  <!-- Firebase SDK (Compat) & Shared firebase.js Initialization -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="firebase.js"></script>
+
   <style>
     * {
       margin: 0;
@@ -449,7 +455,6 @@
       id="videoChallengeCard" onclick="window.location.href='video-challenge.html'"
       style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%); border: 1px solid rgba(139, 92, 246, 0.4); box-shadow: 0 10px 25px rgba(76, 29, 149, 0.25);">
 
-      <!-- Decorative Glowing Circles -->
       <div class="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-violet-500/10 blur-xl pointer-events-none"></div>
       <div class="absolute -bottom-12 -left-12 w-28 h-28 rounded-full bg-emerald-500/10 blur-xl pointer-events-none">
       </div>
@@ -507,6 +512,7 @@
     </button>
   </div>
 
+  <!-- Navigation -->
   <div class="bottom-nav">
     <button class="nav-item" onclick="window.location.href='dashboard.html'"><i class="fa-solid fa-house"></i>Home</button>
     <button class="nav-item" onclick="window.location.href='upgrade.html'"><i class="fa-solid fa-rocket"></i>Upgrade</button>
@@ -517,31 +523,65 @@
 
   <script>
     let userData = null;
+    let userUnsubscribe = null;
+
+    // Helper to get Firestore instance from firebase.js
+    function getDb() {
+      if (window._9jaCash && window._9jaCash.db) return window._9jaCash.db;
+      if (typeof firebase !== 'undefined' && firebase.firestore) return firebase.firestore();
+      return null;
+    }
+
     function formatExternalLink(url, defaultUrl) {
       if (!url || typeof url !== 'string' || !url.trim()) return defaultUrl;
       let clean = url.trim();
       clean = clean.replace(/^\/+/, '');
-      if (/^(https?:\/\/|tg:\/\/|whatsapp:\/\/)/i.test(clean)) {
-        return clean;
-      }
-      if (/^(t\.me|wa\.me|whatsapp\.com|telegram\.me)/i.test(clean)) {
-        return 'https://' + clean;
-      }
-      if (/^\+?\d+$/.test(clean)) {
-        return 'https://wa.me/' + clean.replace(/^\+/, '');
-      }
+      if (/^(https?:\/\/|tg:\/\/|whatsapp:\/\/)/i.test(clean)) return clean;
+      if (/^(t\.me|wa\.me|whatsapp\.com|telegram\.me)/i.test(clean)) return 'https://' + clean;
+      if (/^\+?\d+$/.test(clean)) return 'https://wa.me/' + clean.replace(/^\+/, '');
       if (/^@?[a-zA-Z0-9_]+$/.test(clean)) {
         let username = clean.startsWith('@') ? clean.slice(1) : clean;
         return 'https://t.me/' + username;
       }
       return 'https://' + clean;
     }
-    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
 
     function toggleTheme() {
       const isDark = document.body.classList.toggle('dark-mode');
       localStorage.setItem('9jaCashDark', isDark);
       document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+    }
+
+    function renderProfile(data) {
+      if (!data) return;
+      userData = data;
+      localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+
+      const isUserVerified = data.is_verified === 1 || data.is_verified === true || data.isVerified === true;
+      const verBadgeHtml = isUserVerified ? ' <i class="fa-solid fa-circle-check" style="color:#1d9bf0; font-size:16px;" title="Verified Account"></i>' : '';
+      const displayName = data.customName || data.fullName || data.name || "9jaCash User";
+      
+      document.getElementById("profileName").innerHTML = displayName + verBadgeHtml + ' <i class="fa-solid fa-pen-to-square text-xs text-slate-500 ml-1"></i>';
+      document.getElementById("avatarLarge").textContent = displayName.charAt(0).toUpperCase();
+      document.getElementById("profilePhone").textContent = data.phone || "—";
+
+      const emailVal = data.email || "";
+      const isPlaceholderEmail = (data.phone && emailVal.includes(data.phone + "@")) || emailVal === "";
+      document.getElementById("profileEmail").textContent = isPlaceholderEmail ? "No Gmail linked" : emailVal;
+      document.getElementById("emailActionText").textContent = isPlaceholderEmail ? "Link Gmail" : "Update Gmail";
+
+      document.getElementById("profileReferredBy").textContent = data.referredBy || "None (Direct)";
+      document.getElementById("profileBankName").textContent = data.bankName || "Not linked";
+      document.getElementById("profileAccountNumber").textContent = data.accountNumber || "Not linked";
+      
+      const hasBank = data.bankName && data.bankName !== "Not linked";
+      document.getElementById("bankActionText").textContent = hasBank ? "Update Bank" : "Link Bank";
+      
+      document.getElementById("profilePlanName").textContent = data.planName || data.plan || "Free Miner";
+      document.getElementById("profileMultiplier").textContent = (data.miningPower || 1) + "x";
+      document.getElementById("profileTotalMined").textContent = "₦" + (data.totalMined || 0).toLocaleString();
+      
+      updatePayoutKeyUI();
     }
 
     function initProfile() {
@@ -550,48 +590,14 @@
       } catch (e) {
         userData = null;
       }
-      if (!userData) {
+
+      if (!userData || !userData.phone) {
         window.location.href = "login.html";
         return;
       }
 
-      // Bind session data to view
-      const isUserVerified = userData && (userData.is_verified === 1 || userData.is_verified === true || userData.isVerified === true);
-      const verBadgeHtml = isUserVerified ? ' <i class="fa-solid fa-circle-check" style="color:#1d9bf0; font-size:16px;" title="Verified Account"></i>' : '';
-      const displayName = userData.customName || userData.fullName || userData.name || "9jaCash User";
-      document.getElementById("profileName").innerHTML = displayName + verBadgeHtml + ' <i class="fa-solid fa-pen-to-square text-xs text-slate-500 ml-1"></i>';
-      document.getElementById("avatarLarge").textContent = displayName.charAt(0).toUpperCase();
-      document.getElementById("profilePhone").textContent = userData.phone || "—";
-
-      const emailVal = userData.email || "";
-      const isPlaceholderEmail = emailVal.includes(userData.phone + "@") || emailVal === "";
-      document.getElementById("profileEmail").textContent = isPlaceholderEmail ? "No Gmail linked" : emailVal;
-      document.getElementById("emailActionText").textContent = isPlaceholderEmail ? "Link Gmail" : "Update Gmail";
-
-      document.getElementById("profileReferredBy").textContent = userData.referredBy || "None (Direct)";
-      document.getElementById("profileBankName").textContent = userData.bankName || "Not linked";
-      document.getElementById("profileAccountNumber").textContent = userData.accountNumber || "Not linked";
-      const hasBankInit = userData.bankName && userData.bankName !== "Not linked";
-      document.getElementById("bankActionText").textContent = hasBankInit ? "Update Bank" : "Link Bank";
-      document.getElementById("profilePlanName").textContent = userData.planName || userData.plan || "Free Miner";
-      document.getElementById("profileMultiplier").textContent = (userData.miningPower || 1) + "x";
-      document.getElementById("profileTotalMined").textContent = "₦" + (userData.totalMined || 0).toLocaleString();
-      updatePayoutKeyUI();
-
-      // Check if video challenge is active
-      fetch(API_URL + '/api/settings/videoChallenge')
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          const active = data.value ? (data.value.active !== false) : true;
-          if (active) {
-            document.getElementById("videoChallengeCard").classList.remove("hidden");
-          } else {
-            document.getElementById("videoChallengeCard").classList.add("hidden");
-          }
-        })
-        .catch(function (err) {
-          document.getElementById("videoChallengeCard").classList.remove("hidden");
-        });
+      // Render initial offline/cache data
+      renderProfile(userData);
 
       // Dark/Light Theme Matcher
       const isDark = localStorage.getItem("9jaCashDark") === "true" || localStorage.getItem("9jaCashDark") === null;
@@ -603,61 +609,43 @@
         document.getElementById("themeIcon").className = "fa-solid fa-sun";
       }
 
-      const localBalance = parseFloat(localStorage.getItem("walletBalance")) || 0;
-      const localTotalMined = userData.totalMined || 0;
-      const localWithdrawalCount = userData.withdrawalCount || 0;
-
-      const savedRef = localStorage.getItem('9jaCashReferralCode');
-      // Fetch updated records from Express SQL server
-      fetch(API_URL + '/api/user/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: userData.phone,
-          balance: localBalance,
-          totalMined: localTotalMined,
-          withdrawalCount: localWithdrawalCount,
-          referredBy: savedRef || null
-        })
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          if (data.status && data.user) {
-            const fresh = data.user;
-            userData = fresh;
-            localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-            localStorage.setItem("walletBalance", (fresh.balance || 0).toString());
-            if (typeof loadCustomerCareLinks === 'function') {
-              loadCustomerCareLinks();
-            }
-
-            const emailVal = fresh.email || "";
-            const isPlaceholderEmail = emailVal.includes(fresh.phone + "@") || emailVal === "";
-            document.getElementById("profileEmail").textContent = isPlaceholderEmail ? "No Gmail linked" : emailVal;
-            document.getElementById("emailActionText").textContent = isPlaceholderEmail ? "Link Gmail" : "Update Gmail";
-
-            const displayName = fresh.customName || fresh.fullName || fresh.name || "9jaCash User";
-            const isVerifiedFresh = fresh.is_verified === 1 || fresh.isVerified;
-            const freshBadgeHtml = isVerifiedFresh ? ' <i class="fa-solid fa-circle-check" style="color:#1d9bf0; font-size:16px;" title="Verified Account"></i>' : '';
-            document.getElementById("profileName").innerHTML = displayName + freshBadgeHtml + ' <i class="fa-solid fa-pen-to-square text-xs text-slate-500 ml-1"></i>';
-            document.getElementById("avatarLarge").textContent = displayName.charAt(0).toUpperCase();
-
-            document.getElementById("profileBankName").textContent = fresh.bankName || "Not linked";
-            document.getElementById("profileAccountNumber").textContent = fresh.accountNumber || "Not linked";
-            const hasBankSync = fresh.bankName && fresh.bankName !== "Not linked";
-            document.getElementById("bankActionText").textContent = hasBankSync ? "Update Bank" : "Link Bank";
-            document.getElementById("profilePlanName").textContent = fresh.planName || fresh.plan || "Free Miner";
-            document.getElementById("profileMultiplier").textContent = (fresh.miningPower || 1) + "x";
-            document.getElementById("profileTotalMined").textContent = "₦" + (fresh.totalMined || 0).toLocaleString();
-            updatePayoutKeyUI();
+      // Setup Realtime Sync with Firebase Firestore
+      const db = getDb();
+      if (db) {
+        // Listen to User Document Realtime Updates
+        userUnsubscribe = db.collection('users').doc(userData.phone).onSnapshot(function (doc) {
+          if (doc.exists) {
+            const freshData = doc.data();
+            renderProfile(freshData);
           }
-        })
-        .catch(function (err) {
-          console.warn("Backend profile sync offline");
+        }, function (err) {
+          console.warn("Firestore user sync error:", err);
         });
+
+        // Listen to Video Challenge Status Realtime
+        db.collection('settings').doc('videoChallenge').onSnapshot(function (doc) {
+          if (doc.exists) {
+            const val = doc.data();
+            const active = val.active !== false;
+            if (active) {
+              document.getElementById("videoChallengeCard").classList.remove("hidden");
+            } else {
+              document.getElementById("videoChallengeCard").classList.add("hidden");
+            }
+          } else {
+            document.getElementById("videoChallengeCard").classList.remove("hidden");
+          }
+        }, function (err) {
+          document.getElementById("videoChallengeCard").classList.remove("hidden");
+        });
+
+      } else {
+        console.warn("Firebase Firestore is not initialized in firebase.js");
+      }
     }
 
     function updatePayoutKeyUI() {
+      if (!userData) return;
       const payoutKey = userData.payoutKey || userData.payout_key;
       const payoutKeyCard = document.getElementById("payoutKeyProfileCard");
       const payoutKeyLocked = document.getElementById("payoutKeyLockedCard");
@@ -675,6 +663,9 @@
     }
 
     function logoutUser() {
+      if (userUnsubscribe) userUnsubscribe();
+      
+      // Clear localStorage
       localStorage.removeItem("9jaCashUser");
       localStorage.removeItem("walletBalance");
       localStorage.removeItem("transactionHistory");
@@ -683,10 +674,18 @@
       localStorage.removeItem("mineData");
       localStorage.removeItem("todayMined");
       localStorage.removeItem("lastMineDate");
-      location.href = "login.html";
+
+      // Sign out from Firebase Auth if applicable
+      if (typeof firebase !== 'undefined' && firebase.auth) {
+        firebase.auth().signOut().finally(() => {
+          location.href = "login.html";
+        });
+      } else {
+        location.href = "login.html";
+      }
     }
 
-    // ========== LINK GMAIL ACCOUNT ==========
+    // ========== LINK GMAIL ACCOUNT (REALTIME FIREBASE SAVE) ==========
     function promptLinkEmail() {
       const isDark = document.body.classList.contains("dark-mode");
 
@@ -704,62 +703,50 @@
       }).then(function (result) {
         if (result.isConfirmed && result.value) {
           const newEmail = result.value.trim();
+          const db = getDb();
 
-          fetch(API_URL + '/api/user/link-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              phone: userData.phone,
-              password: userData.password,
-              email: newEmail
-            })
-          })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-              if (data.status) {
-                Swal.fire({
-                  title: 'Success!',
-                  text: 'Your Gmail address has been linked successfully.',
-                  icon: 'success',
-                  confirmButtonColor: '#8b5cf6',
-                  background: isDark ? "#1e293b" : "#fff",
-                  color: isDark ? "#f8fafc" : "#1a1a2e"
-                });
+          if (!db) {
+            Swal.fire({ title: 'Error', text: 'Database connection failed.', icon: 'error' });
+            return;
+          }
 
-                userData = data.user;
-                localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+          Swal.fire({
+            title: 'Saving...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+          });
 
-                const emailVal = userData.email || "";
-                const isPlaceholderEmail = emailVal.includes(userData.phone + "@") || emailVal === "";
-                document.getElementById("profileEmail").textContent = isPlaceholderEmail ? "No Gmail linked" : emailVal;
-                document.getElementById("emailActionText").textContent = isPlaceholderEmail ? "Link Gmail" : "Update Gmail";
-              } else {
-                Swal.fire({
-                  title: 'Error',
-                  text: data.error || 'Failed to update email address.',
-                  icon: 'error',
-                  confirmButtonColor: '#8b5cf6',
-                  background: isDark ? "#1e293b" : "#fff",
-                  color: isDark ? "#f8fafc" : "#1a1a2e"
-                });
-              }
-            })
-            .catch(function (err) {
-              console.error("Link email error:", err);
-              Swal.fire({
-                title: 'Connection Error',
-                text: 'Failed to communicate with database server.',
-                icon: 'error',
-                confirmButtonColor: '#8b5cf6',
-                background: isDark ? "#1e293b" : "#fff",
-                color: isDark ? "#f8fafc" : "#1a1a2e"
-              });
+          // Save directly to Firebase Firestore
+          db.collection('users').doc(userData.phone).set({
+            email: newEmail,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true })
+          .then(function() {
+            Swal.fire({
+              title: 'Success!',
+              text: 'Your Gmail address has been linked successfully.',
+              icon: 'success',
+              confirmButtonColor: '#8b5cf6',
+              background: isDark ? "#1e293b" : "#fff",
+              color: isDark ? "#f8fafc" : "#1a1a2e"
             });
+          })
+          .catch(function(err) {
+            console.error("Firebase update email error:", err);
+            Swal.fire({
+              title: 'Database Error',
+              text: 'Failed to update email address in database.',
+              icon: 'error',
+              confirmButtonColor: '#8b5cf6',
+              background: isDark ? "#1e293b" : "#fff",
+              color: isDark ? "#f8fafc" : "#1a1a2e"
+            });
+          });
         }
       });
     }
 
-    // ========== LINK BANK INFO ==========
+    // ========== LINK BANK INFO (REALTIME FIREBASE SAVE) ==========
     function promptLinkBank() {
       const isDark = document.body.classList.contains("dark-mode");
 
@@ -794,61 +781,118 @@
       }).then(function (result) {
         if (result.isConfirmed && result.value) {
           const { bankName, accountNumber } = result.value;
+          const db = getDb();
 
-          fetch(API_URL + '/api/user/update-bank', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              phone: userData.phone,
-              password: userData.password,
-              bankName: bankName,
-              accountNumber: accountNumber
-            })
-          })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-              if (data.status) {
-                Swal.fire({
-                  title: 'Success!',
-                  text: 'Bank details updated successfully.',
-                  icon: 'success',
-                  confirmButtonColor: '#8b5cf6',
-                  background: isDark ? "#1e293b" : "#fff",
-                  color: isDark ? "#f8fafc" : "#1a1a2e"
-                });
+          if (!db) {
+            Swal.fire({ title: 'Error', text: 'Database connection failed.', icon: 'error' });
+            return;
+          }
 
-                userData = data.user;
-                localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+          Swal.fire({
+            title: 'Updating...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+          });
 
-                document.getElementById("profileBankName").textContent = userData.bankName || "Not linked";
-                document.getElementById("profileAccountNumber").textContent = userData.accountNumber || "Not linked";
-                document.getElementById("bankActionText").textContent = "Update Bank";
+          // Save directly to Firebase Firestore
+          db.collection('users').doc(userData.phone).set({
+            bankName: bankName,
+            accountNumber: accountNumber,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true })
+          .then(function() {
+            localStorage.setItem("userBankName", bankName);
+            localStorage.setItem("userAccountNumber", accountNumber);
 
-                // Sync with legacy local storage values just in case
-                localStorage.setItem("userBankName", userData.bankName);
-                localStorage.setItem("userAccountNumber", userData.accountNumber);
-              } else {
-                Swal.fire({
-                  title: 'Error',
-                  text: data.error || 'Failed to update bank details.',
-                  icon: 'error',
-                  confirmButtonColor: '#8b5cf6',
-                  background: isDark ? "#1e293b" : "#fff",
-                  color: isDark ? "#f8fafc" : "#1a1a2e"
-                });
-              }
-            })
-            .catch(function (err) {
-              console.error("Link bank error:", err);
-              Swal.fire({
-                title: 'Connection Error',
-                text: 'Failed to communicate with database server.',
-                icon: 'error',
-                confirmButtonColor: '#8b5cf6',
-                background: isDark ? "#1e293b" : "#fff",
-                color: isDark ? "#f8fafc" : "#1a1a2e"
-              });
+            Swal.fire({
+              title: 'Success!',
+              text: 'Bank details updated successfully.',
+              icon: 'success',
+              confirmButtonColor: '#8b5cf6',
+              background: isDark ? "#1e293b" : "#fff",
+              color: isDark ? "#f8fafc" : "#1a1a2e"
             });
+          })
+          .catch(function(err) {
+            console.error("Firebase update bank error:", err);
+            Swal.fire({
+              title: 'Database Error',
+              text: 'Failed to update bank details in database.',
+              icon: 'error',
+              confirmButtonColor: '#8b5cf6',
+              background: isDark ? "#1e293b" : "#fff",
+              color: isDark ? "#f8fafc" : "#1a1a2e"
+            });
+          });
+        }
+      });
+    }
+
+    // ========== EDIT DISPLAY NAME (REALTIME FIREBASE SAVE) ==========
+    function promptEditName() {
+      const isDark = document.body.classList.contains('dark-mode');
+      Swal.fire({
+        title: 'Edit Display Name',
+        html: `
+      <div style="text-align: left; margin-bottom: 8px; font-size: 12px; color: #94a3b8; font-weight: 600;">NEW DISPLAY NAME</div>
+      <input id="swal-custom-name" class="swal2-input" placeholder="Enter display name" value="${userData.customName || userData.fullName || userData.name || ''}" style="margin: 0 0 15px 0; width: 85%; background: ${isDark ? '#1e293b' : '#fff'}; color: ${isDark ? '#f8fafc' : '#1a1a2e'}; border-color: #334155; border-radius: 8px;">
+    `,
+        showCancelButton: true,
+        confirmButtonText: 'Save Changes',
+        confirmButtonColor: '#8b5cf6',
+        cancelButtonColor: '#ef4444',
+        background: isDark ? '#0f172a' : '#fff',
+        color: isDark ? '#f8fafc' : '#1a1a2e',
+        preConfirm: () => {
+          const customName = document.getElementById('swal-custom-name').value.trim();
+          if (!customName) {
+            Swal.showValidationMessage('Please enter a display name');
+            return false;
+          }
+          return customName;
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const customName = result.value;
+          const db = getDb();
+
+          if (!db) {
+            Swal.fire({ title: 'Error', text: 'Database connection failed.', icon: 'error' });
+            return;
+          }
+
+          Swal.fire({
+            title: 'Updating name...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+          });
+
+          // Direct write to Firestore
+          db.collection('users').doc(userData.phone).set({
+            customName: customName,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true })
+          .then(() => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Display Name Updated',
+              text: 'Your new display name has been saved successfully.',
+              timer: 2000,
+              showConfirmButton: false,
+              background: isDark ? '#0f172a' : '#fff',
+              color: isDark ? '#f8fafc' : '#1a1a2e'
+            });
+          })
+          .catch((err) => {
+            console.error("Firebase edit name error:", err);
+            Swal.fire({
+              icon: 'error',
+              title: 'Database Error',
+              text: 'Could not save display name.',
+              background: isDark ? '#0f172a' : '#fff',
+              color: isDark ? '#f8fafc' : '#1a1a2e'
+            });
+          });
         }
       });
     }
@@ -885,25 +929,22 @@
         const randomAmount = "₦" + (randomK * 1000).toLocaleString("en-NG");
         document.getElementById('liveWithdrawalText').textContent = `${randomName} successfully withdrew ${randomAmount}`;
 
-        // Slide in
         popup.style.transform = 'translate(-50%, 0)';
         popup.style.opacity = '1';
 
-        // Slide out after 5 seconds
         setTimeout(() => {
           popup.style.transform = 'translate(-50%, -150px)';
           popup.style.opacity = '0';
         }, 5000);
 
-        // Schedule next popup (every 10 seconds)
         setTimeout(triggerPopup, 10000);
       }
 
-      // Start the first popup after 10 seconds
       setTimeout(triggerPopup, 10000);
     }
   </script>
 
+  <!-- Floating Customer Care Button -->
   <a href="javascript:void(0)" onclick="openCustomerCareModal()"
     style="position:fixed; bottom:90px; right:20px; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; cursor:pointer; z-index:90; box-shadow:0 4px 20px rgba(99,102,241,0.4); border:3px solid #fff; text-decoration:none;"
     title="Customer Care Support">
@@ -963,16 +1004,16 @@
       const modal = document.getElementById("customerCareModal");
       if (modal) modal.style.display = "flex";
     }
+    
     function closeCustomerCareModal() {
       const modal = document.getElementById("customerCareModal");
       if (modal) modal.style.display = "none";
     }
+
     function loadCustomerCareLinks() {
       const whatsappBtn = document.getElementById('modalWhatsappBtn');
       const telegramBtn = document.getElementById('modalTelegramBtn');
-      
-      let userData = null;
-      try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch(e) {}
+      const db = getDb();
 
       let defaultWaActive = true;
       let defaultTgActive = true;
@@ -988,28 +1029,33 @@
           telegramBtn.href = tgUrl || 'javascript:void(0)';
           telegramBtn.style.display = tgActive ? 'flex' : 'none';
         }
-        if (!waActive && !tgActive) {
-          if (telegramBtn) {
-            telegramBtn.style.display = 'flex';
-            telegramBtn.href = 'javascript:void(0)';
-            const tEl = telegramBtn.querySelector('.support-title');
-            if (tEl) tEl.textContent = 'Support Offline';
-            const dEl = telegramBtn.querySelector('.support-desc');
-            if (dEl) dEl.textContent = 'Contact your Referrer';
-          }
+        if (!waActive && !tgActive && telegramBtn) {
+          telegramBtn.style.display = 'flex';
+          telegramBtn.href = 'javascript:void(0)';
+          const tEl = telegramBtn.querySelector('.support-title');
+          if (tEl) tEl.textContent = 'Support Offline';
+          const dEl = telegramBtn.querySelector('.support-desc');
+          if (dEl) dEl.textContent = 'Contact your Referrer';
         }
       }
 
-      function resolveAndApply() {
+      function resolveAndApply(settingsData) {
+        if (settingsData) {
+          defaultWaActive = settingsData.whatsappLinkActive !== false;
+          defaultTgActive = settingsData.telegramSupportLinkActive !== false;
+          defaultWaUrl = settingsData.whatsappLink || defaultWaUrl;
+          defaultTgUrl = settingsData.telegramSupportLink || defaultTgUrl;
+        }
+
         if (userData && userData.hasJuniorLinks) {
           const hasTg = userData.juniorTelegram && userData.juniorTelegram.trim() !== '';
           const hasWa = userData.juniorWhatsapp && userData.juniorWhatsapp.trim() !== '';
 
           const tgUrl = hasTg ? userData.juniorTelegram.trim() : '';
-          const tgActive = hasTg ? (userData.juniorTelegramActive === 1) : false;
+          const tgActive = hasTg ? (userData.juniorTelegramActive === 1 || userData.juniorTelegramActive === true) : false;
 
           const waUrl = hasWa ? userData.juniorWhatsapp.trim() : '';
-          const waActive = hasWa ? (userData.juniorWhatsappActive === 1) : false;
+          const waActive = hasWa ? (userData.juniorWhatsappActive === 1 || userData.juniorWhatsappActive === true) : false;
 
           applyLinks(waActive, tgActive, formatExternalLink(waUrl, ''), formatExternalLink(tgUrl, ''));
         } else {
@@ -1017,107 +1063,18 @@
         }
       }
 
-      if (window._9jaCash && window._9jaCash.db) {
-        window._9jaCash.db.collection('settings').doc('payment').get()
-          .then(function (doc) {
-            if (doc.exists) {
-              const data = doc.data();
-              defaultWaActive = data.whatsappLinkActive !== false;
-              defaultTgActive = data.telegramSupportLinkActive !== false;
-              defaultWaUrl = data.whatsappLink || "https://wa.me/2349000000000";
-              defaultTgUrl = data.telegramSupportLink || "https://t.me/apex_customercare";
-            }
-            resolveAndApply();
-          })
-          .catch(function (err) {
-            console.warn("Error loading customer care links:", err);
-            resolveAndApply();
-          });
+      // Realtime Customer Care link listener from Firebase
+      if (db) {
+        db.collection('settings').doc('payment').onSnapshot(function (doc) {
+          const settingsData = doc.exists ? doc.data() : null;
+          resolveAndApply(settingsData);
+        }, function (err) {
+          console.warn("Error listening to customer care links:", err);
+          resolveAndApply(null);
+        });
       } else {
-        resolveAndApply();
+        resolveAndApply(null);
       }
-    }
-    setTimeout(loadCustomerCareLinks, 500);
-  </script>
-
-  <script>
-    function promptEditName() {
-      const isDark = document.body.classList.contains('dark-theme');
-      Swal.fire({
-        title: 'Edit Display Name',
-        html: `
-      <div style="text-align: left; margin-bottom: 8px; font-size: 12px; color: #94a3b8; font-weight: 600;">NEW DISPLAY NAME</div>
-      <input id="swal-custom-name" class="swal2-input" placeholder="Enter display name" value="${userData.customName || userData.fullName || userData.name || ''}" style="margin: 0 0 15px 0; width: 85%; background: ${isDark ? '#1e293b' : '#fff'}; color: ${isDark ? '#f8fafc' : '#1a1a2e'}; border-color: #334155; border-radius: 8px;">
-    `,
-        showCancelButton: true,
-        confirmButtonText: 'Save Changes',
-        confirmButtonColor: '#8b5cf6',
-        cancelButtonColor: '#ef4444',
-        background: isDark ? '#0f172a' : '#fff',
-        color: isDark ? '#f8fafc' : '#1a1a2e',
-        preConfirm: () => {
-          const customName = document.getElementById('swal-custom-name').value.trim();
-          if (!customName) {
-            Swal.showValidationMessage('Please enter a display name');
-            return false;
-          }
-          return customName;
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const customName = result.value;
-          Swal.fire({
-            title: 'Updating name...',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-          });
-          fetch(API_URL + '/api/user/update-name', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: userData.phone, customName })
-          })
-            .then(res => res.json())
-            .then(data => {
-              if (data.status) {
-                userData.customName = customName;
-                localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-
-                // Re-render name display
-                const isUserVerified = userData.is_verified === 1 || userData.isVerified;
-                const verBadgeHtml = isUserVerified ? ' <i class="fa-solid fa-circle-check" style="color:#1d9bf0; font-size:16px;" title="Verified Account"></i>' : '';
-                document.getElementById("profileName").innerHTML = customName + verBadgeHtml + ' <i class="fa-solid fa-pen-to-square text-xs text-slate-500 ml-1"></i>';
-                document.getElementById("avatarLarge").textContent = customName.charAt(0).toUpperCase();
-
-                Swal.fire({
-                  icon: 'success',
-                  title: 'Display Name Updated',
-                  text: 'Your new display name has been saved successfully.',
-                  timer: 2000,
-                  showConfirmButton: false,
-                  background: isDark ? '#0f172a' : '#fff',
-                  color: isDark ? '#f8fafc' : '#1a1a2e'
-                });
-              } else {
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Failed',
-                  text: data.error || 'Could not save display name.',
-                  background: isDark ? '#0f172a' : '#fff',
-                  color: isDark ? '#f8fafc' : '#1a1a2e'
-                });
-              }
-            })
-            .catch(() => {
-              Swal.fire({
-                icon: 'error',
-                title: 'Network Error',
-                text: 'Check your internet connection and try again.',
-                background: isDark ? '#0f172a' : '#fff',
-                color: isDark ? '#f8fafc' : '#1a1a2e'
-              });
-            });
-        }
-      });
     }
 
     setTimeout(loadCustomerCareLinks, 500);
