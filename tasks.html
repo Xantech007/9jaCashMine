@@ -6,10 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>9jaCash - Tasks</title>
 
-
-
-
-  <script src="firebase-init.js"></script>
+  <!-- Firebase & App Scripts -->
+  <script src="firebase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -532,7 +530,7 @@
       margin: 0 auto;
     }
 
-    /* Bottom nav - MATCHES DASHBOARD EXACTLY */
+    /* Bottom nav */
     .bottom-nav {
       position: fixed;
       bottom: 16px;
@@ -687,7 +685,6 @@
       line-height: 1.6;
     }
 
-    /* Theme toggle button in header */
     .theme-toggle-btn {
       width: 40px;
       height: 40px;
@@ -803,7 +800,7 @@
         <div
           style="width:48px;height:48px;border-radius:50%;border:3px solid #e2e8f0;border-top-color:#667eea;animation:spin 1s linear infinite;margin:0 auto 16px;">
         </div>
-        <p style="color:#94a3b8;font-size:14px;">Loading tasks...</p>
+        <p style="color:#94a3b8;font-size:14px;">Loading real-time tasks...</p>
       </div>
     </div>
 
@@ -873,6 +870,7 @@
     }
 
     const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
+    
     if (userData && userData.phone) {
       fetch(API_BASE_URL + '/api/user/sync', {
         method: 'POST',
@@ -916,61 +914,86 @@
       other: 'other'
     };
 
-    // ========== LOAD TASKS ==========
-    async function loadTasks() {
-      const clientId = 'tasks_' + (userData?.phone || 'guest');
-      if (!SecurityGate.checkLimit(clientId)) {
-        showToast('Too many requests. Please wait.', 'error');
+    // Helper to fetch current DB instance safely
+    function getDb() {
+      return window.db || (window._9jaCash && window._9jaCash.db) || null;
+    }
+
+    // ========== REALTIME FIREBASE LISTENERS ==========
+    function initRealtimeListeners() {
+      const db = getDb();
+      if (!db) {
+        // Retry until firebase script initializes
+        setTimeout(initRealtimeListeners, 500);
         return;
       }
 
-      try {
-        let doc;
-        if (window._9jaCash && window._9jaCash.db) {
-          doc = await window._9jaCash.db.collection('settings').doc('tasks').get();
+      const today = new Date().toDateString();
+      const saved = localStorage.getItem('completedTasks_' + today);
+      completedTaskIds = saved ? JSON.parse(saved) : [];
+
+      // 1. Realtime listener for Tasks from Firebase
+      db.collection('settings').doc('tasks').onSnapshot((doc) => {
+        if (doc.exists) {
+          allTasks = doc.data().tasks || [];
+          if (allTasks.length === 0) {
+            showEmpty();
+          } else {
+            renderTasks();
+            updateStats();
+          }
         } else {
           showEmpty();
-          return;
         }
+      }, (err) => {
+        console.error('Realtime Tasks Error:', err);
+        showErrorState();
+      });
 
-        if (!doc.exists) {
-          showEmpty();
-          return;
-        }
+      // 2. Realtime listener for User updates from Firebase
+      if (userData && userData.phone) {
+        db.collection('users').doc(userData.phone).onSnapshot((userDoc) => {
+          if (userDoc.exists) {
+            const freshData = userDoc.data();
+            userData = Object.assign({}, userData, freshData);
+            
+            if (freshData.completedTasks) {
+              completedTaskIds = Array.from(new Set([...completedTaskIds, ...freshData.completedTasks]));
+              localStorage.setItem('completedTasks_' + today, JSON.stringify(completedTaskIds));
+            }
+            
+            if (freshData.balance !== undefined) {
+              localStorage.setItem("walletBalance", freshData.balance.toString());
+            }
 
-        allTasks = doc.data().tasks || [];
-        if (allTasks.length === 0) {
-          showEmpty();
-          return;
-        }
-
-        const today = new Date().toDateString();
-        const saved = localStorage.getItem('completedTasks_' + today);
-        completedTaskIds = saved ? JSON.parse(saved) : [];
-
-        renderTasks();
-        updateStats();
-
-      } catch (err) {
-        console.error('Load error:', err);
-        document.getElementById('taskList').innerHTML = `
-      <div class="empty-box">
-        <div class="empty-illustration" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fa-solid fa-wifi-slash"></i></div>
-        <div class="empty-title">Connection Error</div>
-        <div class="empty-text">Could not load tasks. Check your connection.</div>
-      </div>
-    `;
+            localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+            renderTasks();
+            updateStats();
+          }
+        }, (err) => {
+          console.error('Realtime User Listener Error:', err);
+        });
       }
+    }
+
+    function showErrorState() {
+      document.getElementById('taskList').innerHTML = `
+        <div class="empty-box">
+          <div class="empty-illustration" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fa-solid fa-wifi-slash"></i></div>
+          <div class="empty-title">Connection Error</div>
+          <div class="empty-text">Could not sync real-time tasks. Check your connection.</div>
+        </div>
+      `;
     }
 
     function showEmpty() {
       document.getElementById('taskList').innerHTML = `
-    <div class="empty-box">
-      <div class="empty-illustration"><i class="fa-solid fa-clipboard-check"></i></div>
-      <div class="empty-title">No Tasks Yet</div>
-      <div class="empty-text">Check back soon for new earning opportunities!</div>
-    </div>
-  `;
+        <div class="empty-box">
+          <div class="empty-illustration"><i class="fa-solid fa-clipboard-check"></i></div>
+          <div class="empty-title">No Tasks Yet</div>
+          <div class="empty-text">Check back soon for new earning opportunities!</div>
+        </div>
+      `;
     }
 
     // ========== FILTER TASKS ==========
@@ -987,7 +1010,6 @@
       container.innerHTML = '';
 
       let filtered = [...allTasks];
-      // Sort so that hot tasks come first
       filtered.sort((a, b) => {
         const aHot = a.hot === true || a.hot === 'true';
         const bHot = b.hot === true || b.hot === 'true';
@@ -1004,12 +1026,12 @@
 
       if (filtered.length === 0) {
         container.innerHTML = `
-      <div class="empty-box">
-        <div class="empty-illustration" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fa-solid fa-filter"></i></div>
-        <div class="empty-title">No ${currentFilter} tasks</div>
-        <div class="empty-text">Try another category</div>
-      </div>
-    `;
+          <div class="empty-box">
+            <div class="empty-illustration" style="background:linear-gradient(135deg,#667eea,#764ba2);"><i class="fa-solid fa-filter"></i></div>
+            <div class="empty-title">No ${currentFilter} tasks</div>
+            <div class="empty-text">Try another category</div>
+          </div>
+        `;
         return;
       }
 
@@ -1022,24 +1044,24 @@
         const div = document.createElement('div');
         div.className = `task-item ${isCompleted ? 'completed' : ''}`;
         div.innerHTML = `
-      <div class="task-status-bar"></div>
-      <div class="task-body">
-        <div class="task-top">
-          <div class="task-img ${imgClass}"><i class="${iconClass}"></i></div>
-          <div class="task-main">
-            <div class="task-name">${escapeHtml(task.name)}</div>
-            <div class="task-tag ${task.hot ? 'hot' : ''}"><i class="fa-solid fa-${task.hot ? 'fire' : 'tag'}"></i> ${catName}</div>
-    <div class="task-reward"><i class="fa-solid fa-coins"></i> ₦${Number(task.amt || task.amount || 0).toLocaleString()}</div>
+          <div class="task-status-bar"></div>
+          <div class="task-body">
+            <div class="task-top">
+              <div class="task-img ${imgClass}"><i class="${iconClass}"></i></div>
+              <div class="task-main">
+                <div class="task-name">${escapeHtml(task.name)}</div>
+                <div class="task-tag ${task.hot ? 'hot' : ''}"><i class="fa-solid fa-${task.hot ? 'fire' : 'tag'}"></i> ${catName}</div>
+                <div class="task-reward"><i class="fa-solid fa-coins"></i> ₦${Number(task.amt || task.amount || 0).toLocaleString()}</div>
+              </div>
+            </div>
+            <div class="task-desc">Complete this ${catName} task to earn ₦${Number(task.amt || task.amount || 0).toLocaleString()}. Tap the link to start.</div>
+            ${task.link ? `<a href="${escapeHtml(task.link)}" target="_blank" class="task-link-btn" onclick="trackTask('${task.id}')"><i class="fa-solid fa-link"></i> ${escapeHtml(truncateLink(task.link))}</a>` : ''}
+            <div class="task-actions">
+              ${!isCompleted ? `<button class="btn-start" onclick="startTask('${task.id}', '${escapeHtml(task.link \vert{}\vert{} '')}', Number(${task.amt || task.amount || 0}))"><i class="fa-solid fa-play"></i> Start Task</button>` : ''}
+              ${!isCompleted ? `<button class="btn-skip" onclick="skipTask('${task.id}')"><i class="fa-solid fa-forward"></i></button>` : ''}
+            </div>
           </div>
-        </div>
-    <div class="task-desc">Complete this ${catName} task to earn ₦${Number(task.amt || task.amount || 0).toLocaleString()}. Tap the link to start.</div>
-        ${task.link ? `<a href="${escapeHtml(task.link)}" target="_blank" class="task-link-btn" onclick="trackTask('${task.id}')"><i class="fa-solid fa-link"></i> ${escapeHtml(truncateLink(task.link))}</a>` : ''}
-        <div class="task-actions">
-      ${!isCompleted ? `<button class="btn-start" onclick="startTask('${task.id}', '${escapeHtml(task.link || '')}', Number(${task.amt || task.amount || 0}))"><i class="fa-solid fa-play"></i> Start Task</button>` : ''}
-          ${!isCompleted ? `<button class="btn-skip" onclick="skipTask('${task.id}')"><i class="fa-solid fa-forward"></i></button>` : ''}
-        </div>
-      </div>
-    `;
+        `;
         container.appendChild(div);
       });
     }
@@ -1069,7 +1091,6 @@
       }
 
       currentTaskId = id;
-
       window.open(link, '_blank');
 
       Swal.fire({
@@ -1097,7 +1118,6 @@
         }
       });
     }
-
 
     function showClaim(id, link, amount) {
       Swal.fire({
@@ -1131,22 +1151,30 @@
       const today = new Date().toDateString();
       localStorage.setItem('completedTasks_' + today, JSON.stringify(completedTaskIds));
 
-      // Update balance - ADD to existing (matches dashboard logic)
       let balance = parseFloat(localStorage.getItem("walletBalance")) || 0;
       balance += amount;
       localStorage.setItem("walletBalance", balance.toString());
 
-      // Update userData
       if (userData) {
         userData.balance = balance;
         userData.totalMined = (userData.totalMined || 0) + amount;
+        userData.completedTasks = completedTaskIds;
         localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-        if (window._9jaCash && window._9jaCash.db) {
-          window._9jaCash.db.collection("users").doc(userData.phone).set(userData).catch(function (err) { });
+
+        // Realtime Save to Firebase
+        const db = getDb();
+        if (db) {
+          db.collection("users").doc(userData.phone).set({
+            balance: balance,
+            totalMined: userData.totalMined,
+            completedTasks: completedTaskIds,
+            lastTaskClaimed: id,
+            updatedAt: new Date().toISOString()
+          }, { merge: true }).catch((err) => console.error("Firebase Sync Error:", err));
         }
       }
 
-      // Sync balance to SQL Backend
+      // Sync balance to Backend API
       const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
       if (userData) {
         fetch(API_URL + '/api/user/update-balance', {
@@ -1167,14 +1195,13 @@
             localStorage.setItem("walletBalance", freshBal.toString());
             localStorage.setItem("9jaCashUser", JSON.stringify(userData));
           }
-          console.log("SQL balance updated after task claim:", data);
         })
         .catch(err => {
           console.error("SQL balance update error after task claim:", err);
         });
       }
 
-      // Save to activity
+      // Save activity
       let tx = JSON.parse(localStorage.getItem('transactionHistory')) || [];
       tx.unshift({
         type: 'Task Reward',
@@ -1214,7 +1241,6 @@
       document.getElementById('totalEarned').textContent = '₦' + earned.toLocaleString();
       document.getElementById('progressText').textContent = percent + '%';
 
-      // Update circle progress
       const circle = document.getElementById('progressCircle');
       const circumference = 2 * Math.PI * 24;
       const offset = circumference - (percent / 100) * circumference;
@@ -1249,7 +1275,7 @@
     // ========== INIT ==========
     window.addEventListener("DOMContentLoaded", function () {
       initDarkMode();
-      loadTasks();
+      initRealtimeListeners();
       initLiveWithdrawalPopups();
     });
   </script>
@@ -1280,21 +1306,17 @@
         const randomAmount = "₦" + (randomK * 1000).toLocaleString("en-NG");
         document.getElementById('liveWithdrawalText').textContent = `${randomName} successfully withdrew ${randomAmount}`;
 
-        // Slide in
         popup.style.transform = 'translate(-50%, 0)';
         popup.style.opacity = '1';
 
-        // Slide out after 5 seconds
         setTimeout(() => {
           popup.style.transform = 'translate(-50%, -150px)';
           popup.style.opacity = '0';
         }, 5000);
 
-        // Schedule next popup (every 10 seconds)
         setTimeout(triggerPopup, 10000);
       }
 
-      // Start the first popup after 10 seconds
       setTimeout(triggerPopup, 10000);
     }
   </script>
