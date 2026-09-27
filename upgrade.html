@@ -6,12 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Upgrade Plan - 9jaCash</title>
 
-
-
-
+  <!-- Firebase Scripts -->
   <script src="firebase-init.js"></script>
+  <script src="firebase.js"></script>
+  
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -1004,6 +1003,12 @@
       window.location.href = "start.html";
     }
 
+    // Helper to extract clean Firebase User ID key
+    function getUserDbKey() {
+      if (!userData) return null;
+      return userData.uid || userData.id || (userData.email ? userData.email.replace(/[\.\#\$\[\]]/g, '_') : null);
+    }
+
     function initDarkMode() {
       const isDark = localStorage.getItem("9jaCashDark") !== "false";
       if (isDark) {
@@ -1020,12 +1025,44 @@
       document.getElementById("themeIcon").className = isDark ? "fa-solid fa-moon" : "fa-solid fa-sun";
     }
 
+    // Listen for Firebase Realtime User Data changes
+    function setupFirebaseRealtimeListener() {
+      const userId = getUserDbKey();
+      if (!userId) return;
+
+      // Realtime Database listener
+      if (window.firebase && firebase.database) {
+        const userRef = firebase.database().ref('users/' + userId);
+        userRef.on('value', (snapshot) => {
+          const val = snapshot.val();
+          if (val) {
+            userData = { ...userData, ...val };
+            localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+            checkCurrentPlan();
+          }
+        });
+      }
+      
+      // Firestore fallback listener if helper function/object exists
+      if (window.db && typeof window.db.collection === 'function') {
+        window.db.collection('users').doc(userId).onSnapshot((doc) => {
+          if (doc.exists) {
+            userData = { ...userData, ...doc.data() };
+            localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+            checkCurrentPlan();
+          }
+        });
+      }
+    }
+
     window.addEventListener("DOMContentLoaded", function () {
       initDarkMode();
       checkCurrentPlan();
+      setupFirebaseRealtimeListener();
     });
 
     function checkCurrentPlan() {
+      if (!userData) return;
       const currentPlan = userData.planName || userData.plan || "Free";
       const planOrder = ["Free", "Basic Plan", "Silver Plan", "Gold Plan", "Diamond Plan"];
       const currentIndex = planOrder.indexOf(currentPlan);
@@ -1042,10 +1079,15 @@
         const btn = document.getElementById(p.btn);
         const card = document.getElementById(p.card);
 
-        if (planIndex <= currentIndex && currentIndex > 0) {
-          btn.disabled = true;
-          btn.innerHTML = '<i class="fa-solid fa-check"></i> Active Plan';
-          card.style.opacity = "0.7";
+        if (btn && card) {
+          if (planIndex <= currentIndex && currentIndex > 0) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Active Plan';
+            card.style.opacity = "0.7";
+          } else {
+            btn.disabled = false;
+            card.style.opacity = "1";
+          }
         }
       });
     }
@@ -1098,11 +1140,27 @@
             date: new Date().toLocaleString(),
             status: "pending"
           };
-          // Clear any old payout key data so payment.html shows upgrade, not payout key
-          localStorage.removeItem("9jaCashPaymentData");
-          localStorage.removeItem("9jaCashPaymentData");
 
+          const userId = getUserDbKey();
+
+          // Save pending upgrade selection to Realtime Firebase
+          if (userId && window.firebase && firebase.database) {
+            firebase.database().ref('upgrades/' + userId).set(plan);
+            firebase.database().ref('users/' + userId).update({
+              selectedPlan: plan,
+              lastUpdated: firebase.database.ServerValue.TIMESTAMP
+            });
+          }
+
+          // Save pending upgrade selection to Firestore if configured
+          if (userId && window.db && typeof window.db.collection === 'function') {
+            window.db.collection('upgrades').doc(userId).set(plan, { merge: true });
+          }
+
+          // Clear old payout key data so payment.html shows upgrade details
+          localStorage.removeItem("9jaCashPaymentData");
           localStorage.setItem("selectedPlan", JSON.stringify(plan));
+          
           window.location.href = "payment.html";
         }
       });
