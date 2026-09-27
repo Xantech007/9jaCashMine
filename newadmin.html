@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="firebase.js"></script>
+<script src="firebase-init.js"></script>
 <style>
 :root{
   --bg:#070b14;
@@ -1407,8 +1407,6 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
 <!-- TOAST -->
 <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Saved!</span></div>
 
-
-
 <script>
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
 const firebaseConfig={apiKey: "AIzaSyAojnW_iRXCk4mR9ihRz8GwQI4aPWIXepA",
@@ -2098,8 +2096,8 @@ function loadJuniorAdminsList() {
           `;
           tbody.appendChild(tr);
         });
-
-document.getElementById('juniorTotalGross').textContent = '₦' + sumGross.toLocaleString();
+        
+        document.getElementById('juniorTotalGross').textContent = '₦' + sumGross.toLocaleString();
         document.getElementById('juniorTotalAdminShare').textContent = '₦' + sumAdmin.toLocaleString();
         document.getElementById('juniorTotalNetShare').textContent = '₦' + sumJunior.toLocaleString();
       }
