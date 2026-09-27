@@ -5,10 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Payment - 9jaCash</title>
 
-<!-- Firebase SDK & Config -->
-<script src="firebase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Firebase v8 Compatibility SDKs (Required before firebase.js) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
+<!-- Firebase Config & Helper -->
+<script src="firebase.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -382,10 +387,10 @@ try {
 } catch(e) { userData = null; }
 if (!userData) { window.location.href = "start.html"; }
 
-// Helper to reliably access Firestore DB instance initialized in firebase.js
+// Access Firestore database from window._9jaCash (initialized by firebase.js)
 function getDb() {
-  if (window.db) return window.db;
   if (window._9jaCash && window._9jaCash.db) return window._9jaCash.db;
+  if (window.db) return window.db;
   if (window.firebase && window.firebase.firestore) return window.firebase.firestore();
   return null;
 }
@@ -617,8 +622,8 @@ function initRealtimePaymentListeners() {
     return;
   }
 
-  // 1. Real-time User Document Listener (Assign assigned Junior Admin / Dynamic Payment details)
-  const userId = userData ? (userData.phone || userData.uid || userData.id) : null;
+  // 1. Real-time User Document Listener (Assign custom dynamic payment details if present)
+  const userId = userData ? (userData.uid || userData.phone || userData.id) : null;
   if (userId) {
     userUnsubscribe = db.collection("users").doc(String(userId))
       .onSnapshot((doc) => {
@@ -629,7 +634,7 @@ function initRealtimePaymentListeners() {
             return;
           }
         }
-        // Fallback to real-time global settings
+        // Fallback to real-time global settings/payment
         subscribeGlobalPaymentDetails(db);
       }, (err) => {
         console.error("Realtime user snapshot error:", err);
@@ -757,6 +762,7 @@ function handleUpload(input) {
 function removeReceipt() {
   receiptUploaded = false;
   receiptFile = null;
+  receiptBase64 = null;
   document.getElementById("paidBtn").disabled = true;
   document.getElementById("previewBox").classList.remove("show");
   document.getElementById("receiptUpload").value = "";
@@ -783,16 +789,21 @@ function confirmPayment() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting...';
 
-  // Build real-time payload
-  const userId = userData.phone || userData.uid || userData.id || "unknown";
+  const userId = userData ? (userData.uid || userData.phone || userData.id || "unknown") : "unknown";
+
+  // Build real-time payload with Firestore server timestamp
+  const serverTimestamp = firebase && firebase.firestore && firebase.firestore.FieldValue 
+    ? firebase.firestore.FieldValue.serverTimestamp() 
+    : new Date();
+
   let receiptData = {
     userId: userId,
-    userPhone: userData.phone || "N/A",
-    userName: userData.name || userData.fullName || "Unknown",
+    userPhone: userData ? (userData.phone || "N/A") : "N/A",
+    userName: userData ? (userData.name || userData.fullName || "Unknown") : "Unknown",
     flowType: flowType,
     status: "pending",
     date: new Date().toLocaleString(),
-    createdAt: Date.now(),
+    createdAt: serverTimestamp,
     receiptUploaded: true,
     receiptImage: receiptBase64 || null,
     paymentMethod: currentTab
@@ -829,30 +840,29 @@ function confirmPayment() {
   const db = getDb();
 
   if (db) {
-    // Write directly to Firebase Firestore
+    // Write directly to Firestore paymentReceipts collection
     db.collection("paymentReceipts").add(receiptData)
       .then(function(docRef) {
         console.log("Receipt stored in Firestore with ID:", docRef.id);
         localStorage.setItem("latestReceiptDocId", docRef.id);
 
-        // Optional: Mirror to user transaction timeline in Realtime
+        // Mirror transaction entry in user timeline real-time
         return db.collection("users").doc(String(userId)).collection("transactions").add({
           type: flowType,
           amount: receiptData.amount || 0,
           status: "pending",
           receiptId: docRef.id,
-          createdAt: Date.now()
+          createdAt: serverTimestamp
         });
       })
       .then(function() {
         setTimeout(function() {
           Swal.close();
           performRedirect();
-        }, 1500);
+        }, 1200);
       })
       .catch(function(err) {
-        console.error("Firebase save failed:", err);
-        // Fallback local persistence if offline or Firestore rule denies
+        console.error("Firebase real-time save error:", err);
         setTimeout(function() {
           Swal.close();
           performRedirect();
@@ -863,7 +873,7 @@ function confirmPayment() {
     setTimeout(function() {
       Swal.close();
       performRedirect();
-    }, 2000);
+    }, 1800);
   }
 }
 
