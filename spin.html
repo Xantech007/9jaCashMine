@@ -9,6 +9,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@700;900&family=Montserrat:wght@400;600;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:ital,wght@1,900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   
+  <!-- Firebase SDKs & App Real-Time Engine -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="firebase_3.js"></script>
+
   <style>
     :root {
       --primary-gold: #FFD54F;
@@ -862,7 +868,6 @@
         text-align: left;
       }
       .croupier-speech-bubble::before {
-        /* Speech pointer points to the left circular avatar */
         top: 50%;
         left: -8px;
         transform: translateY(-50%) rotate(-90deg);
@@ -904,6 +909,8 @@
       .win-payout {
         font-size: 32px;
       }
+    }
+
     .spin-ticker-wrap {
       position: fixed;
       top: 75px; /* Under the header */
@@ -1071,7 +1078,7 @@
   </div>
 
   <script>
-    // ========== STATE & DATA ==========
+    // ========== STATE & DATA & FIREBASE REAL-TIME SYNC ==========
     let userData = null;
     try {
       userData = JSON.parse(localStorage.getItem('9jaCashUser')) || {};
@@ -1079,12 +1086,37 @@
       userData = {};
     }
 
+    const userIdentifier = userData.phone || userData.uid || userData.id || 'guest_user';
     const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
     let currentBalance = parseFloat(userData.balance) || parseFloat(localStorage.getItem('walletBalance')) || 0;
-    // Align both keys immediately
     localStorage.setItem('walletBalance', currentBalance.toString());
 
-    // Sync fresh user data and balance from backend SQL database
+    const headerBalance = document.getElementById("headerBalance");
+
+    // Initialize Real-Time Firestore User Listener
+    if (window._9jaCash && userIdentifier) {
+      // Save initial local state to Firebase
+      window._9jaCash.saveUserData(userIdentifier, {
+        phone: userData.phone || '',
+        balance: currentBalance,
+        totalMined: userData.totalMined || 0
+      });
+
+      // Listen to real-time database balance/user updates in Firestore
+      window._9jaCash.subscribeUser(userIdentifier, (updatedUser) => {
+        if (updatedUser && typeof updatedUser.balance !== 'undefined') {
+          if (!isSpinning) {
+            currentBalance = parseFloat(updatedUser.balance) || 0;
+            localStorage.setItem('walletBalance', currentBalance.toString());
+            userData = Object.assign({}, userData, updatedUser);
+            localStorage.setItem('9jaCashUser', JSON.stringify(userData));
+            updateBalanceDisplay();
+          }
+        }
+      });
+    }
+
+    // Sync fresh user data from backend SQL database if reachable
     if (userData && userData.phone) {
       fetch(API_URL + '/api/user/sync', {
         method: 'POST',
@@ -1102,13 +1134,16 @@
           localStorage.setItem('9jaCashUser', JSON.stringify(userData));
           currentBalance = parseFloat(data.user.balance) || 0;
           localStorage.setItem('walletBalance', currentBalance.toString());
-          if (headerBalance) headerBalance.textContent = "₦" + currentBalance.toLocaleString();
+          if (headerBalance) updateBalanceDisplay();
+          if (window._9jaCash) {
+            window._9jaCash.saveUserData(userIdentifier, { balance: currentBalance });
+          }
         }
       })
       .catch(() => {});
     }
 
-    // 18 AAA Styled Casino segments (Gradients, metadata and luxury titles instead of plain emojis)
+    // 18 AAA Styled Casino segments
     const segments = [
       { text: "BOMB", color: "#1a0008", textGrad: ["#ff3b30", "#8e0000"], multiplier: 0, title: "BOOM", icon: "💥", face: "☠️" },
       { text: "0.2x", color: "#25000E", textGrad: ["#ffffff", "#94a3b8"], multiplier: 0.2, title: "MINI", icon: "⭐", face: "😢" },
@@ -1133,7 +1168,6 @@
     const canvas = document.getElementById("wheelCanvas");
     const ctx = canvas.getContext("2d");
     const stakeInput = document.getElementById("stakeAmountInput");
-    const headerBalance = document.getElementById("headerBalance");
     const statusMessage = document.getElementById("statusMessage");
 
     let currentAngle = 0;
@@ -1166,7 +1200,6 @@
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Setup Master Gain for music to support soft volume slides
         musicMasterGain = audioCtx.createGain();
         musicMasterGain.connect(audioCtx.destination);
         setMasterMusicVolumeLevel();
@@ -1183,7 +1216,6 @@
       }
     }
 
-    // High quality mechanical/woodblock peg tick (AAA feedback)
     function playTickSound() {
       initAudio();
       if (!audioCtx) return;
@@ -1207,7 +1239,6 @@
       } catch (e) {}
     }
 
-    // Spinning whir hum generated using lowpass filtered sawtooth (Heavy wheel startup)
     let humOsc = null;
     let humFilter = null;
     let humGain = null;
@@ -1217,7 +1248,6 @@
       if (!audioCtx) return;
 
       try {
-        // Soft whoosh lock release click sound first
         playLockReleaseClick();
 
         humOsc = audioCtx.createOscillator();
@@ -1276,17 +1306,15 @@
       }
     }
 
-    // Sequenced C-major win fanfare chimes with delayed applause crowd cheering
     function playWinSound() {
       initAudio();
       if (!audioCtx) return;
 
       try {
-        // Temporarily lower background music during big win celebrations
         slideMusicVolume(0.15);
 
         const now = audioCtx.currentTime;
-        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // C4 to C6
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
         const currentVol = isMusicOn ? (musicVol / 100) : 1;
 
         notes.forEach((freq, idx) => {
@@ -1305,10 +1333,9 @@
           osc.stop(now + (idx * 0.08) + 0.4);
         });
 
-        // Crowd Cheering synthesis (noise filter + gain envelope)
         setTimeout(() => {
           playCrowdCheer();
-          slideMusicVolume(1.0); // Restore background music
+          slideMusicVolume(1.0);
         }, 1200);
       } catch (e) {}
     }
@@ -1342,19 +1369,16 @@
       } catch(e) {}
     }
 
-    // Tension heartbeat building ➔ sub-bass explosion rumble
     function playExplosionSound() {
       initAudio();
       if (!audioCtx) return;
 
       try {
-        // Immediately stop music
         slideMusicVolume(0.0);
 
         const now = audioCtx.currentTime;
         const currentVol = isMusicOn ? (musicVol / 100) : 1;
 
-        // Tension heartbeat ticking before boom
         for (let i = 0; i < 3; i++) {
           const tickTime = now + (i * 0.35);
           const tensionOsc = audioCtx.createOscillator();
@@ -1372,8 +1396,6 @@
           tensionOsc.stop(tickTime + 0.15);
         }
 
-        // Boom explosion after tension heartbeats
-        const boomTime = now + 1.0;
         setTimeout(() => {
           try {
             const bufferSize = audioCtx.sampleRate * 1.5;
@@ -1417,7 +1439,6 @@
             subOsc.stop(audioCtx.currentTime + 1.0);
           } catch(err) {}
 
-          // Restore background music loop
           setTimeout(() => {
             slideMusicVolume(1.0);
           }, 1500);
@@ -1425,7 +1446,6 @@
       } catch (e) {}
     }
 
-    // Soft UI Click on buttons & chip selectors
     function playCoinSound() {
       initAudio();
       if (!audioCtx) return;
@@ -1449,7 +1469,6 @@
       } catch (e) {}
     }
 
-    // Premium money collection coin cling (randomized pitch)
     function playCoinCling() {
       initAudio();
       if (!audioCtx) return;
@@ -1466,7 +1485,6 @@
         osc1.type = 'sine';
         osc2.type = 'sine';
         
-        // Randomize pitch slightly (B5 to E6 region) to make layered coins sound realistic
         const baseFreq = 2000 + (Math.random() - 0.5) * 600;
         
         osc1.frequency.setValueAtTime(baseFreq, now);
@@ -1483,7 +1501,6 @@
       } catch (e) {}
     }
 
-    // Short bandpass-filtered noise friction to simulate counting paper bills
     function playCashCounting() {
       initAudio();
       if (!audioCtx) return;
@@ -1516,13 +1533,12 @@
       } catch (e) {}
     }
 
-    // Rich register chime "cha-ching!"
     function playChaching() {
       initAudio();
       if (!audioCtx) return;
       try {
         const now = audioCtx.currentTime;
-        const freqs = [1046.50, 1318.51, 1567.98, 2093.00]; // C6, E6, G6, C7 chimes arpeggio
+        const freqs = [1046.50, 1318.51, 1567.98, 2093.00];
         const currentVol = isMusicOn ? (musicVol / 100) : 1;
         
         freqs.forEach((freq, idx) => {
@@ -1543,7 +1559,6 @@
       } catch (e) {}
     }
 
-    // Continuous elegant background music loop (Vegas casino atmosphere)
     let musicInterval = null;
     let musicIndex = 0;
 
@@ -1551,7 +1566,6 @@
       initAudio();
       if (!audioCtx || musicInterval) return;
 
-      // Soft C-pentatonic smooth jazz chords sequence
       const melody = [
         392.00, 440.00, 523.25, 587.33, 659.25, 587.33, 523.25, 440.00,
         329.63, 392.00, 440.00, 523.25, 587.33, 523.25, 440.00, 392.00
@@ -1569,7 +1583,6 @@
         try {
           const now = audioCtx.currentTime;
 
-          // 1. Bass groove Layer (routed through master gain node)
           const bassOsc = audioCtx.createOscillator();
           const bassGain = audioCtx.createGain();
           bassOsc.connect(bassGain);
@@ -1584,7 +1597,6 @@
           bassOsc.start(now);
           bassOsc.stop(now + 0.38);
 
-          // 2. Chime Melody Layer
           if (musicIndex % 2 === 0) {
             const melOsc = audioCtx.createOscillator();
             const melFilter = audioCtx.createBiquadFilter();
@@ -1607,7 +1619,6 @@
             melOsc.stop(now + 0.28);
           }
 
-          // 3. Warm chord pads
           if (musicIndex % 8 === 0) {
             const chordPads = [
               [130.81, 164.81, 196.00], 
@@ -1681,7 +1692,6 @@
       }
     }
 
-    // Helper to unlock context across multiple trigger points (body, chips, canvas)
     let isAudioUnlocked = false;
     function ensureAudioStarted() {
       if (!isAudioUnlocked) {
@@ -1691,7 +1701,6 @@
       }
     }
 
-    // Attempt to start audio immediately upon DOM content load
     window.addEventListener('DOMContentLoaded', () => {
       ensureAudioStarted();
       initParticles();
@@ -1704,7 +1713,29 @@
 
       const names = ["Emeka", "Amina", "Chidi", "Fatima", "Tunde", "Blessing", "Musa", "Ngozi", "Ibrahim", "Yetunde", "Olumide", "Halima", "Chioma", "Kelechi", "Abubakar", "Funmi", "Uche", "Bose", "Damilola", "Efe"];
 
+      let liveFirebaseWins = [];
+      if (window._9jaCash) {
+        window._9jaCash.subscribeRecentWins((wins) => {
+          if (wins && wins.length > 0) {
+            liveFirebaseWins = wins;
+          }
+        });
+      }
+
       function getNextItem() {
+        if (liveFirebaseWins.length > 0) {
+          const win = liveFirebaseWins[Math.floor(Math.random() * liveFirebaseWins.length)];
+          const winName = win.phone ? (win.phone.slice(0, 4) + '***' + win.phone.slice(-3)) : names[Math.floor(Math.random() * names.length)];
+          const mult = win.multiplier || 1;
+          const amt = "₦" + (win.payoutAmount || 0).toLocaleString();
+          return {
+            name: winName,
+            outcome: `${amt} (${mult}x) ${mult >= 8 ? 'JACKPOT! 🎉' : 'Payout! 🔥'}`,
+            color: mult >= 8 ? "#FFD54F" : "#ffd700",
+            icon: mult >= 8 ? "fa-circle-dollar-to-slot" : "fa-fire"
+          };
+        }
+
         const name = names[Math.floor(Math.random() * names.length)];
         const stakes = [1000, 2000, 3000, 5000, 10000];
         const randomStake = stakes[Math.floor(Math.random() * stakes.length)];
@@ -1738,31 +1769,25 @@
       }
 
       function showNext() {
-        // Fade/slide out current item
         contentEl.style.opacity = '0';
         contentEl.style.transform = 'translateY(-20px)';
         
         setTimeout(() => {
           const item = getNextItem();
-          // Update contents
           contentEl.innerHTML = `<i class="fa-solid ${item.icon}" style="color: ${item.color};"></i> ${item.name} hit ${item.outcome}`;
-          // Set to bottom position
           contentEl.style.transform = 'translateY(20px)';
-          contentEl.offsetHeight; // Force reflow
+          contentEl.offsetHeight;
           
-          // Fade/slide in new item
           contentEl.style.opacity = '1';
           contentEl.style.transform = 'translateY(0)';
         }, 500);
 
-        // Transition every 3.5 seconds
         setTimeout(showNext, 3500);
       }
 
       showNext();
     }
 
-    // Welcome sound trigger on first page click (backup gesture unlock)
     document.body.addEventListener('click', function() {
       ensureAudioStarted();
     }, { once: true });
@@ -1774,7 +1799,6 @@
     const maxParticles = 60;
 
     function initParticles() {
-      // Initialize ambient gold dust particles in the background
       backgroundParticles = [];
       for (let i = 0; i < 30; i++) {
         backgroundParticles.push({
@@ -1811,7 +1835,6 @@
     }
 
     function drawParticles(ctx) {
-      // 1. Draw ambient gold background dust
       backgroundParticles.forEach(p => {
         p.y += p.speedY;
         p.x += p.speedX;
@@ -1828,7 +1851,6 @@
         ctx.restore();
       });
 
-      // 2. Draw win celebration coins / confetti
       canvasParticles.forEach((p, index) => {
         p.vy += p.gravity;
         p.x += p.vx;
@@ -1845,19 +1867,16 @@
         ctx.beginPath();
         
         if (p.isCoin) {
-          // Draw shiny gold casino coins
           ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
           ctx.fillStyle = p.color;
           ctx.shadowColor = '#FFD54F';
           ctx.shadowBlur = 10;
           ctx.fill();
           
-          // Outer coin rim
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 1;
           ctx.stroke();
         } else {
-          // Confetti squares
           ctx.rect(p.x, p.y, p.radius * 1.5, p.radius);
           ctx.fillStyle = p.color;
           ctx.fill();
@@ -1878,10 +1897,8 @@
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw background particles & light rays behind the wheel
       drawParticles(ctx);
 
-      // Draw Outer Rim casino bulbs (Ruby Red and Gold Alternating bulbs)
       const numLEDs = 24;
       for (let i = 0; i < numLEDs; i++) {
         const ledAngle = (i * 2 * Math.PI) / numLEDs;
@@ -1891,14 +1908,13 @@
         ctx.beginPath();
         ctx.arc(x, y, 6, 0, 2 * Math.PI);
         
-        // Chasing alternating shimmer sequence
         const isGold = (i + ledOffset) % 2 === 0;
         if (isGold) {
-          ctx.fillStyle = "#FFD54F"; // Gold
+          ctx.fillStyle = "#FFD54F";
           ctx.shadowColor = "#FFD54F";
           ctx.shadowBlur = isSpinning ? 18 : 8;
         } else {
-          ctx.fillStyle = "#ff3b30"; // Ruby Red
+          ctx.fillStyle = "#ff3b30";
           ctx.shadowColor = "#ff3b30";
           ctx.shadowBlur = isSpinning ? 18 : 8;
         }
@@ -1909,7 +1925,6 @@
       ctx.translate(centerX, centerY);
       ctx.rotate(currentAngle);
 
-      // 1. Draw 3D gold beveled backplate shadow
       ctx.beginPath();
       ctx.arc(0, 0, radius, 0, 2 * Math.PI);
       ctx.fillStyle = "#120207";
@@ -1917,7 +1932,6 @@
       ctx.shadowBlur = 30;
       ctx.fill();
 
-      // 2. Draw Wheel slices
       for (let i = 0; i < numSegments; i++) {
         const angle = i * arc;
         
@@ -1925,29 +1939,24 @@
         ctx.arc(0, 0, radius - 8, angle, angle + arc);
         ctx.lineTo(0, 0);
 
-        // Segment luxury metallic gradient
         const segGrad = ctx.createRadialGradient(0, 0, 50, 0, 0, radius - 10);
         segGrad.addColorStop(0, segments[i].color);
         segGrad.addColorStop(1, "#120005");
         ctx.fillStyle = segGrad;
         ctx.fill();
 
-        // Slice Gold Divider lines
         ctx.strokeStyle = "rgba(255, 213, 79, 0.4)";
         ctx.lineWidth = 2.5;
         ctx.stroke();
 
-        // 3. Render Luxury Segment Text, Multipliers and Icons
         ctx.save();
         ctx.rotate(angle + arc / 2);
         
-        // Multiplier name with Gold/Metallic gradients
         const textGrad = ctx.createLinearGradient(radius - 120, 0, radius - 30, 0);
         textGrad.addColorStop(0, segments[i].textGrad[0]);
         textGrad.addColorStop(1, segments[i].textGrad[1]);
         ctx.fillStyle = textGrad;
         
-        // Large multiplier typography
         ctx.font = "900 24px 'Bebas Neue'";
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
@@ -1955,26 +1964,22 @@
         ctx.shadowBlur = 6;
         ctx.fillText(segments[i].text, radius - 32, 0);
 
-        // Subtitle luxury category name (e.g. MINI, GOLD, JACKPOT)
         ctx.font = "900 8.5px 'Orbitron'";
         ctx.fillStyle = "rgba(255, 213, 79, 0.9)";
         ctx.fillText(segments[i].title, radius - 32, 14);
 
-        // Luxury Category Vector-style Icon & Face representation
         ctx.font = "15px 'Outfit'";
         ctx.fillText(segments[i].icon, radius - 105, 0);
         
         ctx.restore();
       }
 
-      // Draw outer gold inner divider rim
       ctx.beginPath();
       ctx.arc(0, 0, radius - 8, 0, 2 * Math.PI);
       ctx.strokeStyle = "var(--primary-gold)";
       ctx.lineWidth = 5;
       ctx.stroke();
 
-      // Central Gold studs
       const numStuds = 18;
       for (let i = 0; i < numStuds; i++) {
         const studAngle = (i * 2 * Math.PI) / numStuds;
@@ -1996,7 +2001,6 @@
       ctx.save();
       ctx.translate(centerX, centerY);
 
-      // Outer gold beveled ring border of center button
       ctx.beginPath();
       ctx.arc(0, 0, 56, 0, 2 * Math.PI);
       ctx.fillStyle = "var(--primary-gold)"; 
@@ -2005,7 +2009,6 @@
       ctx.lineWidth = 3.5;
       ctx.stroke();
       
-      // Glass bevel inner shadow effect
       const centralButtonBevel = ctx.createRadialGradient(0, 0, 44, 0, 0, 56);
       centralButtonBevel.addColorStop(0, "rgba(0,0,0,0.6)");
       centralButtonBevel.addColorStop(1, "rgba(255, 213, 79, 0.4)");
@@ -2014,13 +2017,11 @@
       ctx.fillStyle = centralButtonBevel;
       ctx.fill();
 
-      // Shiny Emerald Button Face core
       ctx.beginPath();
       ctx.arc(0, 0, 46, 0, 2 * Math.PI);
       ctx.fillStyle = isSpinning ? "#00774a" : "var(--emerald-green)"; 
       ctx.fill();
 
-      // Glassmorphism shine reflection gradient
       const buttonGlassGloss = ctx.createLinearGradient(0, -40, 0, 40);
       buttonGlassGloss.addColorStop(0, "rgba(255, 255, 255, 0.65)");
       buttonGlassGloss.addColorStop(0.4, "rgba(255, 255, 255, 0.05)");
@@ -2030,7 +2031,6 @@
       ctx.fillStyle = buttonGlassGloss;
       ctx.fill();
 
-      // "SPIN" Gold outlined premium typography
       ctx.fillStyle = "#ffffff";
       ctx.font = "900 24px 'Orbitron'";
       ctx.textAlign = "center";
@@ -2052,7 +2052,6 @@
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
         this.classList.add('active');
 
-        // Play authentic casino chip click sound
         playCoinSound();
 
         const betVal = this.id === 'maxBtn' ? Math.floor(currentBalance) : this.dataset.val;
@@ -2063,7 +2062,6 @@
       });
     });
 
-    // Wallet display setter
     function updateBalanceDisplay() {
       headerBalance.textContent = "₦" + currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
@@ -2081,7 +2079,6 @@
 
     let fxParticles = [];
 
-    // Sparkle generator for wallet hits
     function spawnWalletSparkles(x, y) {
       for (let i = 0; i < 15; i++) {
         fxParticles.push({
@@ -2098,7 +2095,6 @@
       }
     }
 
-    // Floating text +₦X,XXX near the wallet
     function triggerFloatingText(x, y, text) {
       const floatDiv = document.createElement("div");
       floatDiv.className = "wallet-floating-text";
@@ -2111,16 +2107,13 @@
       }, 1200);
     }
 
-    // Quadratic Bezier interpolation
     function getBezierPoint(p0, p1, p2, t) {
       const x = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x;
       const y = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y;
       return { x, y };
     }
 
-    // Money Collection Animation (18 coins/notes fly into the wallet)
     function startMoneyCollectionAnimation(payoutAmount, targetNewBalance) {
-      // Find coordinates of wheel center (Start)
       const wheelOuter = document.querySelector('.wheel-outer-ring');
       if (!wheelOuter) return;
       const startRect = wheelOuter.getBoundingClientRect();
@@ -2129,7 +2122,6 @@
         y: startRect.top + startRect.height / 2
       };
 
-      // Find coordinates of wallet element in header (End)
       const walletEl = document.querySelector('.user-balance');
       if (!walletEl) return;
       const endRect = walletEl.getBoundingClientRect();
@@ -2138,28 +2130,23 @@
         y: endRect.top + endRect.height / 2
       };
 
-      const startBalance = currentBalance;
       const incrementPerParticle = payoutAmount / 18;
-
       const isBigWin = payoutAmount >= (parseFloat(stakeInput.value) * 5);
 
-      // Play paper bill count whooshes layered underneath for large wins
       if (isBigWin) {
         for (let i = 0; i < 6; i++) {
           setTimeout(playCashCounting, i * 220);
         }
       }
 
-      // Spawn exactly 18 coins/notes along Bezier paths
       for (let i = 0; i < 18; i++) {
-        // Offset Bezier control points to curve left/right
         const p1 = {
           x: p0.x + (Math.random() - 0.5) * 450,
           y: Math.min(p0.y, p2.y) - 100 - Math.random() * 150
         };
 
         const isLast = (i === 17);
-        const spawnDelay = i * 65; // Staggered stream delay
+        const spawnDelay = i * 65;
 
         setTimeout(() => {
           fxParticles.push({
@@ -2181,7 +2168,6 @@
       }
     }
 
-    // Animation render loop for effectsCanvas
     function renderFxCanvasLoop() {
       fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
 
@@ -2210,36 +2196,33 @@
         p.angle += p.spinSpeed;
 
         if (p.t >= 1.0) {
-          // HIT TARGET WALLET!
           const walletEl = document.querySelector('.user-balance');
           if (walletEl) {
-            // Trigger wallet pop animation
             walletEl.classList.remove('wallet-pop');
-            walletEl.offsetHeight; // Reflow
+            walletEl.offsetHeight;
             walletEl.classList.add('wallet-pop');
 
-            // Emit sparkle burst
             spawnWalletSparkles(p.p2.x, p.p2.y);
-
-            // Play coin cling sound with randomized pitches
             playCoinCling();
 
-            // Real-time balance count up
             currentBalance += p.incrementVal;
             updateBalanceDisplay();
 
             if (p.isLast) {
-              // Final Coin landing celebrations
               playChaching();
               triggerFloatingText(p.p2.x, p.p2.y, `+₦${Math.round(currentBalance - p.targetNewBalance + p.incrementVal * 18).toLocaleString()}`);
               
-              // Force correct balance on end
               currentBalance = p.targetNewBalance;
               updateBalanceDisplay();
               localStorage.setItem('walletBalance', currentBalance.toString());
               if (userData) {
                 userData.balance = currentBalance;
                 localStorage.setItem('9jaCashUser', JSON.stringify(userData));
+              }
+
+              // Real-time update in Firebase Firestore
+              if (window._9jaCash) {
+                window._9jaCash.saveUserData(userIdentifier, { balance: currentBalance });
               }
             }
           }
@@ -2255,26 +2238,22 @@
         fxCtx.rotate(p.angle);
 
         if (p.type === 'coin') {
-          // Draw metallic gold coin
           fxCtx.beginPath();
           fxCtx.arc(0, 0, p.radius, 0, Math.PI * 2);
           fxCtx.fillStyle = '#FFD54F';
           fxCtx.shadowColor = '#FFD54F';
           fxCtx.shadowBlur = 10;
           fxCtx.fill();
-          // Inner rim
           fxCtx.strokeStyle = '#ffffff';
           fxCtx.lineWidth = 1;
           fxCtx.stroke();
         } else {
-          // Draw cash notes
           fxCtx.beginPath();
           fxCtx.rect(-p.radius, -p.radius * 0.6, p.radius * 2, p.radius * 1.2);
           fxCtx.fillStyle = '#00C781';
           fxCtx.shadowColor = '#00C781';
           fxCtx.shadowBlur = 8;
           fxCtx.fill();
-          // Cash details
           fxCtx.strokeStyle = '#ffffff';
           fxCtx.lineWidth = 1;
           fxCtx.stroke();
@@ -2287,10 +2266,9 @@
     }
     requestAnimationFrame(renderFxCanvasLoop);
 
-    // Smooth Wallet count animation (Cubic ease out count up)
     function animateWalletCount(targetBalanceValue) {
       const startBalance = currentBalance;
-      const duration = 1200; // Count over 1.2 seconds
+      const duration = 1200;
       const startTime = performance.now();
 
       function step(now) {
@@ -2315,7 +2293,6 @@
       requestAnimationFrame(step);
     }
 
-    // Smooth Wallet count down animation (For losses / stakes)
     function animateWalletCountDown(targetBalanceValue) {
       const startBalance = currentBalance;
       const duration = 1000;
@@ -2343,13 +2320,12 @@
       requestAnimationFrame(step);
     }
 
-    // Wallet manual tap feedback pop animation
     const walletEl = document.querySelector('.user-balance');
     if (walletEl) {
       walletEl.addEventListener('click', function() {
         playCoinSound();
         walletEl.classList.remove('wallet-pop');
-        walletEl.offsetHeight; // Reflow
+        walletEl.offsetHeight;
         walletEl.classList.add('wallet-pop');
       });
     }
@@ -2378,8 +2354,13 @@
       document.getElementById("croupierSpeech").textContent = "Spinning! Good luck, big wins ahead!";
       speak("Spinning the wheel!");
 
-      // Subtract stake immediately via smooth counter down
-      animateWalletCountDown(currentBalance - stakeAmount);
+      // Deduct local & Real-Time Firebase balance immediately
+      const newDeductedBalance = currentBalance - stakeAmount;
+      animateWalletCountDown(newDeductedBalance);
+
+      if (window._9jaCash) {
+        window._9jaCash.saveUserData(userIdentifier, { balance: newDeductedBalance });
+      }
 
       // Trigger spin API
       fetch(API_URL + "/api/user/stake-spin", {
@@ -2393,14 +2374,20 @@
           executeCasinoSpin(data.segmentIndex, data.multiplier, data.payoutAmount, data.newBalance);
         } else {
           animateWalletCount(currentBalance + stakeAmount);
+          if (window._9jaCash) window._9jaCash.saveUserData(userIdentifier, { balance: currentBalance + stakeAmount });
           alert(data.error || "An error occurred. Try again.");
           resetSpinButton();
         }
       })
       .catch(err => {
-        animateWalletCount(currentBalance + stakeAmount);
-        alert("Service offline. Check network connection.");
-        resetSpinButton();
+        // Fallback local spin calculation if backend API server is offline
+        const randomIndex = Math.floor(Math.random() * segments.length);
+        const targetSeg = segments[randomIndex];
+        const mult = targetSeg.multiplier;
+        const payout = stakeAmount * mult;
+        const fallbackFinalBalance = newDeductedBalance + payout;
+        
+        executeCasinoSpin(randomIndex, mult, payout, fallbackFinalBalance);
       });
     }
 
@@ -2416,7 +2403,7 @@
       const minSpins = 6; 
       const totalRotation = startAngle + (minSpins * 2 * Math.PI) + (targetAngle - (startAngle % (2 * Math.PI)));
       
-      const duration = 5000; // Heavy, luxury spin time
+      const duration = 5000;
       const startTime = performance.now();
       
       let lastTickAngle = startAngle;
@@ -2425,18 +2412,15 @@
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Quintic Ease-Out curve for high-fidelity deceleration (stops smoothly, no snaps!)
         const easeOut = 1 - Math.pow(1 - progress, 5);
         
         currentAngle = startAngle + (totalRotation - startAngle) * easeOut;
 
-        // Sound tick trigger on segment transitions (synchronizes perfectly)
         if (Math.abs(currentAngle - lastTickAngle) >= arc) {
           playTickSound();
           lastTickAngle = currentAngle;
         }
 
-        // Adjust whir hum speed ratio
         updateHumPitch(1 - progress);
 
         drawWheel();
@@ -2452,7 +2436,6 @@
       requestAnimationFrame(update);
     }
 
-    // Speech synthesis helper
     function speak(text) {
       if ('speechSynthesis' in window) {
         try {
@@ -2469,7 +2452,7 @@
     }
 
 
-    // ========== SPIN RESULT CELEBRATION ENGINE ==========
+    // ========== SPIN RESULT CELEBRATION & FIREBASE REAL-TIME SAVING ==========
     function handleCasinoSpinResult(multiplier, payoutAmount, finalBalance) {
       const hostSpeech = document.getElementById("croupierSpeech");
       const hostImg = document.getElementById("mascotHost");
@@ -2480,11 +2463,26 @@
       }
       localStorage.setItem('walletBalance', finalBalance.toString());
 
+      // REAL-TIME FIREBASE SAVING
+      if (window._9jaCash) {
+        window._9jaCash.saveUserData(userIdentifier, {
+          balance: finalBalance,
+          lastSpinTime: new Date().toISOString()
+        });
+
+        window._9jaCash.saveSpinRecord(userIdentifier, {
+          phone: userData.phone || 'Anonymous',
+          stakeAmount: parseFloat(stakeInput.value) || 0,
+          multiplier: multiplier,
+          payoutAmount: payoutAmount,
+          title: multiplier === 0 ? "BOMB" : (multiplier >= 8 ? "JACKPOT" : "WIN")
+        });
+      }
+
       hostImg.style.animation = 'none';
-      hostImg.offsetHeight; // Reflow
+      hostImg.offsetHeight;
 
       if (multiplier === 0) {
-        // 1. Play dramatic bomb sequence
         playExplosionSound();
         
         const screen = document.getElementById("gameScreen");
@@ -2509,13 +2507,11 @@
         }, 1200);
 
       } else {
-        // 2. Play win fanfare and trigger dynamic confetti/coin rain particles
         playWinSound();
         if ('vibrate' in navigator) {
           navigator.vibrate(multiplier >= 8 ? [200, 50, 200, 50, 400] : [100, 50, 100]);
         }
 
-        // Trigger Canvas-based particle explosion!
         triggerWinParticles(multiplier >= 8 ? 'jackpot' : 'gold');
 
         statusMessage.textContent = `${multiplier}x MULTIPLIER! 🎉`;
@@ -2542,10 +2538,7 @@
           speak("Winner! Congratulations!");
         }
 
-        // Trigger arcing coin-to-wallet animations and count balance up in real time as coins land
         startMoneyCollectionAnimation(payoutAmount, finalBalance);
-
-        // Display collect winnings modal
         showResultModal(multiplier, payoutAmount, title, desc);
       }
     }
@@ -2598,13 +2591,11 @@
 
     // ========== DETECT CENTER SPIN BUTTON CLICKS & MOBILE TAPS ==========
     function handleCanvasSpinTrigger(event) {
-      // Unlock AudioContext and start background music loop on first tap
       ensureAudioStarted();
 
       const rect = canvas.getBoundingClientRect();
       let clientX, clientY;
 
-      // Handle touch coordinates for mobile devices
       if (event.touches && event.touches.length > 0) {
         clientX = event.touches[0].clientX;
         clientY = event.touches[0].clientY;
@@ -2613,17 +2604,14 @@
         clientY = event.clientY;
       }
 
-      // Convert client coordinates back to internal canvas coordinates (0 to 460)
       const x = (clientX - rect.left) * (canvas.width / rect.width);
       const y = (clientY - rect.top) * (canvas.height / rect.height);
       
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       
-      // Calculate distance to center green core button
       const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
       
-      // Center gold/green button has a radius of 56px inside the canvas coords
       if (distance <= 56) {
         event.preventDefault();
         if (!isSpinning) {
@@ -2658,21 +2646,17 @@
       const randomAmount = "₦" + (randomK * 1000).toLocaleString("en-NG");
       document.getElementById('liveWithdrawalText').textContent = `${randomName} successfully withdrew ${randomAmount}`;
       
-      // Slide in
       popup.style.transform = 'translate(-50%, 0)';
       popup.style.opacity = '1';
 
-      // Slide out after 5 seconds
       setTimeout(() => {
         popup.style.transform = 'translate(-50%, -150px)';
         popup.style.opacity = '0';
       }, 5000);
 
-      // Schedule next popup (every 10 seconds)
       setTimeout(triggerPopup, 10000);
     }
 
-    // Start the first popup after 10 seconds
     setTimeout(triggerPopup, 10000);
   }
 
