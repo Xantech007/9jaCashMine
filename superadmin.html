@@ -1407,6 +1407,8 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
 <!-- TOAST -->
 <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Saved!</span></div>
 
+
+
 <script>
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
 const firebaseConfig={apiKey: "AIzaSyAojnW_iRXCk4mR9ihRz8GwQI4aPWIXepA",
@@ -1998,7 +2000,7 @@ async function saveAll(){
   const adminPctVal = Number(document.getElementById('adminPercentageInput').value) || 20;
   const adminPct = { percentage: adminPctVal, updatedAt: new Date().toISOString() };
   const refBonusVal = Number(document.getElementById('referralBonusInput').value) || 10000;
-    const refBonus = { amount: refBonusVal, updatedAt: new Date().toISOString() };
+  const refBonus = { amount: refBonusVal, updatedAt: new Date().toISOString() };
   
   if(pay.accNumber&&pay.accNumber.length!==10){showToast('Main account: 10 digits','error');return;}
   if(fee.accNumber&&fee.accNumber.length!==10){showToast('Fee account: 10 digits','error');return;}
@@ -2096,8 +2098,8 @@ function loadJuniorAdminsList() {
           `;
           tbody.appendChild(tr);
         });
-        
-        document.getElementById('juniorTotalGross').textContent = '₦' + sumGross.toLocaleString();
+
+document.getElementById('juniorTotalGross').textContent = '₦' + sumGross.toLocaleString();
         document.getElementById('juniorTotalAdminShare').textContent = '₦' + sumAdmin.toLocaleString();
         document.getElementById('juniorTotalNetShare').textContent = '₦' + sumJunior.toLocaleString();
       }
@@ -4278,3 +4280,6 @@ function savePromoVideo(id, btn) {
     sendUpdateReq(payload);
   }
 }
+</script>
+</body>
+</html>
