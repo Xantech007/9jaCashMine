@@ -916,17 +916,26 @@
       other: 'other'
     };
 
-    // Helper to fetch current DB instance safely
+    // Safely retrieve Firestore DB instance from firebase.js (_9jaCash.db)
     function getDb() {
-      return window.db || (window._9jaCash && window._9jaCash.db) || null;
+      if (window._9jaCash && window._9jaCash.db) {
+        return window._9jaCash.db;
+      }
+      if (window.db) {
+        return window.db;
+      }
+      if (typeof firebase !== 'undefined' && firebase.firestore) {
+        return firebase.firestore();
+      }
+      return null;
     }
 
     // ========== REALTIME FIREBASE LISTENERS ==========
     function initRealtimeListeners() {
       const db = getDb();
       if (!db) {
-        // Retry until firebase script initializes
-        setTimeout(initRealtimeListeners, 500);
+        // Retry until firebase.js script initializes
+        setTimeout(initRealtimeListeners, 300);
         return;
       }
 
@@ -934,9 +943,9 @@
       const saved = localStorage.getItem('completedTasks_' + today);
       completedTaskIds = saved ? JSON.parse(saved) : [];
 
-      // 1. Realtime listener for Tasks from Firebase
+      // 1. Realtime listener for tasks from Firestore ('settings/tasks' doc or 'tasks' collection)
       db.collection('settings').doc('tasks').onSnapshot((doc) => {
-        if (doc.exists) {
+        if (doc.exists && doc.data().tasks) {
           allTasks = doc.data().tasks || [];
           if (allTasks.length === 0) {
             showEmpty();
@@ -945,21 +954,33 @@
             updateStats();
           }
         } else {
-          showEmpty();
+          // Fallback: listen to individual task documents in the 'tasks' collection
+          db.collection('tasks').onSnapshot((snapshot) => {
+            if (!snapshot.empty) {
+              allTasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+              renderTasks();
+              updateStats();
+            } else {
+              showEmpty();
+            }
+          }, (err) => {
+            console.error('Realtime tasks collection error:', err);
+            showErrorState();
+          });
         }
       }, (err) => {
-        console.error('Realtime Tasks Error:', err);
+        console.error('Realtime settings/tasks error:', err);
         showErrorState();
       });
 
-      // 2. Realtime listener for User updates from Firebase
+      // 2. Realtime listener for User document updates from Firestore
       if (userData && userData.phone) {
         db.collection('users').doc(userData.phone).onSnapshot((userDoc) => {
           if (userDoc.exists) {
             const freshData = userDoc.data();
             userData = Object.assign({}, userData, freshData);
             
-            if (freshData.completedTasks) {
+            if (freshData.completedTasks && Array.isArray(freshData.completedTasks)) {
               completedTaskIds = Array.from(new Set([...completedTaskIds, ...freshData.completedTasks]));
               localStorage.setItem('completedTasks_' + today, JSON.stringify(completedTaskIds));
             }
@@ -1042,6 +1063,8 @@
         const catName = task.cat || task.category || 'other';
         const iconClass = CAT_ICONS[catName] || CAT_ICONS.other;
         const imgClass = CAT_CLASSES[catName] || 'other';
+        const taskLink = task.link || '';
+        const taskAmt = Number(task.amt || task.amount || 0);
 
         const div = document.createElement('div');
         div.className = `task-item ${isCompleted ? 'completed' : ''}`;
@@ -1053,13 +1076,13 @@
               <div class="task-main">
                 <div class="task-name">${escapeHtml(task.name)}</div>
                 <div class="task-tag ${task.hot ? 'hot' : ''}"><i class="fa-solid fa-${task.hot ? 'fire' : 'tag'}"></i> ${catName}</div>
-                <div class="task-reward"><i class="fa-solid fa-coins"></i> ₦${Number(task.amt || task.amount || 0).toLocaleString()}</div>
+                <div class="task-reward"><i class="fa-solid fa-coins"></i> ₦${taskAmt.toLocaleString()}</div>
               </div>
             </div>
-            <div class="task-desc">Complete this ${catName} task to earn ₦${Number(task.amt || task.amount || 0).toLocaleString()}. Tap the link to start.</div>
-            ${task.link ? `<a href="${escapeHtml(task.link)}" target="_blank" class="task-link-btn" onclick="trackTask('${task.id}')"><i class="fa-solid fa-link"></i> ${escapeHtml(truncateLink(task.link))}</a>` : ''}
+            <div class="task-desc">Complete this ${catName} task to earn ₦${taskAmt.toLocaleString()}. Tap the link to start.</div>
+            ${taskLink ? `<a href="${escapeHtml(taskLink)}" target="_blank" class="task-link-btn" onclick="trackTask('${task.id}')"><i class="fa-solid fa-link"></i> ${escapeHtml(truncateLink(taskLink))}</a>` : ''}
             <div class="task-actions">
-              ${!isCompleted ? `<button class="btn-start" onclick="startTask('${task.id}', '${escapeHtml(task.link \vert{}\vert{} '')}', Number(${task.amt || task.amount || 0}))"><i class="fa-solid fa-play"></i> Start Task</button>` : ''}
+              ${!isCompleted ? `<button class="btn-start" onclick="startTask('${task.id}', '${escapeHtml(taskLink)}',${taskAmt})"><i class="fa-solid fa-play"></i> Start Task</button>` : ''}
               ${!isCompleted ? `<button class="btn-skip" onclick="skipTask('${task.id}')"><i class="fa-solid fa-forward"></i></button>` : ''}
             </div>
           </div>
@@ -1163,15 +1186,15 @@
         userData.completedTasks = completedTaskIds;
         localStorage.setItem("9jaCashUser", JSON.stringify(userData));
 
-        // Realtime Save to Firebase
+        // Real-Time Save to Firestore Database
         const db = getDb();
         if (db) {
           db.collection("users").doc(userData.phone).set({
             balance: balance,
             totalMined: userData.totalMined,
-            completedTasks: completedTaskIds,
+            completedTasks: firebase.firestore.FieldValue.arrayUnion(id),
             lastTaskClaimed: id,
-            updatedAt: new Date().toISOString()
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
           }, { merge: true }).catch((err) => console.error("Firebase Sync Error:", err));
         }
       }
