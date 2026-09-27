@@ -9,6 +9,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+<script src="firebase.js"></script>
+
 <style>
 :root{
   --bg:#0b0f19;
@@ -188,23 +194,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <script>
 let userData = null;
 try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch(e) { userData = null; }
-const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
 
-let cloudinaryCloudName = "";
-let cloudinaryUploadPreset = "";
-
-async function loadCloudinarySettings() {
-  try {
-    const res = await fetch(API_URL + '/api/settings/videoChallenge');
-    const data = await res.json();
-    if (data.status && data.value) {
-      cloudinaryCloudName = data.value.cloudinaryCloudName || '';
-      cloudinaryUploadPreset = data.value.cloudinaryUploadPreset || '';
-    }
-  } catch(err) {
-    console.error("Failed to load Cloudinary settings:", err);
-  }
-}
+// Initialize Firestore & Storage references from firebase.js
+const db = window.db || firebase.firestore();
+const storage = window.storage || firebase.storage();
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -213,17 +206,22 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// Real-time listener for user submission status from Firestore
 function checkSubmissionStatus() {
-  if (!userData || !userData.phone) return;
-  fetch(API_URL + '/api/user/video-submission?phone=' + userData.phone)
-    .then(r => r.json())
-    .then(data => {
-      if (data.status && data.submission) {
-        const sub = data.submission;
-        renderStatus(sub.status, sub.video_url);
-      }
-    })
-    .catch(err => console.error('Status check error:', err));
+  if (!userData || (!userData.phone && !userData.uid)) return;
+  const identifier = userData.phone || userData.uid;
+
+  db.collection('video_submissions').doc(identifier).onSnapshot((doc) => {
+    if (doc.exists) {
+      const sub = doc.data();
+      renderStatus(sub.status, sub.video_url);
+    } else {
+      document.getElementById('statusContainer').classList.add('hidden');
+      document.getElementById('submitFormCard').classList.remove('hidden');
+    }
+  }, (error) => {
+    console.error("Firestore status listener error:", error);
+  });
 }
 
 function renderStatus(status, url) {
@@ -237,15 +235,7 @@ function renderStatus(status, url) {
   let title = "";
   let desc = "";
 
-  const isLink = url.startsWith('http') || !/\.(mp4|webm|mov|avi|ogg)/i.test(url);
-  const fullVideoUrl = isLink ? url : (API_URL + url);
-
-  let videoEmbedHtml = "";
-  if (isLink) {
-    videoEmbedHtml = `<div class="mt-3"><a href="${url}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 bg-violet-600/20 border border-violet-500/30 text-violet-400 hover:text-white rounded-xl text-xs font-bold transition-all" style="text-decoration:none;"><i class="fa-solid fa-square-arrow-up-right"></i> View Submitted Video</a></div>`;
-  } else {
-    videoEmbedHtml = `<video src="${fullVideoUrl}" controls class="w-full mt-3 rounded-lg border border-[#f59e0b]/30" style="max-height: 180px; display:block;"></video>`;
-  }
+  let videoEmbedHtml = `<video src="${url}" controls class="w-full mt-3 rounded-lg border border-[#f59e0b]/30" style="max-height: 180px; display:block; width: 100%;"></video>`;
 
   if (status === 'Pending') {
     classVal = "status-box status-pending";
@@ -264,7 +254,7 @@ function renderStatus(status, url) {
     icon = '<i class="fa-solid fa-circle-xmark"></i>';
     title = "Submission Declined";
     desc = `Your video submission was declined. Please verify your video meets all guidelines (shows face or dashboard and speaks clearly about 9jaCash) and upload a new video.`;
-    formCard.classList.remove('hidden'); // Allow resubmission
+    formCard.classList.remove('hidden');
   }
 
   container.innerHTML = `
@@ -278,6 +268,7 @@ function renderStatus(status, url) {
   `;
 }
 
+// Upload video to Firebase Storage and write document to Firestore
 document.getElementById('submissionForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   const fileInput = document.getElementById('videoFile');
@@ -297,98 +288,50 @@ document.getElementById('submissionForm').addEventListener('submit', async funct
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Initializing upload...';
 
-  // 1. Fetch Cloudinary signed parameters from the server
-  let signatureData = null;
-  try {
-    const sigRes = await fetch(API_URL + '/api/cloudinary-signature');
-    signatureData = await sigRes.json();
-    if (!signatureData || !signatureData.status) {
-      throw new Error(signatureData ? signatureData.error : "Failed to load signature");
-    }
-  } catch (err) {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload &amp; Submit Video';
-    Swal.fire({ 
-      icon: 'error', 
-      title: 'Upload Initialization Failed', 
-      text: 'Could not contact server to sign the upload: ' + err.message, 
-      confirmButtonColor: '#8b5cf6' 
-    });
-    return;
-  }
+  const docId = userData.phone || userData.uid || Date.now().toString();
+  const fileExt = file.name.split('.').pop();
+  const filePath = `video_challenges/${docId}_${Date.now()}.${fileExt}`;
+  const storageRef = storage.ref().child(filePath);
+  const uploadTask = storageRef.put(file);
 
-  const { signature, timestamp, apiKey, cloudName } = signatureData;
-
-  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading Video (0%)...';
-
-  // 2. Upload to Cloudinary using FormData and XHR (for progress tracking)
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('folder', 'video_challenges');
-  formData.append('timestamp', timestamp);
-  formData.append('api_key', apiKey);
-  formData.append('signature', signature);
-
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, true);
-
-  xhr.upload.onprogress = function(evt) {
-    if (evt.lengthComputable) {
-      const progress = Math.round((evt.loaded / evt.total) * 100);
-      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading Video (' + progress + '%)...';
-    }
-  };
-
-  xhr.onload = function() {
-    if (xhr.status === 200) {
+  uploadTask.on('state_changed',
+    (snapshot) => {
+      const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading Video (${progress}%)...`;
+    },
+    (error) => {
+      console.error("Upload error:", error);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload &amp; Submit Video';
+      Swal.fire({ icon: 'error', title: 'Upload Failed', text: error.message || 'Error uploading file to Firebase Storage.', confirmButtonColor: '#8b5cf6' });
+    },
+    async () => {
       try {
-        const response = JSON.parse(xhr.responseText);
-        const downloadURL = response.secure_url || response.url;
-        submitToBackend(downloadURL);
-      } catch(err) {
-        uploadFailed("Response parsing failed.");
-      }
-    } else {
-      console.error("Cloudinary response error:", xhr.responseText);
-      uploadFailed("Cloudinary upload failed. Check your API credentials.");
-    }
-  };
+        const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
 
-  xhr.onerror = function() {
-    uploadFailed("Network error occurred during upload.");
-  };
+        await db.collection('video_submissions').doc(docId).set({
+          phone: userData.phone || '',
+          user_id: userData.uid || userData.id || '',
+          name: userData.name || userData.fullName || '',
+          video_url: downloadURL,
+          status: 'Pending',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
 
-  xhr.send(formData);
-
-  function uploadFailed(reason) {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload &amp; Submit Video';
-    Swal.fire({ icon: 'error', title: 'Upload Failed', text: reason, confirmButtonColor: '#8b5cf6' });
-  }
-
-  function submitToBackend(videoDataVal) {
-    fetch(API_URL + '/api/user/submit-video', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: userData.phone, videoData: videoDataVal })
-    })
-    .then(r => r.json())
-    .then(data => {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload &amp; Submit Video';
-      if (data.status) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload &amp; Submit Video';
         showToast('Video submitted successfully!');
-        renderStatus('Pending', videoDataVal);
-      } else {
-        Swal.fire({ icon: 'error', title: 'Submission Failed', text: data.error || 'Unable to submit video.', confirmButtonColor: '#8b5cf6' });
+        renderStatus('Pending', downloadURL);
+
+      } catch(err) {
+        console.error("Firestore write error:", err);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload &amp; Submit Video';
+        Swal.fire({ icon: 'error', title: 'Submission Error', text: 'Could not save submission details to Firestore.', confirmButtonColor: '#8b5cf6' });
       }
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload &amp; Submit Video';
-      Swal.fire({ icon: 'error', title: 'Error', text: 'Network connection issue. Try again later.', confirmButtonColor: '#8b5cf6' });
-    });
-  }
+    }
+  );
 });
 
 window.addEventListener('DOMContentLoaded', function() {
