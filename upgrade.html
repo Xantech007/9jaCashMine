@@ -4,17 +4,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Upgrade Plan - 9jaCash</title>
+  <title>9jaCash - Upgrade Plan</title>
 
-  <!-- Firebase Scripts -->
-  <script src="firebase-init.js"></script>
+  <!-- Firebase & App Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
   <script src="firebase.js"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     * {
@@ -31,6 +33,7 @@
       transition: all 0.3s ease;
     }
 
+    /* Dark Mode */
     body.dark-mode {
       background: #0f172a;
       color: #f8fafc;
@@ -49,7 +52,7 @@
     body.dark-mode .plan-name,
     body.dark-mode .plan-price,
     body.dark-mode .plan-limit,
-    body.dark-mode .sec-title,
+    body.dark-mode .summary-title,
     body.dark-mode .compare-val {
       color: #f8fafc;
     }
@@ -78,7 +81,8 @@
       border-color: #0f172a;
     }
 
-    body.dark-mode .back-btn {
+    body.dark-mode .back-btn,
+    body.dark-mode .theme-toggle {
       background: #1e293b;
       border-color: #334155;
       color: #94a3b8;
@@ -123,32 +127,8 @@
       color: #34d399;
     }
 
-    body.dark-mode .old-price {
-      color: #64748b;
-    }
-
-    body.dark-mode .check-row {
-      border-color: #334155;
-    }
-
-    body.dark-mode .check-row:nth-child(even) {
-      background: rgba(99, 102, 241, 0.05);
-    }
-
-    body.dark-mode .check-label {
-      color: #94a3b8;
-    }
-
-    body.dark-mode .check-yes {
-      color: #34d399;
-    }
-
-    body.dark-mode .check-no {
-      color: #f87171;
-    }
-
-    body.dark-mode .compare-table {
-      background: #1e293b;
+    body.dark-mode .compare-table td,
+    body.dark-mode .compare-table th {
       border-color: #334155;
     }
 
@@ -175,7 +155,7 @@
       gap: 12px;
     }
 
-    .back-btn {
+    .back-btn, .theme-toggle {
       width: 44px;
       height: 44px;
       border-radius: 14px;
@@ -191,12 +171,12 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
 
-    .back-btn:hover {
+    .back-btn:hover, .theme-toggle:hover {
       background: #f1f5f9;
       color: #6366f1;
     }
 
-    .back-btn:active {
+    .back-btn:active, .theme-toggle:active {
       transform: scale(0.92);
     }
 
@@ -207,43 +187,6 @@
       transition: color 0.3s;
       flex: 1;
       text-align: center;
-    }
-
-    .theme-toggle {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #64748b;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    }
-
-    .theme-toggle:hover {
-      background: #f1f5f9;
-      color: #6366f1;
-    }
-
-    body.dark-mode .theme-toggle {
-      background: #1e293b;
-      border-color: #334155;
-      color: #94a3b8;
-    }
-
-    body.dark-mode .back-btn {
-      background: #1e293b;
-      border-color: #334155;
-      color: #94a3b8;
-    }
-
-    body.dark-mode .header-title {
-      color: #f8fafc;
     }
 
     .hero-text {
@@ -287,8 +230,8 @@
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
-    .plan-card:active {
-      transform: scale(0.98);
+    .plan-card:hover {
+      transform: translateY(-3px);
     }
 
     .plan-card.popular {
@@ -315,14 +258,6 @@
     .plan-header {
       padding: 24px 20px 20px;
       position: relative;
-    }
-
-    .plan-header::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      opacity: 0.03;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     }
 
     .plan-header-basic {
@@ -358,7 +293,7 @@
 
     .plan-desc {
       font-size: 13px;
-      color: rgba(255, 255, 255, 0.8);
+      color: rgba(255, 255, 255, 0.85);
       font-weight: 500;
     }
 
@@ -366,7 +301,7 @@
       width: 48px;
       height: 48px;
       border-radius: 14px;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.18);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -394,22 +329,6 @@
       font-size: 13px;
       font-weight: 500;
       opacity: 0.8;
-    }
-
-    .old-price {
-      font-size: 16px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.5);
-      text-decoration: line-through;
-    }
-
-    .savings-tag {
-      font-size: 11px;
-      font-weight: 700;
-      color: #10b981;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 3px 10px;
-      border-radius: 20px;
     }
 
     .plan-body {
@@ -619,6 +538,7 @@
       transition: color 0.3s;
     }
 
+    /* Toast */
     .toast {
       position: fixed;
       top: 20px;
@@ -646,6 +566,7 @@
       color: #10b981;
     }
 
+    /* Bottom nav */
     .bottom-nav {
       position: fixed;
       bottom: 16px;
@@ -664,12 +585,6 @@
       border-radius: 40px;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
       transition: all 0.3s ease;
-    }
-
-    body.dark-mode .bottom-nav {
-      background: #1e293b;
-      border-color: #334155;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
     }
 
     .nav-item {
@@ -701,11 +616,6 @@
       background: rgba(99, 102, 241, 0.08);
     }
 
-    body.dark-mode .nav-item.active {
-      color: #818cf8;
-      background: rgba(129, 140, 248, 0.08);
-    }
-
     .nav-mid {
       width: 48px;
       height: 48px;
@@ -726,12 +636,57 @@
       transform: scale(0.92);
     }
 
+    /* Security Gate Modal */
+    .security-block {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .security-block.active {
+      display: flex;
+    }
+
+    .security-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 36px;
+      margin-bottom: 24px;
+      box-shadow: 0 12px 40px rgba(239, 68, 68, 0.2);
+    }
+
+    .security-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+
+    .security-text {
+      font-size: 14px;
+      color: #64748b;
+      max-width: 300px;
+      line-height: 1.6;
+    }
+
     @keyframes slideUp {
       from {
         opacity: 0;
         transform: translateY(20px);
       }
-
       to {
         opacity: 1;
         transform: translateY(0);
@@ -742,39 +697,26 @@
       animation: slideUp 0.6s ease both;
     }
 
-    .d1 {
-      animation-delay: 0.1s;
-    }
-
-    .d2 {
-      animation-delay: 0.2s;
-    }
-
-    .d3 {
-      animation-delay: 0.3s;
-    }
-
-    .d4 {
-      animation-delay: 0.4s;
-    }
-
-    .d5 {
-      animation-delay: 0.5s;
-    }
-
-    .d6 {
-      animation-delay: 0.6s;
-    }
-
-    .d7 {
-      animation-delay: 0.7s;
-    }
+    .d1 { animation-delay: 0.1s; }
+    .d2 { animation-delay: 0.2s; }
+    .d3 { animation-delay: 0.3s; }
+    .d4 { animation-delay: 0.4s; }
+    .d5 { animation-delay: 0.5s; }
+    .d6 { animation-delay: 0.6s; }
+    .d7 { animation-delay: 0.7s; }
   </style>
 </head>
 
 <body>
 
   <div class="soft-bg"></div>
+
+  <!-- Security Block -->
+  <div class="security-block" id="securityBlock">
+    <div class="security-icon"><i class="fa-solid fa-shield-halved"></i></div>
+    <div class="security-title">Access Restricted</div>
+    <div class="security-text">Too many requests detected. Please wait before continuing.</div>
+  </div>
 
   <div class="app">
 
@@ -790,10 +732,10 @@
 
     <div class="hero-text anim d1">
       <div class="hero-title">Unlock Your <span>Earning Power</span> ⚡</div>
-      <div class="hero-sub">Choose a plan that matches your goals. Higher plans = faster mining, bigger limits, and
-        instant withdrawals.</div>
+      <div class="hero-sub">Choose a plan that matches your goals. Higher plans = faster mining, bigger limits, and instant withdrawals.</div>
     </div>
 
+    <!-- Basic Plan -->
     <div class="plan-card anim d2" id="cardBasic">
       <div class="plan-header plan-header-basic">
         <div class="plan-header-content">
@@ -829,6 +771,7 @@
       </div>
     </div>
 
+    <!-- Silver Plan -->
     <div class="plan-card anim d3" id="cardSilver">
       <div class="plan-header plan-header-silver">
         <div class="plan-header-content">
@@ -864,9 +807,9 @@
       </div>
     </div>
 
+    <!-- Gold Plan -->
     <div class="plan-card popular anim d4" id="cardGold">
-      <div class="popular-badge"><i class="fa-solid fa-fire" style="font-size:9px;margin-right:3px;"></i>Most Popular
-      </div>
+      <div class="popular-badge"><i class="fa-solid fa-fire" style="font-size:9px;margin-right:3px;"></i>Most Popular</div>
       <div class="plan-header plan-header-gold">
         <div class="plan-header-content">
           <div>
@@ -901,6 +844,7 @@
       </div>
     </div>
 
+    <!-- Diamond Plan -->
     <div class="plan-card anim d5" id="cardDiamond">
       <div class="plan-header plan-header-diamond">
         <div class="plan-header-content">
@@ -936,44 +880,49 @@
       </div>
     </div>
 
+    <!-- Comparison Table -->
     <div class="summary-card anim d6">
       <div class="summary-title"><i class="fa-solid fa-scale-balanced"></i> Plan Comparison</div>
       <table class="compare-table">
-        <tr>
-          <th>Feature</th>
-          <th style="text-align:center;">Basic</th>
-          <th style="text-align:center;">Silver</th>
-          <th style="text-align:center;">Gold</th>
-          <th style="text-align:center;">Diamond</th>
-        </tr>
-        <tr>
-          <td class="compare-label">Mining Speed</td>
-          <td class="compare-val" style="text-align:center;">1×</td>
-          <td class="compare-val highlight" style="text-align:center;">2×</td>
-          <td class="compare-val highlight" style="text-align:center;">3×</td>
-          <td class="compare-val highlight" style="text-align:center;">5×</td>
-        </tr>
-        <tr>
-          <td class="compare-label">Daily Cap</td>
-          <td class="compare-val" style="text-align:center;">₦24K</td>
-          <td class="compare-val" style="text-align:center;">₦50K</td>
-          <td class="compare-val" style="text-align:center;">₦100K</td>
-          <td class="compare-val" style="text-align:center;">Unlimited</td>
-        </tr>
-        <tr>
-          <td class="compare-label">Priority</td>
-          <td class="compare-val no" style="text-align:center;"><i class="fa-solid fa-xmark"></i></td>
-          <td class="compare-val yes" style="text-align:center;"><i class="fa-solid fa-check"></i></td>
-          <td class="compare-val yes" style="text-align:center;"><i class="fa-solid fa-check"></i></td>
-          <td class="compare-val yes" style="text-align:center;"><i class="fa-solid fa-check"></i></td>
-        </tr>
-        <tr>
-          <td class="compare-label">Instant WD</td>
-          <td class="compare-val no" style="text-align:center;"><i class="fa-solid fa-xmark"></i></td>
-          <td class="compare-val no" style="text-align:center;"><i class="fa-solid fa-xmark"></i></td>
-          <td class="compare-val yes" style="text-align:center;"><i class="fa-solid fa-check"></i></td>
-          <td class="compare-val yes" style="text-align:center;"><i class="fa-solid fa-check"></i></td>
-        </tr>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th style="text-align:center;">Basic</th>
+            <th style="text-align:center;">Silver</th>
+            <th style="text-align:center;">Gold</th>
+            <th style="text-align:center;">Diamond</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="compare-label">Mining Speed</td>
+            <td class="compare-val" style="text-align:center;">1×</td>
+            <td class="compare-val highlight" style="text-align:center;">2×</td>
+            <td class="compare-val highlight" style="text-align:center;">3×</td>
+            <td class="compare-val highlight" style="text-align:center;">5×</td>
+          </tr>
+          <tr>
+            <td class="compare-label">Daily Cap</td>
+            <td class="compare-val" style="text-align:center;">₦24K</td>
+            <td class="compare-val" style="text-align:center;">₦50K</td>
+            <td class="compare-val" style="text-align:center;">₦100K</td>
+            <td class="compare-val" style="text-align:center;">Unlimited</td>
+          </tr>
+          <tr>
+            <td class="compare-label">Priority</td>
+            <td class="compare-val no" style="text-align:center;"><i class="fa-solid fa-xmark"></i></td>
+            <td class="compare-val yes" style="text-align:center;"><i class="fa-solid fa-check"></i></td>
+            <td class="compare-val yes" style="text-align:center;"><i class="fa-solid fa-check"></i></td>
+            <td class="compare-val yes" style="text-align:center;"><i class="fa-solid fa-check"></i></td>
+          </tr>
+          <tr>
+            <td class="compare-label">Instant WD</td>
+            <td class="compare-val no" style="text-align:center;"><i class="fa-solid fa-xmark"></i></td>
+            <td class="compare-val no" style="text-align:center;"><i class="fa-solid fa-xmark"></i></td>
+            <td class="compare-val yes" style="text-align:center;"><i class="fa-solid fa-check"></i></td>
+            <td class="compare-val yes" style="text-align:center;"><i class="fa-solid fa-check"></i></td>
+          </tr>
+        </tbody>
       </table>
     </div>
 
@@ -994,6 +943,30 @@
   </div>
 
   <script>
+    // ========== SECURITY GATE ==========
+    const SecurityGate = {
+      requests: new Map(),
+      maxRequests: 30,
+      windowMs: 60000,
+
+      checkLimit(key) {
+        const now = Date.now();
+        const windowStart = now - this.windowMs;
+        for (const [k, v] of this.requests) {
+          if (v < windowStart) this.requests.delete(k);
+        }
+        const count = this.requests.get(key) || 0;
+        if (count >= this.maxRequests) {
+          document.getElementById('securityBlock').classList.add('active');
+          setTimeout(() => document.getElementById('securityBlock').classList.remove('active'), 30000);
+          return false;
+        }
+        this.requests.set(key, count + 1);
+        return true;
+      }
+    };
+
+    // ========== USER AUTH CHECK ==========
     let userData = null;
     try {
       userData = JSON.parse(localStorage.getItem("9jaCashUser"));
@@ -1003,18 +976,42 @@
       window.location.href = "start.html";
     }
 
-    // Helper to extract clean Firebase User ID key
-    function getUserDbKey() {
-      if (!userData) return null;
-      return userData.uid || userData.id || (userData.email ? userData.email.replace(/[\.\#\$\[\]]/g, '_') : null);
+    const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
+
+    // Synchronize User Data on Load
+    if (userData && userData.phone) {
+      fetch(API_BASE_URL + '/api/user/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: userData.phone,
+          balance: parseFloat(localStorage.getItem("walletBalance")) || userData.balance || 0,
+          totalMined: userData.totalMined || 0
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status && data.user) {
+          userData = Object.assign({}, userData, data.user);
+          localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+          checkCurrentPlan();
+        }
+      }).catch(() => {});
     }
 
+    function getUserDbKey() {
+      if (!userData) return null;
+      return userData.phone || userData.uid || userData.id || (userData.email ? userData.email.replace(/[\.\#\$\[\]]/g, '_') : null);
+    }
+
+    // ========== DARK MODE ==========
     function initDarkMode() {
       const isDark = localStorage.getItem("9jaCashDark") !== "false";
       if (isDark) {
         document.body.classList.add("dark-mode");
         document.getElementById("themeIcon").className = "fa-solid fa-moon";
       } else {
+        document.body.classList.remove("dark-mode");
         document.getElementById("themeIcon").className = "fa-solid fa-sun";
       }
     }
@@ -1025,42 +1022,51 @@
       document.getElementById("themeIcon").className = isDark ? "fa-solid fa-moon" : "fa-solid fa-sun";
     }
 
-    // Listen for Firebase Realtime User Data changes
-    function setupFirebaseRealtimeListener() {
-      const userId = getUserDbKey();
-      if (!userId) return;
+    // ========== SAFE DATABASE INSTANCES ==========
+    function getFirestoreDb() {
+      if (window._9jaCash && window._9jaCash.db) return window._9jaCash.db;
+      if (window.db) return window.db;
+      if (typeof firebase !== 'undefined' && firebase.firestore) return firebase.firestore();
+      return null;
+    }
 
-      // Realtime Database listener
-      if (window.firebase && firebase.database) {
-        const userRef = firebase.database().ref('users/' + userId);
-        userRef.on('value', (snapshot) => {
+    function getRealtimeDb() {
+      if (typeof firebase !== 'undefined' && firebase.database) return firebase.database();
+      return null;
+    }
+
+    // ========== FIREBASE LISTENERS ==========
+    function setupFirebaseRealtimeListener() {
+      const userKey = getUserDbKey();
+      if (!userKey) return;
+
+      // 1. Realtime Database
+      const rtdb = getRealtimeDb();
+      if (rtdb) {
+        rtdb.ref('users/' + userKey).on('value', (snapshot) => {
           const val = snapshot.val();
           if (val) {
-            userData = { ...userData, ...val };
+            userData = Object.assign({}, userData, val);
             localStorage.setItem("9jaCashUser", JSON.stringify(userData));
             checkCurrentPlan();
           }
         });
       }
-      
-      // Firestore fallback listener if helper function/object exists
-      if (window.db && typeof window.db.collection === 'function') {
-        window.db.collection('users').doc(userId).onSnapshot((doc) => {
+
+      // 2. Firestore Document Listener
+      const fsDb = getFirestoreDb();
+      if (fsDb && userData.phone) {
+        fsDb.collection('users').doc(userData.phone).onSnapshot((doc) => {
           if (doc.exists) {
-            userData = { ...userData, ...doc.data() };
+            userData = Object.assign({}, userData, doc.data());
             localStorage.setItem("9jaCashUser", JSON.stringify(userData));
             checkCurrentPlan();
           }
-        });
+        }, err => console.error("Firestore user listener error:", err));
       }
     }
 
-    window.addEventListener("DOMContentLoaded", function () {
-      initDarkMode();
-      checkCurrentPlan();
-      setupFirebaseRealtimeListener();
-    });
-
+    // ========== PLAN EVALUATION ==========
     function checkCurrentPlan() {
       if (!userData) return;
       const currentPlan = userData.planName || userData.plan || "Free";
@@ -1083,45 +1089,54 @@
           if (planIndex <= currentIndex && currentIndex > 0) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-check"></i> Active Plan';
-            card.style.opacity = "0.7";
+            card.style.opacity = "0.75";
           } else {
             btn.disabled = false;
             card.style.opacity = "1";
+            btn.innerHTML = `Upgrade to ${p.name.replace(' Plan', '')} <i class="fa-solid fa-arrow-right"></i>`;
           }
         }
       });
     }
 
+    // ========== UPGRADE PROCESS ==========
     function upgradePlan(amount, earningLimit, planName) {
+      if (!SecurityGate.checkLimit('upgrade_click')) {
+        showToast("Rate limit exceeded. Please wait a moment.");
+        return;
+      }
+
       const currentPlan = userData.planName || userData.plan || "Free";
       const planOrder = ["Free", "Basic Plan", "Silver Plan", "Gold Plan", "Diamond Plan"];
       const currentIndex = planOrder.indexOf(currentPlan);
       const newIndex = planOrder.indexOf(planName);
 
       if (newIndex <= currentIndex && currentIndex > 0) {
-        showToast("You already have this plan or higher!");
+        showToast("You already have this plan or a higher tier!");
         return;
       }
+
+      const isDark = document.body.classList.contains("dark-mode");
 
       Swal.fire({
         title: `Upgrade to ${planName}`,
         html: `
-      <div style="text-align:left;margin-top:16px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e2e8f0;">
-          <span style="color:#64748b;font-size:13px;">Plan Cost</span>
-          <span style="font-weight:800;color:#1e293b;font-size:16px;">₦${amount.toLocaleString()}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e2e8f0;">
-          <span style="color:#64748b;font-size:13px;">Earning Limit</span>
-          <span style="font-weight:800;color:#6366f1;font-size:16px;">₦${earningLimit.toLocaleString()}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
-          <span style="color:#64748b;font-size:13px;">Type</span>
-          <span style="font-weight:700;color:#10b981;font-size:13px;">One-time Payment</span>
-        </div>
-        <p style="color:#64748b;font-size:12px;margin-top:12px;text-align:center;">Instant activation after successful payment</p>
-      </div>
-    `,
+          <div style="text-align:left;margin-top:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e2e8f0;">
+              <span style="color:#64748b;font-size:13px;">Plan Cost</span>
+              <span style="font-weight:800;color:${isDark ? '#f8fafc' : '#1e293b'};font-size:16px;">₦${amount.toLocaleString()}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e2e8f0;">
+              <span style="color:#64748b;font-size:13px;">Earning Limit</span>
+              <span style="font-weight:800;color:#6366f1;font-size:16px;">₦${earningLimit.toLocaleString()}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+              <span style="color:#64748b;font-size:13px;">Activation</span>
+              <span style="font-weight:700;color:#10b981;font-size:13px;">Instant One-time Payment</span>
+            </div>
+            <p style="color:#64748b;font-size:12px;margin-top:12px;text-align:center;">Fast activation upon successful payment completion</p>
+          </div>
+        `,
         icon: "info",
         showCancelButton: true,
         confirmButtonText: "Proceed to Payment",
@@ -1129,11 +1144,11 @@
         confirmButtonColor: "#6366f1",
         cancelButtonColor: "#6b7280",
         reverseButtons: true,
-        background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
-        color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
+        background: isDark ? "#1e293b" : "#fff",
+        color: isDark ? "#f8fafc" : "#1e293b"
       }).then((result) => {
         if (result.isConfirmed) {
-          const plan = {
+          const planData = {
             name: planName,
             amount: amount,
             earningLimit: earningLimit,
@@ -1141,39 +1156,91 @@
             status: "pending"
           };
 
-          const userId = getUserDbKey();
+          const userKey = getUserDbKey();
 
-          // Save pending upgrade selection to Realtime Firebase
-          if (userId && window.firebase && firebase.database) {
-            firebase.database().ref('upgrades/' + userId).set(plan);
-            firebase.database().ref('users/' + userId).update({
-              selectedPlan: plan,
+          // Save pending upgrade details to Realtime Database
+          const rtdb = getRealtimeDb();
+          if (userKey && rtdb) {
+            rtdb.ref('upgrades/' + userKey).set(planData);
+            rtdb.ref('users/' + userKey).update({
+              selectedPlan: planData,
               lastUpdated: firebase.database.ServerValue.TIMESTAMP
             });
           }
 
-          // Save pending upgrade selection to Firestore if configured
-          if (userId && window.db && typeof window.db.collection === 'function') {
-            window.db.collection('upgrades').doc(userId).set(plan, { merge: true });
+          // Save pending upgrade to Firestore
+          const fsDb = getFirestoreDb();
+          if (userKey && fsDb && userData.phone) {
+            fsDb.collection('upgrades').doc(userData.phone).set(planData, { merge: true }).catch(e => console.error(e));
+            fsDb.collection('users').doc(userData.phone).set({
+              selectedPlan: planData,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true }).catch(e => console.error(e));
           }
 
-          // Clear old payout key data so payment.html shows upgrade details
+          // Clear old payout key data so payment.html processes upgrade details properly
           localStorage.removeItem("9jaCashPaymentData");
-          localStorage.setItem("selectedPlan", JSON.stringify(plan));
-          
+          localStorage.setItem("selectedPlan", JSON.stringify(planData));
+
           window.location.href = "payment.html";
         }
       });
     }
 
+    // ========== TOAST UTILITY ==========
     function showToast(msg) {
       const t = document.getElementById("toast");
       document.getElementById("toastMsg").textContent = msg;
       t.classList.add("show");
       setTimeout(function () { t.classList.remove("show"); }, 2500);
     }
+
+    // ========== INITIALIZATION ==========
+    window.addEventListener("DOMContentLoaded", function () {
+      initDarkMode();
+      checkCurrentPlan();
+      setupFirebaseRealtimeListener();
+      initLiveWithdrawalPopups();
+    });
   </script>
 
+  <!-- Live Withdrawal Popup Container -->
+  <div id="liveWithdrawalPopup"
+    style="position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150px); z-index: 10000; display: flex; align-items: center; gap: 12px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 16px; padding: 12px 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 90%; width: 280px; opacity: 0;">
+    <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 12px #10b981; animation: pulse 1.5s infinite;"></div>
+    <div style="flex: 1;">
+      <div style="font-size: 10px; color: #6366f1; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Live Payout</div>
+      <div id="liveWithdrawalText" style="font-size: 12px; color: #f8fafc; font-weight: 700; margin-top: 1px;"></div>
+    </div>
+  </div>
+
+  <script>
+    function initLiveWithdrawalPopups() {
+      const popup = document.getElementById('liveWithdrawalPopup');
+      if (!popup) return;
+
+      const names = ["Mustafa", "Emeka", "Amina", "Chidi", "Fatima", "Tunde", "Blessing", "Musa", "Ngozi", "Ibrahim", "Yetunde", "Olumide", "Halima", "Chioma", "Kelechi", "Abubakar", "Funmi", "Uche", "Bose", "Damilola", "Efe", "Ali", "Yusuf"];
+
+      function triggerPopup() {
+        const randomName = names[Math.floor(Math.random() * names.length)];
+        const randomK = Math.floor(Math.random() * (1000 - 50 + 1)) + 50;
+        const randomAmount = "₦" + (randomK * 1000).toLocaleString("en-NG");
+        document.getElementById('liveWithdrawalText').textContent = `${randomName} successfully withdrew ${randomAmount}`;
+
+        popup.style.transform = 'translate(-50%, 0)';
+        popup.style.opacity = '1';
+
+        setTimeout(() => {
+          popup.style.transform = 'translate(-50%, -150px)';
+          popup.style.opacity = '0';
+        }, 5000);
+
+        setTimeout(triggerPopup, 10000);
+      }
+
+      setTimeout(triggerPopup, 10000);
+    }
+  </script>
 </body>
 
 </html>
