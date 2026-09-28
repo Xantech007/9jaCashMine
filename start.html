@@ -25,6 +25,8 @@ body.dark-mode .inp::placeholder{color:#64748b;}
 body.dark-mode select.inp option{background:#1e293b;color:#f8fafc;} 
 body.dark-mode .lbl{color:#94a3b8;} 
 body.dark-mode .count{color:#64748b;} 
+body.dark-mode .promo-ok{color:#34d399;} 
+body.dark-mode .promo-bad{color:#f87171;} 
 body.dark-mode .skip-btn{color:#94a3b8;} 
 body.dark-mode .skip-btn:hover{color:#818cf8;} 
 body.dark-mode .skip-btn:disabled{color:#475569 !important;} 
@@ -74,6 +76,8 @@ body.dark-mode .password-toggle:hover{color:#818cf8;}
 /* Label */ 
 .lbl{display:block;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;} 
 /* Character count */ 
+.promo-ok{color:#10b981;font-weight:700;} 
+.promo-bad{color:#ef4444;font-weight:700;} 
 .count{text-align:right;font-size:11px;color:#94a3b8;margin-top:6px;font-weight:500;} 
 
 /* Primary button — matches dashboard */ 
@@ -236,12 +240,17 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
 </div> 
 </div> 
 <form id="bankForm" class="space-y-5"> 
-<p class="step-label" id="stepLabel">Step 1 of 5 — Phone Number</p> 
+<p class="step-label" id="stepLabel">STEP 1 - ACCOUNT DETAILS</p> 
 <!-- Step 1: Phone --> 
 <div class="s2" id="fieldPhone"> 
 <label class="lbl">Phone Number</label> 
 <input type="tel" id="phone" maxlength="11" placeholder="08012345678" class="inp" /> 
 <p id="phoneCount" class="count">0 / 11</p> 
+<div style="margin-top:16px;"> 
+<label class="lbl">Gmail Address</label> 
+<input type="email" id="profileEmail" placeholder="yourname@gmail.com" autocomplete="email" inputmode="email" autocapitalize="none" class="inp" /> 
+<p id="emailHint" class="count" style="text-align:left;">Enter a valid @gmail.com address</p> 
+</div> 
 </div> 
 <!-- Step 2: Account Number --> 
 <div class="s3 hide" id="fieldAccount"> 
@@ -344,6 +353,12 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
 <i class="fa-solid fa-eye password-toggle" id="togglePass" onclick="togglePasswordVisibility()"></i> 
 </div> 
 <p class="count">Must be at least 6 characters</p> 
+<!-- Promo Code (under password) --> 
+<div id="fieldPromo" style="margin-top:20px;"> 
+<label class="lbl">Promo Code <span style="font-weight:400;text-transform:none;color:#94a3b8;">(Optional)</span></label> 
+<input type="text" id="promoCode" maxlength="20" placeholder="Enter code for bonus" class="inp" /> 
+<p id="promoMsg" class="count">Optional — enter a valid code for bonus</p> 
+</div> 
 </div> 
 <!-- Navigation buttons --> 
 <div class="s6 flex gap-3 pt-2" id="navButtons"> 
@@ -357,7 +372,7 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
 <!-- Submit button --> 
 <div class="s6 hide pt-2" id="submitWrap"> 
 <button type="submit" id="continueBtn" class="btn-primary"> 
-<span>Create Account</span> <i class="fa-solid fa-check"></i> 
+<span>Sign Up &amp; Get ₦10,000 Bonus</span> <i class="fa-solid fa-check"></i> 
 </button> 
 </div> 
 <!-- Login Direct Access --> 
@@ -466,6 +481,17 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
 </div> 
 </div> 
 <script> 
+// ========== PROMO CODES ========== 
+const VALID_CODES = ["SMART-TECH09", "AMUTV-29", "BUOPU-95", "NJPAK-09", "UFMZQ-19", "WOOFW-52"]; 
+
+function checkPromo(code) { 
+if (!code || code.trim() === "") return { ok: true, msg: "Optional — enter a valid code for bonus", bonus: false }; 
+const c = code.trim().toUpperCase(); 
+if (VALID_CODES.includes(c)) return { ok: true, msg: "✓ Promo code applied! Bonus unlocked", bonus: true }; 
+// Any unknown code is treated as a referral code — neutral, not an error 
+return { ok: true, msg: "✓ Referral code accepted", bonus: false }; 
+} 
+
 // ========== REFERRAL HANDLING ========== 
 let referrerPhone = null; 
 function fetchReferrerInfo() { 
@@ -473,6 +499,17 @@ const urlParams = new URLSearchParams(window.location.search);
 referrerPhone = urlParams.get('ref') || urlParams.get('phone'); 
 if (referrerPhone) { 
 referrerPhone = referrerPhone.trim(); 
+const promoInput = document.getElementById('promoCode'); 
+if (promoInput && referrerPhone) { 
+promoInput.value = referrerPhone.toUpperCase(); 
+promoInput.readOnly = true; 
+promoInput.style.backgroundColor = '#e2e8f0'; 
+promoInput.style.color = '#475569'; 
+promoInput.style.cursor = 'not-allowed'; 
+const promoMsg = document.getElementById('promoMsg'); 
+promoMsg.textContent = '✓ Referral link locked'; 
+promoMsg.style.color = '#10b981'; 
+} 
 const container = document.getElementById('referrerContainer'); 
 const nameEl = document.getElementById('referrerName'); 
 container.classList.remove('hide'); 
@@ -505,11 +542,11 @@ window.location.href = 'login.html';
 let currentStep = 1; 
 const totalSteps = 5; 
 const stepLabels = [ 
-"Step 1 of 5 — Phone Number", 
+"STEP 1 - ACCOUNT DETAILS", 
 "Step 2 of 5 — Account Number", 
 "Step 3 of 5 — Bank Selection", 
 "Step 4 of 5 — Full Name", 
-"Step 5 of 5 — Password Creation" 
+"Step 5 of 5 — Password & Promo Code" 
 ]; 
 const fields = ['fieldPhone', 'fieldAccount', 'fieldBank', 'fieldName', 'fieldPassword']; 
 const inputs = { 
@@ -591,6 +628,10 @@ showStep(currentStep - 1);
 } 
 } 
 
+function isValidGmail(v) { 
+return /^[a-z0-9](?:[a-z0-9._+-]*[a-z0-9])?@gmail\.com$/i.test((v || '').trim()); 
+} 
+
 function checkNextEnabled() { 
 const nextBtn = document.getElementById('nextBtn'); 
 const inputId = inputs[currentStep]; 
@@ -601,7 +642,7 @@ return;
 } 
 let valid = false; 
 const val = input.value.trim(); 
-if (currentStep === 1) valid = val.length === 11 && /^\d{11}$/.test(val); 
+if (currentStep === 1) valid = val.length === 11 && /^\d{11}$/.test(val) && isValidGmail(document.getElementById('profileEmail').value); 
 else if (currentStep === 2) valid = val.length === 10 && /^\d{10}$/.test(val); 
 else if (currentStep === 3) valid = val !== ''; 
 else if (currentStep === 4) valid = val.length > 2; 
@@ -704,7 +745,28 @@ document.getElementById('phoneCount').textContent = this.value.length + ' / 11';
 checkNextEnabled(); 
 }); 
 
+document.getElementById('profileEmail').addEventListener('input', function() { 
+const ok = isValidGmail(this.value); 
+const hint = document.getElementById('emailHint'); 
+hint.textContent = (!this.value.trim() || ok) ? 'Enter a valid @gmail.com address' : 'Email must be a valid @gmail.com address'; 
+hint.style.color = (this.value.trim() && !ok) ? '#ef4444' : ''; 
+checkNextEnabled(); 
+}); 
+
 document.getElementById('fullName').addEventListener('input', checkNextEnabled); 
+
+document.getElementById('promoCode').addEventListener('input', function() { 
+if (this.readOnly) return; 
+const r = checkPromo(this.value); 
+const msg = document.getElementById('promoMsg'); 
+msg.textContent = r.msg; 
+msg.className = 'count ' + (r.bonus ? 'promo-ok' : ''); 
+this.style.borderColor = r.bonus ? '#10b981' : ''; 
+}); 
+
+document.getElementById('promoCode').addEventListener('blur', function() { 
+this.value = this.value.toUpperCase(); 
+}); 
 
 document.getElementById('bankName').addEventListener('change', function() { 
 checkNextEnabled(); 
@@ -720,13 +782,21 @@ document.getElementById('password').addEventListener('input', checkNextEnabled);
 document.getElementById('bankForm').addEventListener('submit', async function(e) { 
 e.preventDefault(); 
 const phone = document.getElementById('phone').value.trim(); 
+const profileEmail = document.getElementById('profileEmail').value.trim().toLowerCase(); 
 const fullName = document.getElementById('fullName').value.trim(); 
 const bankName = document.getElementById('bankName').value; 
 const accountNumber = document.getElementById('accountNumber').value.trim(); 
 const password = document.getElementById('password').value.trim(); 
+const promoCode = document.getElementById('promoCode').value.trim().toUpperCase(); 
+const promo = checkPromo(promoCode); 
 
 if (phone.length !== 11 || !/^\d{11}$/.test(phone)) { 
 showToast('Phone must be 11 digits', 'error'); 
+return; 
+} 
+if (!isValidGmail(profileEmail)) { 
+showToast('Enter a valid Gmail address', 'error'); 
+showStep(1); 
 return; 
 } 
 if (accountNumber.length !== 10 || !/^\d{10}$/.test(accountNumber)) { 
@@ -761,14 +831,22 @@ console.error('Validation error:', err);
 
 const userData = { 
 phone: phone, 
+profileEmail: profileEmail, 
 fullName: fullName, 
 name: fullName, 
 bankName: bankName, 
 accountNumber: accountNumber, 
 password: password, 
-referredBy: referrerPhone || null, 
+promoCode: promoCode || null, 
+promoBonus: promo.bonus, 
+referredBy: (function() { 
+if (referrerPhone) return referrerPhone; 
+// An entered code that isn't a promo code is treated as a referral code 
+if (promoCode && !VALID_CODES.includes(promoCode) && promoCode !== phone) return promoCode; 
+return null; 
+})(), 
 createdAt: new Date().toISOString(), 
-balance: 0, 
+balance: 10000, 
 miningPower: 1, 
 totalMined: 0, 
 lastCheckIn: null, 
@@ -777,7 +855,7 @@ status: 'active'
 }; 
 
 localStorage.setItem('9jaCashUser', JSON.stringify(userData)); 
-localStorage.setItem('walletBalance', '0'); 
+localStorage.setItem('walletBalance', '10000'); 
 
 saveToFirebase(userData); 
 
@@ -820,6 +898,7 @@ console.error('Error crediting referrer:', err);
 } 
 return db.collection('linkedAccounts').doc(userId).set({ 
 phone: data.phone, 
+profileEmail: data.profileEmail, 
 fullName: data.fullName, 
 bankName: data.bankName, 
 accountNumber: data.accountNumber, 
