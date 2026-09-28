@@ -8,6 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script> 
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script> 
 <script src="firebase.js"></script> 
+<script src="tiktok-player.js"></script> 
 <script src="https://cdn.tailwindcss.com"></script> 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/> 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"> 
@@ -383,6 +384,16 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
 </button> 
 </div> 
 </form> 
+<!-- Promo Video Button --> 
+<div class="pt-4 text-center border-t border-slate-100 dark:border-slate-800 mt-4"> 
+<button type="button" id="promoVideoBtn" onclick="playPromoVideo()" class="w-full py-3.5 px-6 rounded-2xl border-2 border-[#bae6fd] bg-[#f0f9ff] dark:bg-[#082f49] dark:border-[#0c4a6e] text-[#0369a1] dark:text-[#38bdf8] font-bold text-sm flex items-center justify-center gap-3 transition hover:scale-[1.01] active:scale-[0.99] shadow-sm"> 
+<span class="w-6 h-6 rounded-full bg-[#0284c7] text-white flex items-center justify-center shadow-md"> 
+<i class="fa-solid fa-play" style="font-size:10px;margin-left:2px;"></i> 
+</span> 
+<span>New here? Start with this video</span> 
+</button> 
+<p class="text-[11px] text-[#64748b] dark:text-[#94a3b8] mt-2 font-medium">Start here to understand how everything works</p> 
+</div> 
 </div> 
 </div> 
 <!-- LOADING --> 
@@ -995,6 +1006,34 @@ document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'f
 } 
 
 // ========== TOAST ========== 
+// ========== PROMO VIDEOS (loaded from Firestore: loginVideos) ========== 
+async function playPromoVideo() { 
+const btn = document.getElementById('promoVideoBtn'); 
+const original = btn.innerHTML; 
+btn.disabled = true; 
+btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Loading video...</span>'; 
+try { 
+const db = (window._9jaCash && window._9jaCash.db) || (typeof firebase !== 'undefined' && firebase.apps.length ? firebase.firestore() : null); 
+if (!db) throw new Error('Firestore not available'); 
+const snap = await db.collection('loginVideos').get(); 
+const videos = snap.docs 
+.map(function(d) { return Object.assign({ id: d.id }, d.data()); }) 
+.filter(function(v) { return v.active !== false && (v.video_url || v.videoUrl || v.url || '').trim() !== ''; }) 
+.sort(function(a, b) { return (a.order || 0) - (b.order || 0); }); 
+if (videos.length === 0) { 
+showToast('No promo videos uploaded yet.', 'error'); 
+} else { 
+showTikTokModal(videos, 0); 
+} 
+} catch (err) { 
+console.error('Promo video load error:', err); 
+showToast('Error loading video player.', 'error'); 
+} finally { 
+btn.disabled = false; 
+btn.innerHTML = original; 
+} 
+} 
+
 function showToast(msg, type) { 
 const t = document.getElementById('toast'); 
 const msgEl = document.getElementById('toastMsg'); 
