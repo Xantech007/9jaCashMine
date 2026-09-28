@@ -44,7 +44,7 @@ let tutorialActive = false;
 let db = null;
 let auth = null;
 
-// Initialize Firebase from global instance or firebase.js
+// Initialize Firebase safely
 function initFirebase() {
   try {
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
@@ -67,15 +67,13 @@ function setupRealtimeListener() {
   if (!db || !userData || !userData.phone) return;
 
   const docRef = db.collection("users").doc(String(userData.phone));
-
   if (realtimeUnsubscribe) realtimeUnsubscribe();
 
   realtimeUnsubscribe = docRef.onSnapshot((doc) => {
     if (doc.exists) {
       const liveData = doc.data();
-
-      // Merge Firestore document into memory and localStorage
       userData = { ...userData, ...liveData };
+
       if (liveData.balance !== undefined && !isBouncing) {
         balance = parseFloat(liveData.balance);
       }
@@ -88,7 +86,6 @@ function setupRealtimeListener() {
       if (liveData.claimedDays) checkinData.claimedDays = liveData.claimedDays;
       localStorage.setItem("checkinData", JSON.stringify(checkinData));
 
-      // Synchronize UI
       renderUserInfo();
       renderBankInfo();
       updateBalance();
@@ -101,13 +98,18 @@ function setupRealtimeListener() {
   });
 }
 
-// REAL-TIME SAVE TO FIREBASE & LOCAL STORAGE
+// SAVE TO FIREBASE & LOCAL STORAGE
 function saveUserData(updatedFields = {}) {
   localStorage.setItem("9jaCashUser", JSON.stringify(userData));
   localStorage.setItem("walletBalance", balance);
   updateBalance();
 
   if (db && userData && userData.phone) {
+    // Safe timestamp check
+    const timestamp = (typeof firebase !== 'undefined' && firebase.firestore) 
+      ? firebase.firestore.FieldValue.serverTimestamp() 
+      : new Date();
+
     const payload = {
       balance: balance,
       totalMined: userData.totalMined || 0,
@@ -118,7 +120,7 @@ function saveUserData(updatedFields = {}) {
       bankName: userData.bankName || "",
       accountNumber: userData.accountNumber || "",
       accountName: userData.accountName || "",
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: timestamp,
       ...updatedFields
     };
 
@@ -158,7 +160,7 @@ function loadTelegramConfig() {
 
 function updateTelegramLink() {
   const btn = document.getElementById("telegramSupport");
-  if (btn) btn.href = "javascript:void(0)";
+  if (btn) btn.href = formatExternalLink(telegramLink, "https://t.me/apex_customercare");
 }
 
 function initDarkMode() {
@@ -178,7 +180,8 @@ function initTutorial() {
 
 function startTutorial() {
   tutorialActive = true; currentTutorialStep = 0;
-  document.getElementById("tutorialOverlay").classList.add("active");
+  const overlay = document.getElementById("tutorialOverlay");
+  if (overlay) overlay.classList.add("active");
   const skipBtn = document.getElementById("skipTourBtn");
   if (skipBtn) skipBtn.classList.add("show");
   const startBtn = document.getElementById("startTourBtn");
@@ -190,6 +193,7 @@ function skipTutorial() { finishTutorial(); }
 
 function renderTutorialDots() {
   const wrap = document.getElementById("tutorialProgress");
+  if (!wrap) return;
   wrap.innerHTML = "";
   TUTORIAL_STEPS.forEach(function (s, i) {
     const dot = document.createElement("div");
@@ -208,19 +212,27 @@ function showTutorialStep(index) {
   const rect = target.getBoundingClientRect();
   const highlight = document.getElementById("tutorialHighlight");
   const bubble = document.getElementById("tutorialBubble");
-  highlight.style.left = (rect.left - 8) + "px";
-  highlight.style.top = (rect.top - 8) + "px";
-  highlight.style.width = (rect.width + 16) + "px";
-  highlight.style.height = (rect.height + 16) + "px";
-  document.getElementById("tutorialStepNum").textContent = "Step " + (index + 1) + " of " + TUTORIAL_STEPS.length;
-  document.getElementById("tutorialTitle").textContent = step.title;
-  document.getElementById("tutorialDesc").textContent = step.desc;
-  bubble.className = "tutorial-bubble" + (step.position === "top" ? " top" : "");
-  let bubbleTop, bubbleLeft;
-  if (step.position === "bottom") { bubbleTop = rect.bottom + 20; } else { bubbleTop = rect.top - 180; }
-  bubbleLeft = Math.max(20, Math.min(window.innerWidth - 320, rect.left + rect.width / 2 - 150));
-  bubble.style.top = bubbleTop + "px";
-  bubble.style.left = bubbleLeft + "px";
+  if (highlight) {
+    highlight.style.left = (rect.left - 8) + "px";
+    highlight.style.top = (rect.top - 8) + "px";
+    highlight.style.width = (rect.width + 16) + "px";
+    highlight.style.height = (rect.height + 16) + "px";
+  }
+  const stepNum = document.getElementById("tutorialStepNum");
+  const title = document.getElementById("tutorialTitle");
+  const desc = document.getElementById("tutorialDesc");
+  if (stepNum) stepNum.textContent = "Step " + (index + 1) + " of " + TUTORIAL_STEPS.length;
+  if (title) title.textContent = step.title;
+  if (desc) desc.textContent = step.desc;
+
+  if (bubble) {
+    bubble.className = "tutorial-bubble" + (step.position === "top" ? " top" : "");
+    let bubbleTop = (step.position === "bottom") ? rect.bottom + 20 : rect.top - 180;
+    let bubbleLeft = Math.max(20, Math.min(window.innerWidth - 320, rect.left + rect.width / 2 - 150));
+    bubble.style.top = bubbleTop + "px";
+    bubble.style.left = bubbleLeft + "px";
+  }
+
   TUTORIAL_STEPS.forEach(function (s, i) {
     const dot = document.getElementById("dot" + i);
     if (dot) dot.className = "tutorial-dot" + (i === index ? " active" : "");
@@ -239,8 +251,10 @@ function nextTutorial() {
 
 function finishTutorial() {
   tutorialActive = false;
-  document.getElementById("tutorialOverlay").classList.remove("active");
-  document.getElementById("tutorialProgress").innerHTML = "";
+  const overlay = document.getElementById("tutorialOverlay");
+  if (overlay) overlay.classList.remove("active");
+  const progress = document.getElementById("tutorialProgress");
+  if (progress) progress.innerHTML = "";
   document.querySelectorAll(".tutorial-glow").forEach(function (el) { el.classList.remove("tutorial-glow"); });
   const skipBtn = document.getElementById("skipTourBtn");
   if (skipBtn) skipBtn.classList.remove("show");
@@ -335,7 +349,8 @@ function toggleBalance() {
 function showToast(msg) {
   const t = document.getElementById("toast");
   if (!t) return;
-  document.getElementById("toastMsg").textContent = msg;
+  const msgEl = document.getElementById("toastMsg");
+  if (msgEl) msgEl.textContent = msg;
   t.classList.add("show");
   setTimeout(function () { t.classList.remove("show"); }, 2500);
 }
@@ -362,7 +377,9 @@ function renderUserInfo() {
 }
 
 function initCheckin() {
-  document.getElementById("streakCount").textContent = checkinData.streak || 0;
+  const streakEl = document.getElementById("streakCount");
+  if (streakEl) streakEl.textContent = checkinData.streak || 0;
+  
   for (let i = 0; i < 7; i++) {
     const el = document.getElementById("day" + i);
     if (!el) continue;
@@ -372,7 +389,7 @@ function initCheckin() {
   }
   const btn = document.getElementById("checkinBtn");
   const todayStr = new Date().toDateString();
-  if (checkinData.lastCheckin === todayStr) {
+  if (btn && checkinData.lastCheckin === todayStr) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-check"></i> Checked In Today';
   }
@@ -571,23 +588,6 @@ function handleVerifyClick() {
   openVerificationVideoModal();
 }
 
-function openVerificationVideoModal() {
-  const modal = document.getElementById("verificationVideoModal");
-  if (modal) modal.style.display = "flex";
-}
-
-function skipVerificationVideo() {
-  const modal = document.getElementById("verificationVideoModal");
-  if (modal) modal.style.display = "none";
-  verifyBankLink();
-}
-
-function proceedToVerify() {
-  const modal = document.getElementById("verificationVideoModal");
-  if (modal) modal.style.display = "none";
-  verifyBankLink();
-}
-
 function verifyBankLink() { window.location.href = "verify.html"; }
 
 function initReferrals() {
@@ -732,9 +732,13 @@ function startLiveWithdrawalPopups() {
     const user = users[Math.floor(Math.random() * users.length)];
     const amt = amounts[Math.floor(Math.random() * amounts.length)];
 
-    document.getElementById("liveWithdrawalAvatar").textContent = user.charAt(0);
-    document.getElementById("liveWithdrawalUser").textContent = user;
-    document.getElementById("liveWithdrawalAction").textContent = "just withdrew " + formatMoney(amt);
+    const avatar = document.getElementById("liveWithdrawalAvatar");
+    const userEl = document.getElementById("liveWithdrawalUser");
+    const actionEl = document.getElementById("liveWithdrawalAction");
+
+    if (avatar) avatar.textContent = user.charAt(0);
+    if (userEl) userEl.textContent = user;
+    if (actionEl) actionEl.textContent = "just withdrew " + formatMoney(amt);
 
     popup.style.opacity = "1";
     popup.style.transform = "translate(-50%, 0)";
@@ -746,59 +750,31 @@ function startLiveWithdrawalPopups() {
   }, 18000);
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  initDarkMode();
-  initFirebase();
-  renderUserInfo();
-  renderBankInfo();
-  updateBalance();
-  initCheckin();
-  initClaim();
-  initReferrals();
-  renderActivities();
-  checkPendingBounceOnLoad();
-  checkAndShowVerifyButton();
-  setupRealtimeListener();
-  loadTelegramConfig();
-  initTutorial();
-  startLiveWithdrawalPopups();
-});
-
-// Sample Notifications Data Array
-let userNotifications = [
-  {
-    id: 1,
-    title: "Welcome to 9jaCash!",
-    desc: "Start mining daily to earn rewards and build up your balance.",
-    time: "2 mins ago",
-    read: false
-  },
-  {
-    id: 2,
-    title: "Daily Check-In Ready",
-    desc: "Don't forget to claim your daily check-in streak reward.",
-    time: "1 hour ago",
-    read: false
-  }
-];
-
 /* ===================================================
-   1. NOTIFICATIONS MODAL FUNCTIONS
+   MODAL CONTROLLER FUNCTIONS
    =================================================== */
+
+// Notifications Modal
+let userNotifications = [
+  { id: 1, title: "Welcome to 9jaCash!", desc: "Start mining daily to earn rewards and build up your balance.", time: "2 mins ago", read: false },
+  { id: 2, title: "Daily Check-In Ready", desc: "Don't forget to claim your daily check-in streak reward.", time: "1 hour ago", read: false }
+];
 
 function openNotificationsModal() {
   const modal = document.getElementById('notificationsOverlay');
   if (modal) {
     renderNotifications();
     modal.classList.add('show');
+    modal.style.display = 'flex';
   }
 }
 
 function closeNotificationsModal(event) {
-  if (event && event.target !== event.currentTarget) return;
   const modal = document.getElementById('notificationsOverlay');
-  if (modal) {
+  if (!modal) return;
+  if (!event || event.target === modal || event.target.closest('.close-modal-btn')) {
     modal.classList.remove('show');
+    modal.style.display = 'none';
   }
 }
 
@@ -843,19 +819,15 @@ function renderNotifications() {
 function markAllNotificationsAsRead() {
   userNotifications.forEach(n => n.read = true);
   renderNotifications();
-  if (typeof showToast === 'function') {
-    showToast('All notifications marked as read');
-  }
+  showToast('All notifications marked as read');
 }
 
-/* ===================================================
-   2. CUSTOMER CARE MODAL FUNCTIONS
-   =================================================== */
-
+// Customer Care Modal
 function openCustomerCareModal() {
   const modal = document.getElementById('customerCareModal');
   if (modal) {
     modal.classList.add('show');
+    modal.style.display = 'flex';
   }
 }
 
@@ -863,13 +835,76 @@ function closeCustomerCareModal() {
   const modal = document.getElementById('customerCareModal');
   if (modal) {
     modal.classList.remove('show');
+    modal.style.display = 'none';
   }
 }
+
+// Verification Video Modal
+function openVerificationVideoModal() {
+  const modal = document.getElementById('verificationVideoModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+function skipVerificationVideo() {
+  const modal = document.getElementById('verificationVideoModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+  verifyBankLink();
+}
+
+function proceedToVerify() {
+  skipVerificationVideo();
+}
+
+// Video Challenge Modal
+function showVideoChallengeModal() {
+  const modal = document.getElementById('videoChallengeModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  }
+}
+
+function dismissVideoChallenge() {
+  const modal = document.getElementById('videoChallengeModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
+}
+
+function goToVideoChallenge() {
+  window.location.href = 'tasks.html';
+}
+
+// Initialization Listener
+document.addEventListener("DOMContentLoaded", function () {
+  initDarkMode();
+  initFirebase();
+  renderUserInfo();
+  renderBankInfo();
+  updateBalance();
+  initCheckin();
+  initClaim();
+  initReferrals();
+  renderActivities();
+  checkPendingBounceOnLoad();
+  checkAndShowVerifyButton();
+  setupRealtimeListener();
+  loadTelegramConfig();
+  initTutorial();
+  startLiveWithdrawalPopups();
+});
 
 // Close modals on Escape key press
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape') {
     closeNotificationsModal();
     closeCustomerCareModal();
+    skipVerificationVideo();
+    dismissVideoChallenge();
   }
 });
