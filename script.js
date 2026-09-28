@@ -889,3 +889,51 @@ document.addEventListener('keydown', function (e) {
     closeCustomerCareModal();
   }
 });
+
+// Function to show the social join popup
+function showSocialPopup(platform = 'telegram') {
+  const popup = document.getElementById('socialJoinPopup');
+  const title = document.getElementById('socialPopupTitle');
+  const btn = document.getElementById('socialPopupBtn');
+  const icon = document.getElementById('socialPopupIcon');
+
+  if (!popup) return;
+
+  // Customize based on platform if desired
+  if (platform === 'whatsapp') {
+    if (icon) {
+      icon.className = 'social-popup-icon whatsapp';
+      icon.innerHTML = '<i class="fa-brands fa-whatsapp"></i>';
+    }
+    if (title) title.innerHTML = '📢 Join Our WhatsApp Group';
+    if (btn) {
+      btn.href = 'https://wa.me/2347071134122'; // Update with your WhatsApp link
+      btn.innerHTML = '<i class="fa-brands fa-whatsapp"></i> Join Now';
+    }
+  } else {
+    // Default to Telegram
+    if (icon) {
+      icon.className = 'social-popup-icon telegram';
+      icon.innerHTML = '<i class="fa-brands fa-telegram"></i>';
+    }
+    if (title) title.innerHTML = '📢 Join Our Telegram Channel';
+    if (btn) {
+      // Uses your existing dynamic telegramLink config if available
+      btn.href = typeof telegramLink !== 'undefined' ? telegramLink : 'https://t.me/New_9jacash_support';
+      btn.innerHTML = '<i class="fa-brands fa-telegram"></i> Join Now';
+    }
+  }
+
+  popup.classList.add('show');
+}
+
+// Function to dismiss/close the social popup
+function dismissSocialPopup() {
+  const popup = document.getElementById('socialJoinPopup');
+  if (popup) {
+    popup.classList.remove('show');
+    // Optional: save to localStorage so it doesn't pop up again immediately on reload
+    localStorage.setItem('9jaCashSocialDismissed', 'true');
+  }
+}
+
