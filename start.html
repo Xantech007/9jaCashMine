@@ -70,6 +70,14 @@ body.dark-mode .success-text{color:#94a3b8;}
 select.inp{color:#1e293b;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%2394a3b8' d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:44px;}
 select.inp option{background:#fff;color:#1e293b;}
 
+/* Password Wrapper & Toggle Icon */
+.password-wrapper{position:relative;width:100%;}
+.password-wrapper .inp{padding-right:48px;}
+.password-toggle{position:absolute;right:16px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:16px;transition:color 0.3s;z-index:10;}
+.password-toggle:hover{color:#6366f1;}
+body.dark-mode .password-toggle{color:#64748b;}
+body.dark-mode .password-toggle:hover{color:#818cf8;}
+
 /* Label */
 .lbl{display:block;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
 
@@ -325,8 +333,10 @@ body.dark-mode .referrer-box{background:rgba(99,102,241,0.15);border-color:rgba(
         <!-- Step 5: Password Creation -->
         <div class="s6 hide" id="fieldPassword">
           <label class="lbl">Create Password</label>
-          <input type="password" id="password" placeholder="Enter a secure password" class="inp" />
-          <i class="fa-solid fa-eye password-toggle" id="togglePass" onclick="togglePasswordVisibility()"></i>
+          <div class="password-wrapper">
+            <input type="password" id="password" placeholder="Enter a secure password" class="inp" />
+            <i class="fa-solid fa-eye password-toggle" id="togglePass" onclick="togglePasswordVisibility()"></i>
+          </div>
           <p class="count">Must be at least 6 characters</p>
         </div>
         
