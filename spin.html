@@ -10,10 +10,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@700;900&family=Montserrat:wght@400;600;800;900&family=Orbitron:wght@700;900&family=Playfair+Display:ital,wght@1,900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   
   <!-- Firebase SDKs & App Real-Time Engine -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="firebase_3.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="firebase.js"></script>
 
   <style>
     :root {
@@ -1078,6 +1078,64 @@
   </div>
 
   <script>
+    // ========== FIRESTORE BRIDGE ==========
+    // firebase.js initialises the Firebase app; the dashboard writes to users/{phone}.
+    // The spin page calls window._9jaCash.*, so we provide it here using that same instance.
+    (function () {
+      let _db = null;
+      function getDb() {
+        if (_db) return _db;
+        try {
+          if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
+            _db = firebase.firestore();
+            try { _db.settings({ experimentalForceLongPolling: true }); } catch (e) { }
+          } else if (window.db) {
+            _db = window.db;
+          }
+        } catch (e) { console.error('Firebase init error:', e); }
+        if (!_db) console.error('Firestore not available - check that firebase.js loads and initialises the app.');
+        return _db;
+      }
+      const ts = () => firebase.firestore.FieldValue.serverTimestamp();
+      const validId = id => id && id !== 'guest_user';
+
+      window._9jaCash = {
+        saveUserData(id, fields) {
+          const db = getDb();
+          if (!db || !validId(id)) return Promise.resolve();
+          return db.collection('users').doc(String(id))
+            .set(Object.assign({}, fields, { updatedAt: ts() }), { merge: true })
+            .then(() => console.log('Spin data saved to Firestore:', Object.keys(fields)))
+            .catch(err => console.error('Firestore save error (users):', err));
+        },
+        subscribeUser(id, cb) {
+          const db = getDb();
+          if (!db || !validId(id)) return function () { };
+          return db.collection('users').doc(String(id)).onSnapshot(
+            doc => { if (doc.exists) cb(doc.data()); },
+            err => console.error('Firestore listen error:', err)
+          );
+        },
+        saveSpinRecord(id, rec) {
+          const db = getDb();
+          if (!db || !validId(id)) return Promise.resolve();
+          return db.collection('spins')
+            .add(Object.assign({}, rec, { userId: String(id), createdAt: ts() }))
+            .catch(err => console.error('Firestore save error (spins):', err));
+        },
+        subscribeRecentWins(cb) {
+          const db = getDb();
+          if (!db) return function () { };
+          return db.collection('spins').orderBy('createdAt', 'desc').limit(25).onSnapshot(
+            snap => cb(snap.docs.map(d => d.data()).filter(w => (w.payoutAmount || 0) > 0)),
+            err => console.error('Firestore listen error (spins):', err)
+          );
+        }
+      };
+    })();
+  </script>
+
+  <script>
     // ========== STATE & DATA & FIREBASE REAL-TIME SYNC ==========
     let userData = null;
     try {
@@ -1096,11 +1154,8 @@
     // Initialize Real-Time Firestore User Listener
     if (window._9jaCash && userIdentifier) {
       // Save initial local state to Firebase
-      window._9jaCash.saveUserData(userIdentifier, {
-        phone: userData.phone || '',
-        balance: currentBalance,
-        totalMined: userData.totalMined || 0
-      });
+      // (balance is NOT written here - the listener below loads the real Firestore balance)
+      window._9jaCash.saveUserData(userIdentifier, { phone: userData.phone || '' });
 
       // Listen to real-time database balance/user updates in Firestore
       window._9jaCash.subscribeUser(userIdentifier, (updatedUser) => {
@@ -2465,10 +2520,16 @@
 
       // REAL-TIME FIREBASE SAVING
       if (window._9jaCash) {
-        window._9jaCash.saveUserData(userIdentifier, {
+        const spinFields = {
           balance: finalBalance,
-          lastSpinTime: new Date().toISOString()
-        });
+          lastSpinTime: new Date().toISOString(),
+          lastSpinWin: payoutAmount,
+          lastSpinMultiplier: multiplier
+        };
+        if (payoutAmount > 0) {
+          spinFields.totalSpinWon = firebase.firestore.FieldValue.increment(payoutAmount);
+        }
+        window._9jaCash.saveUserData(userIdentifier, spinFields);
 
         window._9jaCash.saveSpinRecord(userIdentifier, {
           phone: userData.phone || 'Anonymous',
