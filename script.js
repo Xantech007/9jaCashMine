@@ -160,8 +160,6 @@ function loadTelegramConfig() {
 function updateTelegramLink() {
   const btn = document.getElementById("telegramSupport");
   if (btn) btn.href = "javascript:void(0)";
-  const tg = document.getElementById("modalTelegramBtn");
-  if (tg && telegramLink) tg.href = telegramLink;
 }
 
 function initDarkMode() {
@@ -740,6 +738,18 @@ function buildWhatsappUrl(handle) {
   return digits ? "https://wa.me/" + digits : "";
 }
 
+// Customer Care modal: Telegram username / WhatsApp number from settings/redirects
+function updateCustomerCareLinks() {
+  const tg = document.getElementById("modalTelegramBtn");
+  const wa = document.getElementById("modalWhatsappBtn");
+  const tgUrl = buildTelegramUrl(socialHandles.telegram);
+  const waUrl = buildWhatsappUrl(socialHandles.whatsapp);
+  if (tg && tgUrl) tg.href = tgUrl;
+  if (wa && waUrl) {
+    wa.href = waUrl + (waUrl.indexOf("?") === -1 ? "?text=" + encodeURIComponent("Hello 9jaCash Support, I need assistance") : "");
+  }
+}
+
 function loadSocialHandles() {
   if (!db) return;
   db.collection("settings").doc("redirects").onSnapshot(function (doc) {
@@ -750,6 +760,7 @@ function loadSocialHandles() {
       whatsapp: d.whatsappHandle || ""
     };
     try { localStorage.setItem("9jaCashSocialHandles", JSON.stringify(socialHandles)); } catch (e) { }
+    updateCustomerCareLinks();
     // If the popup is already visible, refresh its link
     const p = document.getElementById("socialJoinPopup");
     if (p && p.classList.contains("show")) renderSocialPopup();
@@ -813,6 +824,7 @@ function initSocialPopup() {
   window.__socialPlatform = last === "telegram" ? "whatsapp" : "telegram";
   try { localStorage.setItem("9jaCashLastSocial", window.__socialPlatform); } catch (e) { }
 
+  updateCustomerCareLinks(); // apply cached handles immediately
   loadSocialHandles();
   // Show the popup 3 seconds after every page load
   setTimeout(showSocialPopup, 3000);
@@ -962,6 +974,7 @@ function markAllNotificationsAsRead() {
 function openCustomerCareModal() {
   const modal = document.getElementById('customerCareModal');
   if (modal) {
+    updateCustomerCareLinks();
     modal.classList.add('show');
   }
 }
