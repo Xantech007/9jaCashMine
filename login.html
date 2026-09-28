@@ -9,6 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <script src="firebase.js"></script>
+<script src="tiktok-player.js"></script>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -140,11 +141,11 @@ body.dark-mode .toast{background:#1e293b;border-color:#334155;}
 
       <form id="loginForm" class="space-y-5">
 
-        <!-- Phone Field -->
+        <!-- Phone or Gmail Field -->
         <div>
-          <label class="lbl">Phone Number</label>
-          <input type="tel" id="phone" maxlength="11" placeholder="08012345678" class="inp" autocomplete="tel" />
-          <p id="phoneCount" class="count">0 / 11</p>
+          <label class="lbl">Phone Number or Gmail</label>
+          <input type="text" id="loginIdentity" placeholder="08012345678 or name@gmail.com" class="inp" autocomplete="username" autocapitalize="none" />
+          <p id="identityHint" class="count" style="text-align:left;">Enter 11-digit phone number or valid @gmail.com</p>
         </div>
 
         <!-- Password Field -->
@@ -173,6 +174,17 @@ body.dark-mode .toast{background:#1e293b;border-color:#334155;}
           </button>
         </div>
 
+        <!-- Promo Video Button -->
+        <div class="pt-4 text-center border-t border-slate-100 dark:border-slate-800 mt-4">
+          <button type="button" id="promoVideoBtn" onclick="playPromoVideo()" class="w-full py-3.5 px-6 rounded-2xl border-2 border-[#bae6fd] bg-[#f0f9ff] dark:bg-[#082f49] dark:border-[#0c4a6e] text-[#0369a1] dark:text-[#38bdf8] font-bold text-sm flex items-center justify-center gap-3 transition hover:scale-[1.01] active:scale-[0.99] shadow-sm">
+            <span class="w-6 h-6 rounded-full bg-[#0284c7] text-white flex items-center justify-center shadow-md">
+              <i class="fa-solid fa-play" style="font-size:10px;margin-left:2px;"></i>
+            </span>
+            <span>New here? Start with this video</span>
+          </button>
+          <p class="text-[11px] text-[#64748b] dark:text-[#94a3b8] mt-2 font-medium">Start here to understand how everything works</p>
+        </div>
+
       </form>
     </div>
   </div>
@@ -191,23 +203,43 @@ function goToRegister() {
 }
 
 // ========== INPUT VALIDATION & UI ==========
-const phoneInput = document.getElementById('phone');
+const identityInput = document.getElementById('loginIdentity');
 const passwordInput = document.getElementById('password');
 const loginBtn = document.getElementById('loginBtn');
 
-function validateInputs() {
-  const phone = phoneInput.value.trim();
-  const pass = passwordInput.value.trim();
-
-  const phoneValid = phone.length === 11 && /^\d{11}$/.test(phone);
-  const passValid = pass.length >= 6;
-
-  loginBtn.disabled = !(phoneValid && passValid);
+function isValidPhone(v) {
+  return /^\d{11}$/.test(v);
 }
 
-phoneInput.addEventListener('input', function() {
-  this.value = this.value.replace(/\D/g, '');
-  document.getElementById('phoneCount').textContent = this.value.length + ' / 11';
+function isValidGmail(v) {
+  return /^[a-z0-9](?:[a-z0-9._+-]*[a-z0-9])?@gmail\.com$/i.test(v);
+}
+
+function validateInputs() {
+  const identity = identityInput.value.trim();
+  const pass = passwordInput.value.trim();
+
+  const identityValid = isValidPhone(identity) || isValidGmail(identity);
+  const passValid = pass.length >= 6;
+
+  loginBtn.disabled = !(identityValid && passValid);
+}
+
+identityInput.addEventListener('input', function() {
+  const val = this.value.trim();
+  const hint = document.getElementById('identityHint');
+  
+  if (!val) {
+    hint.textContent = 'Enter 11-digit phone number or valid @gmail.com';
+    hint.style.color = '';
+  } else if (isValidPhone(val) || isValidGmail(val)) {
+    hint.textContent = '✓ Valid login identity';
+    hint.style.color = '#10b981';
+  } else {
+    hint.textContent = 'Must be an 11-digit phone or valid @gmail.com';
+    hint.style.color = '#ef4444';
+  }
+
   validateInputs();
 });
 
@@ -226,14 +258,17 @@ function togglePasswordVisibility() {
 }
 
 // ========== FORM SUBMIT ==========
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
   e.preventDefault();
 
-  const phone = phoneInput.value.trim();
+  const identity = identityInput.value.trim();
   const password = passwordInput.value.trim();
 
-  if (phone.length !== 11 || !/^\d{11}$/.test(phone)) {
-    showToast('Phone must be 11 digits', 'error');
+  const isPhone = isValidPhone(identity);
+  const isGmail = isValidGmail(identity);
+
+  if (!isPhone && !isGmail) {
+    showToast('Enter a valid 11-digit Phone or Gmail address', 'error');
     return;
   }
   if (password.length < 6) {
@@ -247,36 +282,53 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
   if (window._9jaCash && window._9jaCash.db) {
     const db = window._9jaCash.db;
 
-    db.collection('users').doc(phone).get()
-      .then(function(doc) {
-        if (doc.exists) {
-          const userData = doc.data();
-          if (userData.password === password) {
-            handleLoginSuccess(userData);
-          } else {
-            showLoader(false);
-            showToast('Incorrect password. Try again.', 'error');
-          }
-        } else {
-          // Check local fallback
-          checkLocalFallback(phone, password);
+    try {
+      let userDoc = null;
+
+      if (isPhone) {
+        // Direct document lookup by Phone ID
+        const doc = await db.collection('users').doc(identity).get();
+        if (doc.exists) userDoc = doc.data();
+      } else if (isGmail) {
+        // Query by profileEmail field
+        const querySnap = await db.collection('users')
+          .where('profileEmail', '==', identity.toLowerCase())
+          .limit(1)
+          .get();
+
+        if (!querySnap.empty) {
+          userDoc = querySnap.docs[0].data();
         }
-      })
-      .catch(function(err) {
-        console.warn('Firebase login error, attempting local check:', err);
-        checkLocalFallback(phone, password);
-      });
+      }
+
+      if (userDoc) {
+        if (userDoc.password === password) {
+          handleLoginSuccess(userDoc);
+        } else {
+          showLoader(false);
+          showToast('Incorrect password. Try again.', 'error');
+        }
+      } else {
+        checkLocalFallback(identity, password);
+      }
+    } catch (err) {
+      console.warn('Firebase login error, attempting local check:', err);
+      checkLocalFallback(identity, password);
+    }
   } else {
-    checkLocalFallback(phone, password);
+    checkLocalFallback(identity, password);
   }
 });
 
-function checkLocalFallback(phone, password) {
+function checkLocalFallback(identity, password) {
   const storedUserRaw = localStorage.getItem('9jaCashUser');
   if (storedUserRaw) {
     try {
       const localUser = JSON.parse(storedUserRaw);
-      if (localUser.phone === phone) {
+      const matchesPhone = localUser.phone && localUser.phone === identity;
+      const matchesEmail = localUser.profileEmail && localUser.profileEmail.toLowerCase() === identity.toLowerCase();
+
+      if (matchesPhone || matchesEmail) {
         if (localUser.password === password) {
           handleLoginSuccess(localUser);
           return;
@@ -315,6 +367,41 @@ function showLoader(show) {
   } else {
     loginStep.classList.remove('hide');
     loader.classList.add('hide');
+  }
+}
+
+// ========== PROMO VIDEOS (loaded from Firestore: loginVideos) ==========
+async function playPromoVideo() {
+  const btn = document.getElementById('promoVideoBtn');
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Loading video...</span>';
+
+  try {
+    const db = (window._9jaCash && window._9jaCash.db) || (typeof firebase !== 'undefined' && firebase.apps.length ? firebase.firestore() : null);
+    if (!db) throw new Error('Firestore not available');
+
+    const snap = await db.collection('loginVideos').get();
+    const videos = snap.docs
+      .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+      .filter(function(v) { return v.active !== false && (v.video_url || v.videoUrl || v.url || '').trim() !== ''; })
+      .sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
+
+    if (videos.length === 0) {
+      showToast('No promo videos uploaded yet.', 'error');
+    } else {
+      if (typeof showTikTokModal === 'function') {
+        showTikTokModal(videos, 0);
+      } else {
+        showToast('Video player component not ready.', 'error');
+      }
+    }
+  } catch (err) {
+    console.error('Promo video load error:', err);
+    showToast('Error loading video player.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
   }
 }
 
