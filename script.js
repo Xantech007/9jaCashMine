@@ -766,3 +766,114 @@ document.addEventListener("DOMContentLoaded", function () {
   initTutorial();
   startLiveWithdrawalPopups();
 });
+
+// Sample Notifications Data Array
+let userNotifications = [
+  {
+    id: 1,
+    title: "Welcome to 9jaCash!",
+    desc: "Start mining daily to earn rewards and build up your balance.",
+    time: "2 mins ago",
+    read: false
+  },
+  {
+    id: 2,
+    title: "Daily Check-In Ready",
+    desc: "Don't forget to claim your daily check-in streak reward.",
+    time: "1 hour ago",
+    read: false
+  }
+];
+
+/* ===================================================
+   1. NOTIFICATIONS MODAL FUNCTIONS
+   =================================================== */
+
+function openNotificationsModal() {
+  const modal = document.getElementById('notificationsOverlay');
+  if (modal) {
+    renderNotifications();
+    modal.classList.add('show');
+  }
+}
+
+function closeNotificationsModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  const modal = document.getElementById('notificationsOverlay');
+  if (modal) {
+    modal.classList.remove('show');
+  }
+}
+
+function renderNotifications() {
+  const container = document.getElementById('notificationsList');
+  const badge = document.getElementById('modalNotifBadge');
+  if (!container) return;
+
+  const unreadCount = userNotifications.filter(n => !n.read).length;
+  if (badge) {
+    if (unreadCount > 0) {
+      badge.textContent = unreadCount;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  }
+
+  if (userNotifications.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding: 24px 0; color: #94a3b8; font-size: 13px;">
+        <i class="fa-solid fa-bell-slash" style="font-size:24px; margin-bottom:8px;"></i>
+        <p>No notifications yet</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = userNotifications.map(n => `
+    <div class="notif-item ${!n.read ? 'unread' : ''}">
+      <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(99, 102, 241, 0.1); color: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <i class="fa-solid fa-bell" style="font-size: 12px;"></i>
+      </div>
+      <div style="flex: 1;">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-desc">${n.desc}</div>
+        <div class="notif-time">${n.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function markAllNotificationsAsRead() {
+  userNotifications.forEach(n => n.read = true);
+  renderNotifications();
+  if (typeof showToast === 'function') {
+    showToast('All notifications marked as read');
+  }
+}
+
+/* ===================================================
+   2. CUSTOMER CARE MODAL FUNCTIONS
+   =================================================== */
+
+function openCustomerCareModal() {
+  const modal = document.getElementById('customerCareModal');
+  if (modal) {
+    modal.classList.add('show');
+  }
+}
+
+function closeCustomerCareModal() {
+  const modal = document.getElementById('customerCareModal');
+  if (modal) {
+    modal.classList.remove('show');
+  }
+}
+
+// Close modals on Escape key press
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    closeNotificationsModal();
+    closeCustomerCareModal();
+  }
+});
+
