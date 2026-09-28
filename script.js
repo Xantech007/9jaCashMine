@@ -160,6 +160,8 @@ function loadTelegramConfig() {
 function updateTelegramLink() {
   const btn = document.getElementById("telegramSupport");
   if (btn) btn.href = "javascript:void(0)";
+  const tg = document.getElementById("modalTelegramBtn");
+  if (tg && telegramLink) tg.href = telegramLink;
 }
 
 function initDarkMode() {
@@ -717,7 +719,6 @@ function downloadAppAPK() {
   dismissDownloadPrompt();
 }
 
-function openCustomerCareModal() { window.open(telegramLink, "_blank"); }
 
 function dismissSocialPopup() {
   const p = document.getElementById("socialJoinPopup");
@@ -794,6 +795,7 @@ function openNotificationsModal() {
   if (modal) {
     renderNotifications();
     modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
   }
 }
 
@@ -805,7 +807,13 @@ function closeNotificationsModal(event) {
   }
 }
 
+function updateBellDot() {
+  const dot = document.getElementById('bellDot');
+  if (dot) dot.style.display = userNotifications.some(n => !n.read) ? 'block' : 'none';
+}
+
 function renderNotifications() {
+  updateBellDot();
   const container = document.getElementById('notificationsList');
   const badge = document.getElementById('modalNotifBadge');
   if (!container) return;
@@ -846,6 +854,7 @@ function renderNotifications() {
 function markAllNotificationsAsRead() {
   userNotifications.forEach(n => n.read = true);
   renderNotifications();
+  updateBellDot();
   if (typeof showToast === 'function') {
     showToast('All notifications marked as read');
   }
@@ -862,7 +871,8 @@ function openCustomerCareModal() {
   }
 }
 
-function closeCustomerCareModal() {
+function closeCustomerCareModal(event) {
+  if (event && event.target !== event.currentTarget) return;
   const modal = document.getElementById('customerCareModal');
   if (modal) {
     modal.classList.remove('show');
@@ -870,6 +880,8 @@ function closeCustomerCareModal() {
 }
 
 // Close modals on Escape key press
+document.addEventListener('DOMContentLoaded', updateBellDot);
+
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape') {
     closeNotificationsModal();
