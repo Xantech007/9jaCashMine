@@ -897,7 +897,8 @@ const userId = data.phone;
 
 db.collection('users').doc(userId).set(data) 
 .then(function() { 
-console.log('User saved to Firebase'); 
+console.log('User saved to Firebase');
+sendWelcomeEmail(data);
 if (data.referredBy) { 
 db.collection('users').doc(data.referredBy).update({ 
 balance: firebase.firestore.FieldValue.increment(10000) 
@@ -921,6 +922,18 @@ status: 'active'
 console.error('Firebase save failed:', err); 
 }); 
 } 
+
+// ========== WELCOME EMAIL (sent via Netlify function; SMTP settings live in netlify/functions/mailconfig.js) ==========
+function sendWelcomeEmail(data) {
+fetch('/.netlify/functions/send-welcome-email', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ email: data.email, fullName: data.fullName })
+})
+.then(function(r) { return r.json().catch(function() { return {}; }); })
+.then(function(res) { console.log('Welcome email:', res.message || 'sent'); })
+.catch(function(err) { console.warn('Welcome email failed:', err); });
+}
 
 // ========== SUCCESS → ONBOARDING ========== 
 function startOnboarding() { 
