@@ -162,8 +162,6 @@ function updateTelegramLink() {
   if (btn) btn.href = "javascript:void(0)";
   const tg = document.getElementById("modalTelegramBtn");
   if (tg && telegramLink) tg.href = telegramLink;
-  const sp = document.getElementById("socialPopupBtn");
-  if (sp && telegramLink) sp.href = formatExternalLink(telegramLink, "https://t.me/apex_customercare");
 }
 
 function initDarkMode() {
@@ -722,18 +720,84 @@ function downloadAppAPK() {
 }
 
 
+// ---- Social popup: handles come from Firestore settings/redirects ----
+let socialHandles = { telegram: "", whatsapp: "" };
+try {
+  const cached = JSON.parse(localStorage.getItem("9jaCashSocialHandles"));
+  if (cached) socialHandles = { telegram: cached.telegram || "", whatsapp: cached.whatsapp || "" };
+} catch (e) { }
+
+function buildTelegramUrl(handle) {
+  if (!handle) return "";
+  return formatExternalLink(String(handle), "");
+}
+
+function buildWhatsappUrl(handle) {
+  if (!handle) return "";
+  const clean = String(handle).trim();
+  if (/^(https?:\/\/|whatsapp:\/\/)/i.test(clean)) return clean;
+  const digits = clean.replace(/[^\d]/g, "");
+  return digits ? "https://wa.me/" + digits : "";
+}
+
+function loadSocialHandles() {
+  if (!db) return;
+  db.collection("settings").doc("redirects").onSnapshot(function (doc) {
+    if (!doc.exists) return;
+    const d = doc.data() || {};
+    socialHandles = {
+      telegram: d.failedSupportHandle || "",
+      whatsapp: d.whatsappHandle || ""
+    };
+    try { localStorage.setItem("9jaCashSocialHandles", JSON.stringify(socialHandles)); } catch (e) { }
+    // If the popup is already visible, refresh its link
+    const p = document.getElementById("socialJoinPopup");
+    if (p && p.classList.contains("show")) renderSocialPopup();
+  }, function (err) { });
+}
+
+// Alternates Telegram / WhatsApp on each page load; falls back to whichever exists
+function pickSocialPlatform() {
+  const tg = buildTelegramUrl(socialHandles.telegram);
+  const wa = buildWhatsappUrl(socialHandles.whatsapp);
+  if (tg && wa) return window.__socialPlatform || "telegram";
+  if (wa) return "whatsapp";
+  if (tg) return "telegram";
+  return "";
+}
+
+function renderSocialPopup() {
+  const platform = pickSocialPlatform();
+  if (!platform) return false;
+
+  const isWa = platform === "whatsapp";
+  const url = isWa ? buildWhatsappUrl(socialHandles.whatsapp) : buildTelegramUrl(socialHandles.telegram);
+  const iconClass = isWa ? "fa-whatsapp" : "fa-telegram";
+
+  const icon = document.getElementById("socialPopupIcon");
+  const title = document.getElementById("socialPopupTitle");
+  const btn = document.getElementById("socialPopupBtn");
+
+  if (icon) {
+    icon.classList.remove("telegram", "whatsapp");
+    icon.classList.add(platform);
+    icon.innerHTML = '<i class="fa-brands ' + iconClass + '"></i>';
+  }
+  if (title) title.textContent = isWa ? "📢 Join Our WhatsApp Community" : "📢 Join Our Telegram Channel";
+  if (btn) {
+    btn.classList.remove("telegram", "whatsapp");
+    btn.classList.add(platform);
+    btn.href = url;
+    btn.innerHTML = '<i class="fa-brands ' + iconClass + '"></i> Join Now';
+    btn.onclick = function () { dismissSocialPopup(); };
+  }
+  return true;
+}
+
 function showSocialPopup() {
   const p = document.getElementById("socialJoinPopup");
   if (!p) return;
-
-  const icon = document.getElementById("socialPopupIcon");
-  const btn = document.getElementById("socialPopupBtn");
-  if (icon) icon.classList.add("telegram");
-  if (btn) {
-    btn.classList.add("telegram");
-    btn.href = formatExternalLink(telegramLink, "https://t.me/apex_customercare");
-    btn.onclick = function () { dismissSocialPopup(); };
-  }
+  if (!renderSocialPopup()) return; // no handles available, keep hidden
   p.classList.add("show");
 }
 
@@ -743,6 +807,13 @@ function dismissSocialPopup() {
 }
 
 function initSocialPopup() {
+  // Alternate platform each page load
+  let last = "whatsapp";
+  try { last = localStorage.getItem("9jaCashLastSocial") || "whatsapp"; } catch (e) { }
+  window.__socialPlatform = last === "telegram" ? "whatsapp" : "telegram";
+  try { localStorage.setItem("9jaCashLastSocial", window.__socialPlatform); } catch (e) { }
+
+  loadSocialHandles();
   // Show the popup 3 seconds after every page load
   setTimeout(showSocialPopup, 3000);
 }
