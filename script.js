@@ -804,6 +804,7 @@ function closeNotificationsModal(event) {
   const modal = document.getElementById('notificationsOverlay');
   if (modal) {
     modal.classList.remove('active');
+    document.body.style.overflow = '';
   }
 }
 
