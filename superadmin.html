@@ -478,10 +478,19 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
   <div class="panel">
     <div class="panel-header">
       <div class="panel-icon purple"><i class="fa-solid fa-list"></i></div>
-      <div><div class="panel-title">Recent Users</div><div class="panel-sub">Last 20 created accounts</div></div>
+      <div><div class="panel-title">All Users</div><div class="panel-sub">20 per page • sorted by newest</div></div>
+      <div style="margin-left:auto;text-align:right;">
+        <div style="font-size:18px;font-weight:800;color:var(--accent);" id="userTotalCount">—</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Registered</div>
+      </div>
     </div>
     <div class="history-list" id="userList">
       <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Loading...</div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;">
+      <button class="save-btn" id="userPrevBtn" style="width:auto;margin:0;padding:10px 18px;" onclick="userPrevPage()" disabled><i class="fa-solid fa-chevron-left"></i> Prev</button>
+      <div style="font-size:12px;color:var(--text3);font-weight:600;" id="userPageLabel">Page 1</div>
+      <button class="save-btn" id="userNextBtn" style="width:auto;margin:0;padding:10px 18px;" onclick="userNextPage()" disabled>Next <i class="fa-solid fa-chevron-right"></i></button>
     </div>
   </div>
 </div>
@@ -1139,6 +1148,9 @@ async function saveAll(){
 // ========== USERS ==========
 let usersLoaded=false;
 let currentEditPhone=null;
+const USER_PAGE_SIZE=20;
+let userPages=[]; // cache: userPages[i] = {docs:[...], first:doc, last:doc}
+let userPageIndex=0;
 
 function fmtUserDate(v){
   if(!v)return '—';
@@ -1155,21 +1167,68 @@ function fmtBalance(v){
   return '₦'+n.toLocaleString('en-NG');
 }
 
-async function loadRecentUsers(){
-  const list=document.getElementById('userList');
+async function loadUserTotalCount(){
+  const el=document.getElementById('userTotalCount');
   try{
-    const snap=await db.collection('users').orderBy('createdAt','desc').limit(20).get();
-    if(snap.empty){
-      list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No users yet</div>';
-      usersLoaded=true;
-      return;
+    const snap=await db.collection('users').count().get();
+    el.textContent=snap.data().count.toLocaleString();
+  }catch(err){
+    el.textContent='—';
+  }
+}
+
+async function loadRecentUsers(){
+  usersLoaded=true;
+  userPages=[];
+  userPageIndex=0;
+  loadUserTotalCount();
+  await fetchUserPage(0);
+}
+
+async function fetchUserPage(index){
+  const list=document.getElementById('userList');
+  list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Loading...</div>';
+  try{
+    if(!userPages[index]){
+      let q=db.collection('users').orderBy('createdAt','desc').limit(USER_PAGE_SIZE);
+      if(index>0){
+        const prevPage=userPages[index-1];
+        q=q.startAfter(prevPage.last);
+      }
+      const snap=await q.get();
+      userPages[index]={docs:snap.docs,first:snap.docs[0]||null,last:snap.docs[snap.docs.length-1]||null};
     }
-    list.innerHTML='';
-    snap.forEach(doc=>list.appendChild(buildUserListItem(doc.id,doc.data())));
-    usersLoaded=true;
+    userPageIndex=index;
+    renderUserPage();
   }catch(err){
     list.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger);font-size:13px;">'+err.message+'</div>';
   }
+}
+
+function renderUserPage(){
+  const list=document.getElementById('userList');
+  const page=userPages[userPageIndex];
+  const docs=page?page.docs:[];
+  if(!docs.length){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No users found</div>';
+  }else{
+    list.innerHTML='';
+    docs.forEach(doc=>list.appendChild(buildUserListItem(doc.id,doc.data())));
+  }
+  document.getElementById('userPageLabel').textContent='Page '+(userPageIndex+1);
+  document.getElementById('userPrevBtn').disabled=userPageIndex===0;
+  document.getElementById('userNextBtn').disabled=docs.length<USER_PAGE_SIZE;
+}
+
+function userNextPage(){
+  const page=userPages[userPageIndex];
+  if(!page||page.docs.length<USER_PAGE_SIZE)return;
+  fetchUserPage(userPageIndex+1);
+}
+
+function userPrevPage(){
+  if(userPageIndex===0)return;
+  fetchUserPage(userPageIndex-1);
 }
 
 function buildUserListItem(phone,data){
@@ -1245,7 +1304,7 @@ async function saveUserEdit(){
     await db.collection('users').doc(currentEditPhone).update(update);
     showToast('User updated!','success');
     closeUserEdit();
-    if(usersLoaded)loadRecentUsers();
+    if(usersLoaded){userPages[userPageIndex]=null;fetchUserPage(userPageIndex);}
   }catch(err){
     showToast('Failed: '+err.message,'error');
   }finally{
