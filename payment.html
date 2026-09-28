@@ -914,9 +914,9 @@ async function confirmPayment() {
   }
 }
 
-// ========== REDIRECT TO PENDING PAGE ==========
+// ========== REDIRECT BASED ON settings/paymentStatus/success ==========
 function performRedirect() {
-  if (flowType === "upgrade") {
+  if (flowType === "upgrade" && upgradeData) {
     localStorage.setItem("9jaCashUpgradeSuccess", JSON.stringify({
       name: upgradeData.name,
       amount: upgradeData.amount,
@@ -932,9 +932,7 @@ function performRedirect() {
     localStorage.removeItem("9jaCashPaymentData");
     localStorage.removeItem("9jaCashPayoutKeyDetails");
     
-    window.location.href = "payment-pending.html";
-    
-  } else if (flowType === "payout_key") {
+  } else if (flowType === "payout_key" && paymentData) {
     localStorage.setItem("9jaCashPayoutKeyDetails", JSON.stringify({
       plan: paymentData.plan,
       dailyLimit: paymentData.dailyLimit,
@@ -945,11 +943,25 @@ function performRedirect() {
     localStorage.removeItem("selectedPlan");
     localStorage.removeItem("9jaCashUpgradeSuccess");
     localStorage.setItem("9jaCashPaymentData", JSON.stringify(paymentData));
-    
-    window.location.href = "payment-pending.html";
-    
+  }
+
+  const db = getDb();
+
+  if (db) {
+    db.collection("settings").doc("paymentStatus").get()
+      .then((doc) => {
+        if (doc.exists && doc.data().success === true) {
+          window.location.href = "payment-success.html";
+        } else {
+          window.location.href = "payment-failed.html";
+        }
+      })
+      .catch((err) => {
+        console.error("Error reading paymentStatus from Firestore:", err);
+        window.location.href = "payment-failed.html";
+      });
   } else {
-    window.location.href = "payment-pending.html";
+    window.location.href = "payment-failed.html";
   }
 }
 
