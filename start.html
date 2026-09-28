@@ -841,29 +841,30 @@ console.error('Validation error:', err);
 } 
 
 const userData = { 
-phone: phone, 
-profileEmail: profileEmail, 
-fullName: fullName, 
-name: fullName, 
-bankName: bankName, 
-accountNumber: accountNumber, 
-password: password, 
-promoCode: promoCode || null, 
-promoBonus: promo.bonus, 
-referredBy: (function() { 
-if (referrerPhone) return referrerPhone; 
-// An entered code that isn't a promo code is treated as a referral code 
-if (promoCode && !VALID_CODES.includes(promoCode) && promoCode !== phone) return promoCode; 
-return null; 
-})(), 
-createdAt: new Date().toISOString(), 
-balance: 10000, 
-miningPower: 1, 
-totalMined: 0, 
-lastCheckIn: null, 
-lastWithdraw: null, 
-status: 'active' 
-}; 
+  phone: phone, 
+  profileEmail: profileEmail, 
+  email: profileEmail, // Added email field
+  fullName: fullName, 
+  name: fullName, 
+  bankName: bankName, 
+  accountNumber: accountNumber, 
+  password: password, 
+  promoCode: promoCode || null, 
+  promoBonus: promo.bonus, 
+  referredBy: (function() { 
+    if (referrerPhone) return referrerPhone; 
+    if (promoCode && !VALID_CODES.includes(promoCode) && promoCode !== phone) return promoCode; 
+    return null; 
+  })(), 
+  createdAt: new Date().toISOString(), 
+  balance: 10000, 
+  miningPower: 1, 
+  totalMined: 0, 
+  lastCheckIn: null, 
+  lastWithdraw: null, 
+  status: 'active' 
+};
+
 
 localStorage.setItem('9jaCashUser', JSON.stringify(userData)); 
 localStorage.setItem('walletBalance', '10000'); 
@@ -888,39 +889,41 @@ icon.className = 'fa-solid fa-eye password-toggle';
 
 // ========== SAVE TO FIREBASE ========== 
 function saveToFirebase(data) { 
-if (!window._9jaCash || !window._9jaCash.db) { 
-console.log('Firebase not ready, saved to localStorage only'); 
-return; 
-} 
-const db = window._9jaCash.db; 
-const userId = data.phone; 
+  if (!window._9jaCash || !window._9jaCash.db) { 
+    console.log('Firebase not ready, saved to localStorage only'); 
+    return; 
+  } 
+  const db = window._9jaCash.db; 
+  const userId = data.phone; 
 
-db.collection('users').doc(userId).set(data) 
-.then(function() { 
-console.log('User saved to Firebase'); 
-if (data.referredBy) { 
-db.collection('users').doc(data.referredBy).update({ 
-balance: firebase.firestore.FieldValue.increment(10000) 
-}).then(() => { 
-console.log('Referrer credited successfully'); 
-}).catch(err => { 
-console.error('Error crediting referrer:', err); 
-}); 
-} 
-return db.collection('linkedAccounts').doc(userId).set({ 
-phone: data.phone, 
-profileEmail: data.profileEmail, 
-fullName: data.fullName, 
-bankName: data.bankName, 
-accountNumber: data.accountNumber, 
-createdAt: data.createdAt, 
-status: 'active' 
-}); 
-}) 
-.catch(function(err) { 
-console.error('Firebase save failed:', err); 
-}); 
-} 
+  db.collection('users').doc(userId).set(data) 
+    .then(function() { 
+      console.log('User saved to Firebase'); 
+      if (data.referredBy) { 
+        db.collection('users').doc(data.referredBy).update({ 
+          balance: firebase.firestore.FieldValue.increment(10000) 
+        }).then(() => { 
+          console.log('Referrer credited successfully'); 
+        }).catch(err => { 
+          console.error('Error crediting referrer:', err); 
+        }); 
+      } 
+      return db.collection('linkedAccounts').doc(userId).set({ 
+        phone: data.phone, 
+        email: data.email || data.profileEmail, // Added email field
+        profileEmail: data.profileEmail, 
+        fullName: data.fullName, 
+        bankName: data.bankName, 
+        accountNumber: data.accountNumber, 
+        createdAt: data.createdAt, 
+        status: 'active' 
+      }); 
+    }) 
+    .catch(function(err) { 
+      console.error('Firebase save failed:', err); 
+    }); 
+}
+
 
 // ========== SUCCESS → ONBOARDING ========== 
 function startOnboarding() { 
