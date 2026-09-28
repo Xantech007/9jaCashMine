@@ -546,6 +546,14 @@
       return 'https://' + clean;
     }
 
+    function buildWhatsappUrl(handle, defaultUrl) {
+      if (!handle || typeof handle !== 'string' || !handle.trim()) return defaultUrl;
+      const clean = handle.trim();
+      if (/^(https?:\/\/|whatsapp:\/\/)/i.test(clean)) return clean;
+      const digits = clean.replace(/[^\d]/g, '');
+      return digits ? 'https://wa.me/' + digits : defaultUrl;
+    }
+
     function toggleTheme() {
       const isDark = document.body.classList.toggle('dark-mode');
       localStorage.setItem('9jaCashDark', isDark);
@@ -1041,10 +1049,11 @@
 
       function resolveAndApply(settingsData) {
         if (settingsData) {
-          defaultWaActive = settingsData.whatsappLinkActive !== false;
-          defaultTgActive = settingsData.telegramSupportLinkActive !== false;
-          defaultWaUrl = settingsData.whatsappLink || defaultWaUrl;
-          defaultTgUrl = settingsData.telegramSupportLink || defaultTgUrl;
+          // settings/redirects has no active/inactive flags — a channel is
+          // active whenever an admin has set its handle; otherwise fall
+          // back to the hardcoded defaults above.
+          defaultWaUrl = buildWhatsappUrl(settingsData.whatsappHandle, defaultWaUrl);
+          defaultTgUrl = formatExternalLink(settingsData.failedSupportHandle, defaultTgUrl);
         }
 
         if (userData && userData.hasJuniorLinks) {
@@ -1065,7 +1074,7 @@
 
       // Realtime Customer Care link listener from Firebase
       if (db) {
-        db.collection('settings').doc('payment').onSnapshot(function (doc) {
+        db.collection('settings').doc('redirects').onSnapshot(function (doc) {
           const settingsData = doc.exists ? doc.data() : null;
           resolveAndApply(settingsData);
         }, function (err) {
