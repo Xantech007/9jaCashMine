@@ -1,4 +1,3 @@
-// script.js
 let userData = null;
 let realtimeUnsubscribe = null;
 
@@ -717,8 +716,6 @@ function downloadAppAPK() {
   dismissDownloadPrompt();
 }
 
-function openCustomerCareModal() { window.open(telegramLink, "_blank"); }
-
 function dismissSocialPopup() {
   const p = document.getElementById("socialJoinPopup");
   if (p) p.classList.remove("show");
@@ -876,4 +873,3 @@ document.addEventListener('keydown', function (e) {
     closeCustomerCareModal();
   }
 });
-
