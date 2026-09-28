@@ -197,14 +197,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 let userData = null;
 try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch (e) { userData = null; }
 
-// ---------- Config ----------
-// Firestore documents are limited to 1 MiB, so the video is split into 800 KB chunks.
+// ---------- Cloudinary Unsigned Setup ----------
+const CLOUDINARY_CLOUD_NAME = "nhm2xhew";       // Replace with your Cloud Name
+const CLOUDINARY_UPLOAD_PRESET = "video_challenge"; // Replace with your Unsigned Preset Name
+
 const MAX_MB = 50;
-const CHUNK_SIZE = 800 * 1024;
-const CONCURRENCY = 4;
 const ROOT = 'videoChallenge';
 
-// ---------- Firebase (initialised by firebase.js) ----------
+// ---------- Firebase Initialization ----------
 let db = null;
 function initDb() {
   if (db) return db;
@@ -222,7 +222,6 @@ function initDb() {
 const SUBMIT_HTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload &amp; Submit Video';
 let statusUnsubscribe = null;
 let _lastSub = null;
-const videoUrlCache = {};
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -231,19 +230,11 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-function esc(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-
-function formatSize(bytes) {
-  return bytes >= 1048576 ? (bytes / 1048576).toFixed(1) + ' MB' : Math.round(bytes / 1024) + ' KB';
-}
-
 function userRef() {
   return db.collection(ROOT).doc(String(userData.phone));
 }
 
-// ---------- Real-time status listener: videoChallenge/{phone} ----------
+// ---------- Real-time status listener ----------
 function checkSubmissionStatus() {
   if (!userData || !userData.phone || !initDb()) return;
   if (statusUnsubscribe) statusUnsubscribe();
@@ -263,12 +254,9 @@ function renderStatus(sub) {
 
   let classVal = "", icon = "", title = "", desc = "";
 
-  const hasVideo = sub.currentVideoId && sub.videoChunkCount;
-  const videoEmbedHtml = hasVideo ? `
+  const videoEmbedHtml = sub.videoUrl ? `
     <div id="videoHolder" style="margin-top:12px;">
-      <button type="button" onclick="viewSubmittedVideo()" style="display:inline-flex; align-items:center; gap:8px; padding:10px 16px; background:rgba(139,92,246,0.2); border:1px solid rgba(139,92,246,0.3); color:#a78bfa; border-radius:12px; font-size:12px; font-weight:700; cursor:pointer;">
-        <i class="fa-solid fa-play"></i> Watch Submitted Video${sub.videoFileSize ? ' (' + formatSize(sub.videoFileSize) + ')' : ''}
-      </button>
+      <video src="${sub.videoUrl}" controls playsinline style="width:100%; border-radius:12px; border:1px solid rgba(139,92,246,0.3); max-height:220px; display:block;"></video>
     </div>` : "";
 
   if (status === 'Pending') {
@@ -287,8 +275,8 @@ function renderStatus(sub) {
     classVal = "status-box status-rejected";
     icon = '<i class="fa-solid fa-circle-xmark"></i>';
     title = "Submission Declined";
-    desc = `Your video submission was declined. Please verify your video meets all guidelines (shows face or dashboard and speaks clearly about 9jaCash) and upload a new video.`;
-    formCard.classList.remove('hidden'); // Allow resubmission
+    desc = `Your video submission was declined. Please verify your video meets all guidelines and upload a new video.`;
+    formCard.classList.remove('hidden');
   } else {
     return;
   }
@@ -304,31 +292,44 @@ function renderStatus(sub) {
   `;
 }
 
-// ---------- Rebuild the uploaded video from its Firestore chunks ----------
-async function viewSubmittedVideo() {
-  const holder = document.getElementById('videoHolder');
-  if (!holder || !initDb()) return;
-  try {
-    const snap = _lastSub || (await userRef().get()).data();
-    const videoId = snap.currentVideoId;
-    if (videoUrlCache[videoId]) { showVideo(holder, videoUrlCache[videoId]); return; }
+// ---------- Direct Unsigned Cloudinary Upload ----------
+function uploadToCloudinary(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    formData.append("folder", "video_challenge");
 
-    holder.innerHTML = '<span style="font-size:12px;color:#a78bfa;font-weight:700;"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading video...</span>';
-    const chunks = await userRef().collection('videos').doc(videoId).collection('chunks').orderBy('index').get();
-    const parts = chunks.docs.map(d => d.data().data.toUint8Array());
-    const blob = new Blob(parts, { type: snap.videoFileType || 'video/mp4' });
-    videoUrlCache[videoId] = URL.createObjectURL(blob);
-    showVideo(holder, videoUrlCache[videoId]);
-  } catch (err) {
-    console.error('Video load error:', err);
-    holder.innerHTML = '<span style="font-size:12px;color:#f87171;">Could not load video. Please try again.</span>';
-  }
-}
-function showVideo(holder, url) {
-  holder.innerHTML = `<video src="${url}" controls playsinline style="width:100%; border-radius:8px; border:1px solid rgba(139,92,246,0.3); max-height:220px; display:block;"></video>`;
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        onProgress(percent);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const res = JSON.parse(xhr.responseText);
+        resolve(res.secure_url);
+      } else {
+        try {
+          const errRes = JSON.parse(xhr.responseText);
+          reject(new Error(errRes.error ? errRes.error.message : 'Upload Failed'));
+        } catch (e) {
+          reject(new Error('Upload failed with status ' + xhr.status));
+        }
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Network error during upload'));
+    xhr.send(formData);
+  });
 }
 
-// ---------- Upload video directly to Firestore ----------
+// ---------- Form Submission Logic ----------
 document.getElementById('submissionForm').addEventListener('submit', async function (e) {
   e.preventDefault();
   const file = document.getElementById('videoFile').files[0];
@@ -352,103 +353,48 @@ document.getElementById('submissionForm').addEventListener('submit', async funct
   }
 
   btn.disabled = true;
-  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-  const videoId = 'video_' + Date.now();
-  const videoRef = userRef().collection('videos').doc(videoId);
-  const chunksRef = videoRef.collection('chunks');
-  const chunkId = i => String(i).padStart(5, '0');
-
-  let nextIdx = 0, doneCount = 0, failed = null;
-  const written = [];
-
-  function setProgress() {
-    const pct = Math.round((doneCount / totalChunks) * 100);
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading Video (' + pct + '%)...';
-  }
-  setProgress();
-
-  async function worker() {
-    while (!failed) {
-      const i = nextIdx++;
-      if (i >= totalChunks) return;
-      try {
-        const buf = new Uint8Array(await file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE).arrayBuffer());
-        await chunksRef.doc(chunkId(i)).set({
-          index: i,
-          size: buf.length,
-          data: firebase.firestore.Blob.fromUint8Array(buf)
-        });
-        written.push(i);
-        doneCount++;
-        setProgress();
-      } catch (err) {
-        failed = err;
-        return;
-      }
-    }
-  }
 
   try {
-    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, totalChunks) }, worker));
-    if (failed) throw failed;
+    // 1. Direct Client-side Upload to Cloudinary with real-time percentage
+    const videoUrl = await uploadToCloudinary(file, (percent) => {
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading... (${percent}%)`;
+    });
 
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving details...';
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving submission...';
 
+    // 2. Save metadata & video URL to Firestore
     const name = userData.name || userData.fullName || 'User';
     const FV = firebase.firestore.FieldValue;
 
-    // Video details -> videoChallenge/{phone}/videos/{videoId}
-    const videoDoc = {
-      videoId: videoId,
-      phone: String(userData.phone),
-      userName: name,
-      fileName: file.name,
-      fileType: file.type,
-      fileSize: file.size,
-      chunkCount: totalChunks,
-      chunkSize: CHUNK_SIZE,
-      status: 'Pending',
-      createdAt: FV.serverTimestamp()
-    };
-
-    // User + latest video details -> videoChallenge/{phone}
     const userDoc = {
       phone: String(userData.phone),
       userName: name,
       email: userData.email || '',
       referralCode: userData.referralCode || '',
       status: 'Pending',
-      currentVideoId: videoId,
+      videoUrl: videoUrl,
       videoFileName: file.name,
       videoFileType: file.type,
       videoFileSize: file.size,
-      videoChunkCount: totalChunks,
       submissionCount: FV.increment(1),
       submittedAt: FV.serverTimestamp(),
       updatedAt: FV.serverTimestamp()
     };
 
-    const batch = db.batch();
-    batch.set(videoRef, videoDoc);
-    batch.set(userRef(), userDoc, { merge: true });
-    await batch.commit();
+    await userRef().set(userDoc, { merge: true });
 
     btn.disabled = false;
     btn.innerHTML = SUBMIT_HTML;
     document.getElementById('submissionForm').reset();
     showToast('Video submitted successfully!');
   } catch (err) {
-    console.error('Firestore upload error:', err);
-    // Wait for in-flight workers, then remove any orphaned chunks
-    await new Promise(r => setTimeout(r, 500));
-    try { await Promise.all(written.map(i => chunksRef.doc(chunkId(i)).delete())); } catch (e) { }
-
+    console.error('Submission error:', err);
     btn.disabled = false;
     btn.innerHTML = SUBMIT_HTML;
     Swal.fire({
       icon: 'error',
       title: 'Upload Failed',
-      text: 'Could not save your video to the database. Check your connection and try again.',
+      text: err.message || 'Could not save your video. Please check your connection and try again.',
       confirmButtonColor: '#8b5cf6'
     });
   }
