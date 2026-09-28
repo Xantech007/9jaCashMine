@@ -50,7 +50,7 @@
     .shape-3{width:120px;height:120px;background:rgba(236,72,153,0.08);top:40%;left:30%;animation-delay:10s;}
     @keyframes shapeFloat{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-20px) scale(1.1);}}
 
-    /* Card — matches dashboard */
+    /* Card */
     .card{background:#fff;border-radius:24px;padding:28px;border:1px solid #f1f5f9;box-shadow:0 4px 24px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);transition:all 0.3s ease;width:100%;max-width:420px;position:relative;overflow:hidden;}
     .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899);}
 
@@ -58,7 +58,7 @@
     .ob-card{background:#fff;border-radius:24px;padding:32px 24px;border:1px solid #f1f5f9;box-shadow:0 4px 24px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);text-align:center;max-width:420px;width:100%;position:relative;overflow:hidden;}
     .ob-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899);}
 
-    /* Input — matches dashboard */
+    /* Input */
     .inp{width:100%;padding:16px 18px;border-radius:16px;background:#f8fafc;border:2px solid #e2e8f0;color:#1e293b;font-size:15px;font-weight:600;outline:none;transition:all 0.3s;font-family:'Plus Jakarta Sans',sans-serif;}
     .inp:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.1);background:#fff;}
     .inp::placeholder{color:#94a3b8;font-weight:500;}
@@ -74,13 +74,34 @@
     body.dark-mode .password-toggle{color:#64748b;}
     body.dark-mode .password-toggle:hover{color:#818cf8;}
 
+    /* Bank Cards & High Contrast Light Mode Containers */
+    .fetched-bank-box {
+      background: #f0fdf4;
+      border: 2px solid #86efac;
+      box-shadow: 0 2px 10px rgba(22, 101, 52, 0.05);
+    }
+    body.dark-mode .fetched-bank-box {
+      background: rgba(6, 78, 59, 0.35);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    .multi-bank-box {
+      background: #eef2ff;
+      border: 2px solid #a5b4fc;
+      box-shadow: 0 2px 10px rgba(49, 46, 129, 0.05);
+    }
+    body.dark-mode .multi-bank-box {
+      background: rgba(30, 27, 75, 0.45);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
     /* Label */
     .lbl{display:block;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
 
     /* Character count */
     .count{text-align:right;font-size:11px;color:#94a3b8;margin-top:6px;font-weight:500;}
 
-    /* Primary button — matches dashboard */
+    /* Primary button */
     .btn-primary{width:100%;padding:18px;border-radius:18px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:16px;font-weight:800;border:none;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 20px rgba(99,102,241,0.3);}
     .btn-primary::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transition:0.5s;}
     .btn-primary:hover::before{left:100%;}
@@ -173,7 +194,6 @@
   </style>
 </head>
 <body>
-
   <div class="soft-bg">
     <div class="shape shape-1"></div>
     <div class="shape shape-2"></div>
@@ -231,15 +251,15 @@
           <label class="lbl">Account Number</label>
           <input type="text" id="accountNumber" maxlength="10" placeholder="1234567890" class="inp" />
           <p id="acctCount" class="count">0 / 10</p>
-          <p id="opayStatus" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1 font-semibold hide"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Fetching account details...</p>
+          <p id="opayStatus" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1.5 font-bold hide"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Fetching account details...</p>
 
-          <!-- Fetched Account & Bank Display (High contrast for light mode) -->
-          <div id="fetchedDetails" class="mt-3 p-3.5 bg-emerald-100/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800/60 rounded-xl shadow-sm hide">
-            <div class="flex items-start gap-2.5 text-emerald-950 dark:text-emerald-300">
-              <i class="fa-solid fa-circle-check text-base text-emerald-600 dark:text-emerald-400 mt-0.5"></i>
-              <div class="text-xs space-y-0.5">
-                <p id="fetchedBankName" class="uppercase tracking-wider text-[11px] font-bold text-emerald-700 dark:text-emerald-400"></p>
-                <p id="fetchedAccountName" class="text-sm font-extrabold text-emerald-950 dark:text-emerald-100"></p>
+          <!-- Fetched Account & Bank Display -->
+          <div id="fetchedDetails" class="mt-3 p-3.5 fetched-bank-box rounded-2xl hide">
+            <div class="flex items-start gap-2.5">
+              <i class="fa-solid fa-circle-check text-base mt-0.5 text-emerald-600 dark:text-emerald-400"></i>
+              <div class="space-y-0.5">
+                <p id="fetchedBankName" class="uppercase tracking-wider text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300"></p>
+                <p id="fetchedAccountName" class="text-sm font-black text-slate-900 dark:text-white"></p>
               </div>
             </div>
           </div>
@@ -336,17 +356,20 @@
         <!-- Navigation buttons -->
         <div class="s6 flex gap-3 pt-2" id="navButtons">
           <button type="button" id="backBtn" class="btn-primary" style="flex:1;background:#f1f5f9;color:#64748b;box-shadow:none;" onclick="prevStep()" disabled>
-            <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back</span>
           </button>
           <button type="button" id="nextBtn" class="btn-primary" style="flex:2;" onclick="nextStep()" disabled>
-            <span>Next</span> <i class="fa-solid fa-arrow-right"></i>
+            <span>Next</span>
+            <i class="fa-solid fa-arrow-right"></i>
           </button>
         </div>
 
         <!-- Submit button -->
         <div class="s6 hide pt-2" id="submitWrap">
           <button type="submit" id="continueBtn" class="btn-primary">
-            <span>Create Account</span> <i class="fa-solid fa-check"></i>
+            <span>Create Account</span>
+            <i class="fa-solid fa-check"></i>
           </button>
         </div>
 
@@ -354,7 +377,8 @@
         <div class="pt-3 text-center border-t border-slate-100 dark:border-slate-800 mt-4">
           <p class="text-xs text-[#64748b] mb-3">Already have an account?</p>
           <button type="button" onclick="goToLogin()" class="btn-secondary">
-            <i class="fa-solid fa-right-to-bracket"></i> <span>Login to Account</span>
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span>Login to Account</span>
           </button>
         </div>
       </form>
@@ -377,7 +401,8 @@
       <h2 class="success-title">Account Created!</h2>
       <p class="success-text">Your bank account has been linked successfully. Welcome to 9jaCash.</p>
       <button onclick="startOnboarding()" class="btn-primary mt-6">
-        <span>Get Started</span> <i class="fa-solid fa-arrow-right"></i>
+        <span>Get Started</span>
+        <i class="fa-solid fa-arrow-right"></i>
       </button>
     </div>
   </div>
@@ -392,7 +417,8 @@
       <h2 class="text-xl font-extrabold mb-2">Join Our Community</h2>
       <p class="text-sm text-[#64748b] mb-6 leading-relaxed">Get instant alerts on bonuses, withdrawals & exclusive rewards.</p>
       <a id="tgLink" href="#" target="_blank" class="btn-primary block mb-3" style="background:linear-gradient(135deg,#229ed9,#1d98d2);box-shadow:0 4px 20px rgba(34,158,217,0.3);" onclick="tgClicked()">
-        <i class="fa-brands fa-telegram"></i> <span>Join Telegram</span>
+        <i class="fa-brands fa-telegram"></i>
+        <span>Join Telegram</span>
       </a>
       <button id="skipBtn" class="skip-btn" disabled onclick="nextOb(2)">
         Skip for now (<span id="skipTimer">10</span>s)
@@ -414,7 +440,8 @@
       <h2 class="text-xl font-extrabold mb-2">Earn Every Minute</h2>
       <p class="text-sm text-[#64748b] mb-6 leading-relaxed">Auto mining runs 24/7. Watch your balance grow in real-time.</p>
       <button onclick="nextOb(3)" class="btn-primary">
-        <span>Next</span> <i class="fa-solid fa-chevron-right"></i>
+        <span>Next</span>
+        <i class="fa-solid fa-chevron-right"></i>
       </button>
       <div class="step-dots">
         <div class="dot"></div>
@@ -433,7 +460,8 @@
       <h2 class="text-xl font-extrabold mb-2">Daily Rewards</h2>
       <p class="text-sm text-[#64748b] mb-6 leading-relaxed">Check in every day to collect bonus cash and boost mining power.</p>
       <button onclick="nextOb(4)" class="btn-primary" style="background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 20px rgba(245,158,11,0.3);">
-        <span>Next</span> <i class="fa-solid fa-chevron-right"></i>
+        <span>Next</span>
+        <i class="fa-solid fa-chevron-right"></i>
       </button>
       <div class="step-dots">
         <div class="dot"></div>
@@ -452,7 +480,8 @@
       <h2 class="text-xl font-extrabold mb-2">You're All Set!</h2>
       <p class="text-sm text-[#64748b] mb-6 leading-relaxed">Your dashboard is ready. Start earning immediately.</p>
       <button onclick="goDash()" class="btn-primary" style="background:linear-gradient(135deg,#10b981,#34d399);box-shadow:0 4px 20px rgba(16,185,129,0.3);">
-        <span>Go to Dashboard</span> <i class="fa-solid fa-arrow-right"></i>
+        <span>Go to Dashboard</span>
+        <i class="fa-solid fa-arrow-right"></i>
       </button>
       <div class="step-dots">
         <div class="dot"></div>
@@ -467,7 +496,6 @@
   <script>
     // ========== REFERRAL HANDLING ==========
     let referrerPhone = null;
-
     function fetchReferrerInfo() {
       const urlParams = new URLSearchParams(window.location.search);
       referrerPhone = urlParams.get('ref') || urlParams.get('phone');
@@ -476,7 +504,7 @@
         const container = document.getElementById('referrerContainer');
         const nameEl = document.getElementById('referrerName');
         container.classList.remove('hide');
-
+        
         if (window._9jaCash && window._9jaCash.db) {
           window._9jaCash.db.collection('users').doc(referrerPhone).get()
             .then(doc => {
@@ -513,7 +541,13 @@
       "Step 5 of 5 — Password Creation"
     ];
     const fields = ['fieldPhone', 'fieldAccount', 'fieldBank', 'fieldName', 'fieldPassword'];
-    const inputs = { 1: 'phone', 2: 'accountNumber', 3: 'bankName', 4: 'fullName', 5: 'password' };
+    const inputs = {
+      1: 'phone',
+      2: 'accountNumber',
+      3: 'bankName',
+      4: 'fullName',
+      5: 'password'
+    };
 
     function showStep(step) {
       currentStep = step;
@@ -552,6 +586,7 @@
         const phone = document.getElementById('phone').value.trim();
         const nextBtn = document.getElementById('nextBtn');
         const originalContent = nextBtn.innerHTML;
+        
         nextBtn.disabled = true;
         nextBtn.innerHTML = '<span>Verifying...</span> <i class="fa-solid fa-spinner fa-spin"></i>';
 
@@ -572,6 +607,7 @@
           nextBtn.innerHTML = originalContent;
           return;
         }
+        
         nextBtn.innerHTML = originalContent;
       }
 
@@ -597,6 +633,7 @@
       const nextBtn = document.getElementById('nextBtn');
       const inputId = inputs[currentStep];
       const input = document.getElementById(inputId);
+      
       if (!input) {
         nextBtn.disabled = true;
         return;
@@ -632,6 +669,7 @@
 
         if (response.ok && result.status && result.data && result.data.length > 0) {
           matchedBankResults = result.data;
+          
           if (matchedBankResults.length === 1) {
             // Single result found
             applySelectedAccount(matchedBankResults[0]);
@@ -663,30 +701,31 @@
       checkNextEnabled();
     }
 
-    // Render dynamic choice UI if multiple banks match (High contrast styling for light mode)
+    // Render dynamic choice UI if multiple banks match
     function showMultiBankSelector(matches) {
       let selectorContainer = document.getElementById('multiBankSelectWrap');
       if (!selectorContainer) {
         selectorContainer = document.createElement('div');
         selectorContainer.id = 'multiBankSelectWrap';
-        selectorContainer.className = 'mt-3 p-3.5 bg-indigo-100/80 dark:bg-indigo-950/40 border border-indigo-300 dark:border-indigo-800/60 rounded-xl shadow-sm';
+        selectorContainer.className = 'mt-3 p-3.5 multi-bank-box rounded-2xl';
         const containerParent = document.getElementById('fieldAccount');
         containerParent.appendChild(selectorContainer);
       }
 
       let optionsHTML = `
-        <label class="block text-xs font-extrabold text-indigo-950 dark:text-indigo-300 mb-2 flex items-center gap-1.5">
-          <i class="fa-solid fa-layer-group text-indigo-600 dark:text-indigo-400"></i> Multiple Banks Found — Select Yours:
+        <label class="block text-xs font-black text-indigo-950 dark:text-indigo-200 mb-2">
+          <i class="fa-solid fa-layer-group mr-1 text-indigo-600 dark:text-indigo-400"></i> Multiple Banks Found — Select Yours:
         </label>
-        <select id="bankMatchPicker" class="inp text-sm bg-white dark:bg-slate-900 border-indigo-300 dark:border-indigo-700">
+        <select id="bankMatchPicker" class="inp text-sm font-bold bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-indigo-300 dark:border-indigo-700">
           <option value="" disabled selected>-- Select your bank --</option>
       `;
 
       matches.forEach((item, index) => {
-        optionsHTML += `<option value="${index}">${item.bankName} (${item.accountName})</option>`;
+        optionsHTML += `<option value="${index}" class="text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800">${item.bankName} (${item.accountName})</option>`;
       });
 
       optionsHTML += `</select>`;
+
       selectorContainer.innerHTML = optionsHTML;
       selectorContainer.classList.remove('hide');
 
@@ -698,24 +737,27 @@
       });
     }
 
+    // Auto-trigger on 10th digit entry
+    document.getElementById('accountNumber').addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '');
+      document.getElementById('acctCount').textContent = this.value.length + ' / 10';
+      document.getElementById('fetchedDetails').classList.add('hide');
+      
+      const pickerWrap = document.getElementById('multiBankSelectWrap');
+      if (pickerWrap) pickerWrap.classList.add('hide');
+      
+      checkNextEnabled();
+      
+      if (this.value.length === 10) {
+        fetchAccountDetails(this.value);
+      }
+    });
+
     // ========== INPUT LISTENERS ==========
     document.getElementById('phone').addEventListener('input', function() {
       this.value = this.value.replace(/\D/g, '');
       document.getElementById('phoneCount').textContent = this.value.length + ' / 11';
       checkNextEnabled();
-    });
-
-    document.getElementById('accountNumber').addEventListener('input', function() {
-      this.value = this.value.replace(/\D/g, '');
-      document.getElementById('acctCount').textContent = this.value.length + ' / 10';
-      document.getElementById('fetchedDetails').classList.add('hide');
-      const pickerWrap = document.getElementById('multiBankSelectWrap');
-      if (pickerWrap) pickerWrap.classList.add('hide');
-      checkNextEnabled();
-
-      if (this.value.length === 10) {
-        fetchAccountDetails(this.value);
-      }
     });
 
     document.getElementById('fullName').addEventListener('input', checkNextEnabled);
@@ -729,18 +771,6 @@
     });
 
     document.getElementById('password').addEventListener('input', checkNextEnabled);
-
-    function togglePasswordVisibility() {
-      const passInput = document.getElementById('password');
-      const icon = document.getElementById('togglePass');
-      if (passInput.type === 'password') {
-        passInput.type = 'text';
-        icon.className = 'fa-solid fa-eye-slash password-toggle';
-      } else {
-        passInput.type = 'password';
-        icon.className = 'fa-solid fa-eye password-toggle';
-      }
-    }
 
     // ========== FORM SUBMIT ==========
     document.getElementById('bankForm').addEventListener('submit', async function(e) {
@@ -812,6 +842,18 @@
       document.getElementById('successStep').classList.remove('hide');
     });
 
+    function togglePasswordVisibility() {
+      const passInput = document.getElementById('password');
+      const icon = document.getElementById('togglePass');
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash password-toggle';
+      } else {
+        passInput.type = 'password';
+        icon.className = 'fa-solid fa-eye password-toggle';
+      }
+    }
+
     // ========== SAVE TO FIREBASE ==========
     function saveToFirebase(data) {
       if (!window._9jaCash || !window._9jaCash.db) {
@@ -880,7 +922,9 @@
     }
 
     function tgClicked() {
-      setTimeout(function() { nextOb(2); }, 600);
+      setTimeout(function() {
+        nextOb(2);
+      }, 600);
     }
 
     // ========== SKIP TIMER ==========
@@ -889,6 +933,7 @@
       const skipBtn = document.getElementById('skipBtn');
       const timerSpan = document.getElementById('skipTimer');
       let seconds = 10;
+
       skipBtn.disabled = true;
       timerSpan.textContent = seconds;
 
@@ -936,8 +981,8 @@
       const t = document.getElementById('toast');
       const msgEl = document.getElementById('toastMsg');
       const icon = t.querySelector('i');
-      msgEl.textContent = msg;
 
+      msgEl.textContent = msg;
       if (type === 'error') {
         icon.className = 'fa-solid fa-circle-xmark';
         icon.style.color = '#ef4444';
