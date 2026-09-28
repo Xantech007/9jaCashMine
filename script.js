@@ -724,9 +724,12 @@ function dismissDownloadPrompt() {
   if (banner) banner.classList.remove("show");
 }
 
+const APK_URL = "https://raw.githubusercontent.com/Xantech007/9jaCashMine/main/9jaCash.apk";
+
 function downloadAppAPK() {
   showToast("Downloading APK...");
   dismissDownloadPrompt();
+  window.open(APK_URL, "_blank");
 }
 
 
