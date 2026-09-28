@@ -142,15 +142,27 @@ function saveUserData(updatedFields = {}) {
   }
 }
 
+// Social popup handles come from Firestore settings/payment (telegramLink, whatsappLink)
+let paymentHandles = { telegram: "", whatsapp: "" };
+try {
+  const cachedPayment = JSON.parse(localStorage.getItem("9jaCashAdminConfig"));
+  if (cachedPayment) paymentHandles = { telegram: cachedPayment.telegramLink || "", whatsapp: cachedPayment.whatsappLink || "" };
+} catch (e) { }
+
 function loadTelegramConfig() {
   const stored = localStorage.getItem("9jaCashAdminConfig");
   if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch (e) { } }
   if (db) {
     db.collection("settings").doc("payment").onSnapshot(function (doc) {
-      if (doc.exists && doc.data().telegramLink) {
-        telegramLink = doc.data().telegramLink;
-        localStorage.setItem("9jaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink }));
+      if (doc.exists) {
+        const d = doc.data() || {};
+        if (d.telegramLink) telegramLink = d.telegramLink;
+        paymentHandles = { telegram: d.telegramLink || "", whatsapp: d.whatsappLink || "" };
+        localStorage.setItem("9jaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink, whatsappLink: paymentHandles.whatsapp }));
         updateTelegramLink();
+        // If the popup is already visible, refresh its link
+        const p = document.getElementById("socialJoinPopup");
+        if (p && p.classList.contains("show")) renderSocialPopup();
       }
     }, function (err) { });
   }
@@ -718,7 +730,7 @@ function downloadAppAPK() {
 }
 
 
-// ---- Social popup: handles come from Firestore settings/redirects ----
+// ---- Customer Care modal: handles come from Firestore settings/redirects ----
 let socialHandles = { telegram: "", whatsapp: "" };
 try {
   const cached = JSON.parse(localStorage.getItem("9jaCashSocialHandles"));
@@ -761,16 +773,13 @@ function loadSocialHandles() {
     };
     try { localStorage.setItem("9jaCashSocialHandles", JSON.stringify(socialHandles)); } catch (e) { }
     updateCustomerCareLinks();
-    // If the popup is already visible, refresh its link
-    const p = document.getElementById("socialJoinPopup");
-    if (p && p.classList.contains("show")) renderSocialPopup();
   }, function (err) { });
 }
 
 // Alternates Telegram / WhatsApp on each page load; falls back to whichever exists
 function pickSocialPlatform() {
-  const tg = buildTelegramUrl(socialHandles.telegram);
-  const wa = buildWhatsappUrl(socialHandles.whatsapp);
+  const tg = buildTelegramUrl(paymentHandles.telegram);
+  const wa = buildWhatsappUrl(paymentHandles.whatsapp);
   if (tg && wa) return window.__socialPlatform || "telegram";
   if (wa) return "whatsapp";
   if (tg) return "telegram";
@@ -782,7 +791,7 @@ function renderSocialPopup() {
   if (!platform) return false;
 
   const isWa = platform === "whatsapp";
-  const url = isWa ? buildWhatsappUrl(socialHandles.whatsapp) : buildTelegramUrl(socialHandles.telegram);
+  const url = isWa ? buildWhatsappUrl(paymentHandles.whatsapp) : buildTelegramUrl(paymentHandles.telegram);
   const iconClass = isWa ? "fa-whatsapp" : "fa-telegram";
 
   const icon = document.getElementById("socialPopupIcon");
