@@ -794,7 +794,7 @@ function openNotificationsModal() {
   const modal = document.getElementById('notificationsOverlay');
   if (modal) {
     renderNotifications();
-    modal.classList.add('show');
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
 }
@@ -803,7 +803,7 @@ function closeNotificationsModal(event) {
   if (event && event.target !== event.currentTarget) return;
   const modal = document.getElementById('notificationsOverlay');
   if (modal) {
-    modal.classList.remove('show');
+    modal.classList.remove('active');
   }
 }
 
