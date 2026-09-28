@@ -1581,6 +1581,164 @@
     .d3 { animation-delay: 0.3s; }
     .d4 { animation-delay: 0.4s; }
     .d5 { animation-delay: 0.5s; }
+    
+/* Notifications Modal Overlay & Styling */
+    .notifications-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .notifications-modal-overlay.show {
+      display: flex !important;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .notifications-modal-content {
+      background: #ffffff;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 420px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    
+    body.dark-mode .notifications-modal-content {
+      background: #1e293b;
+      border-color: #334155;
+      color: #f8fafc;
+    }
+    
+    .notifications-modal-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    body.dark-mode .notifications-modal-header {
+      border-color: #334155;
+    }
+    
+    .close-modal-btn {
+      background: rgba(0, 0, 0, 0.05);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    body.dark-mode .close-modal-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+    }
+    
+    .close-modal-btn:hover {
+      color: #ef4444;
+    }
+    
+    .notifications-modal-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .notif-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid #f1f5f9;
+      transition: all 0.2s;
+    }
+    
+    body.dark-mode .notif-item {
+      background: #0f172a;
+      border-color: #1e293b;
+    }
+    
+    .notif-item.unread {
+      border-left: 3px solid #6366f1;
+    }
+    
+    .notif-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    
+    body.dark-mode .notif-title {
+      color: #f8fafc;
+    }
+    
+    .notif-desc {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    
+    body.dark-mode .notif-desc {
+      color: #94a3b8;
+    }
+    
+    .notif-time {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    
+    .notifications-modal-footer {
+      padding: 14px 20px;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+    }
+    
+    body.dark-mode .notifications-modal-footer {
+      border-color: #334155;
+    }
+    
+    .mark-read-btn {
+      background: none;
+      border: none;
+      color: #6366f1;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
+    /* Customer Care Overlay Flex Override */
+    .customer-care-modal-overlay.show {
+      display: flex !important;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    
   </style>
 </head>
 
@@ -1672,7 +1830,7 @@
       </div>
       <div style="display: flex; gap: 8px; align-items: center;">
         <button class="notify-btn" onclick="showDownloadPrompt()" id="downloadHeaderBtn" title="Download App"><i class="fa-solid fa-download"></i></button>
-        <button class="notify-btn" onclick="showToast('No new notifications')" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
+        <button class="notify-btn" onclick="openNotificationsModal()" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
         <button class="notify-btn logout-btn-head" onclick="logout()" id="logoutBtn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
