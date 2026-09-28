@@ -380,6 +380,10 @@ body.light-mode .flow-badge{background:#f1f5f9;color:#64748b;border-color:#e2e8f
 </div>
 
 <script>
+// ========== CLOUDINARY CONFIGURATION ==========
+const CLOUDINARY_CLOUD_NAME = "nhm2xhew";
+const CLOUDINARY_UPLOAD_PRESET = "payment_uploads";
+
 // ========== GLOBALS ==========
 let userData = null;
 try {
@@ -397,7 +401,6 @@ function getDb() {
 
 let receiptUploaded = false;
 let receiptFile = null;
-let receiptBase64 = null;
 let paymentData = null;
 let upgradeData = null;
 let timeLeft = 7 * 60;
@@ -622,7 +625,6 @@ function initRealtimePaymentListeners() {
     return;
   }
 
-  // 1. Real-time User Document Listener (Assign custom dynamic payment details if present)
   const userId = userData ? (userData.uid || userData.phone || userData.id) : null;
   if (userId) {
     userUnsubscribe = db.collection("users").doc(String(userId))
@@ -634,7 +636,6 @@ function initRealtimePaymentListeners() {
             return;
           }
         }
-        // Fallback to real-time global settings/payment
         subscribeGlobalPaymentDetails(db);
       }, (err) => {
         console.error("Realtime user snapshot error:", err);
@@ -645,9 +646,8 @@ function initRealtimePaymentListeners() {
   }
 }
 
-// Subscribes to real-time changes in Firestore settings/payment document
 function subscribeGlobalPaymentDetails(db) {
-  if (paymentUnsubscribe) return; // Prevent duplicate listeners
+  if (paymentUnsubscribe) return;
 
   paymentUnsubscribe = db.collection("settings").doc("payment")
     .onSnapshot((doc) => {
@@ -751,18 +751,18 @@ function handleUpload(input) {
   if (file.type.startsWith("image/")) {
     const reader = new FileReader();
     reader.onload = function(ev) {
-      receiptBase64 = ev.target.result;
       document.getElementById("receiptPreview").src = ev.target.result;
       document.getElementById("previewBox").classList.add("show");
     };
     reader.readAsDataURL(file);
+  } else {
+    document.getElementById("previewBox").classList.remove("show");
   }
 }
 
 function removeReceipt() {
   receiptUploaded = false;
   receiptFile = null;
-  receiptBase64 = null;
   document.getElementById("paidBtn").disabled = true;
   document.getElementById("previewBox").classList.remove("show");
   document.getElementById("receiptUpload").value = "";
@@ -775,9 +775,31 @@ function removeReceipt() {
   document.getElementById("uploadSub").textContent = "PNG, JPG, PDF • Max 5MB";
 }
 
+// ========== CLOUDINARY UPLOAD HELPER ==========
+async function uploadToCloudinary(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+  const resourceType = file.type === "application/pdf" ? "raw" : "image";
+  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    body: formData
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to upload image to Cloudinary");
+  }
+
+  const data = await response.json();
+  return data.secure_url;
+}
+
 // ========== REALTIME PAYMENT CONFIRMATION & FIREBASE SAVE ==========
-function confirmPayment() {
-  if (!receiptUploaded) {
+async function confirmPayment() {
+  if (!receiptUploaded || !receiptFile) {
     showToast("Please upload a receipt first!");
     return;
   }
@@ -787,11 +809,39 @@ function confirmPayment() {
 
   const btn = document.getElementById("paidBtn");
   btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting...';
+  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading Receipt...';
+
+  // SweetAlert Loader
+  Swal.fire({
+    title: "Uploading Receipt...",
+    html: '<div style="margin-top:16px;"><div style="width:40px;height:40px;border:3px solid #334155;border-top-color:#6366f1;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div><p style="margin-top:12px;color:#64748b;font-size:14px;">Uploading proof of payment to Cloudinary...</p></div>',
+    showConfirmButton: false,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
+    color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
+  });
+
+  let receiptUrl = null;
+  try {
+    receiptUrl = await uploadToCloudinary(receiptFile);
+  } catch (err) {
+    console.error("Cloudinary upload error:", err);
+    Swal.fire({
+      icon: "error",
+      title: "Upload Failed",
+      text: "Could not upload payment receipt. Please try again.",
+      background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
+      color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
+    });
+    isProcessing = false;
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> I Have Paid';
+    return;
+  }
 
   const userId = userData ? (userData.uid || userData.phone || userData.id || "unknown") : "unknown";
 
-  // Build real-time payload with Firestore server timestamp
   const serverTimestamp = firebase && firebase.firestore && firebase.firestore.FieldValue 
     ? firebase.firestore.FieldValue.serverTimestamp() 
     : new Date();
@@ -805,7 +855,7 @@ function confirmPayment() {
     date: new Date().toLocaleString(),
     createdAt: serverTimestamp,
     receiptUploaded: true,
-    receiptImage: receiptBase64 || null,
+    receiptImage: receiptUrl,
     paymentMethod: currentTab
   };
 
@@ -826,32 +876,20 @@ function confirmPayment() {
     };
   }
 
-  // SweetAlert Loader
-  Swal.fire({
-    title: "Saving Payment Realtime...",
-    html: '<div style="margin-top:16px;"><div style="width:40px;height:40px;border:3px solid #334155;border-top-color:#6366f1;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;"></div><p style="margin-top:12px;color:#64748b;font-size:14px;">Uploading proof of payment to server...</p></div>',
-    showConfirmButton: false,
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    background: document.body.classList.contains("light-mode") ? "#fff" : "#1e293b",
-    color: document.body.classList.contains("light-mode") ? "#1e293b" : "#f8fafc"
-  });
-
   const db = getDb();
 
   if (db) {
-    // Write directly to Firestore paymentReceipts collection
     db.collection("paymentReceipts").add(receiptData)
       .then(function(docRef) {
         console.log("Receipt stored in Firestore with ID:", docRef.id);
         localStorage.setItem("latestReceiptDocId", docRef.id);
 
-        // Mirror transaction entry in user timeline real-time
         return db.collection("users").doc(String(userId)).collection("transactions").add({
           type: flowType,
           amount: receiptData.amount || 0,
           status: "pending",
           receiptId: docRef.id,
+          receiptUrl: receiptUrl,
           createdAt: serverTimestamp
         });
       })
@@ -869,7 +907,6 @@ function confirmPayment() {
         }, 1500);
       });
   } else {
-    // Fallback if db instance is unavailable
     setTimeout(function() {
       Swal.close();
       performRedirect();
