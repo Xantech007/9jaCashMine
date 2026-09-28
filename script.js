@@ -1,18 +1,13 @@
+// script.js
 let userData = null;
+let realtimeUnsubscribe = null;
 
 function formatExternalLink(url, defaultUrl) {
   if (!url || typeof url !== 'string' || !url.trim()) return defaultUrl;
-  let clean = url.trim();
-  clean = clean.replace(/^\/+/, '');
-  if (/^(https?:\/\/|tg:\/\/|whatsapp:\/\/)/i.test(clean)) {
-    return clean;
-  }
-  if (/^(t\.me|wa\.me|whatsapp\.com|telegram\.me)/i.test(clean)) {
-    return 'https://' + clean;
-  }
-  if (/^\+?\d+$/.test(clean)) {
-    return 'https://wa.me/' + clean.replace(/^\+/, '');
-  }
+  let clean = url.trim().replace(/^\/+/, '');
+  if (/^(https?:\/\/|tg:\/\/|whatsapp:\/\/)/i.test(clean)) return clean;
+  if (/^(t\.me|wa\.me|whatsapp\.com|telegram\.me)/i.test(clean)) return 'https://' + clean;
+  if (/^\+?\d+$/.test(clean)) return 'https://wa.me/' + clean.replace(/^\+/, '');
   if (/^@?[a-zA-Z0-9_]+$/.test(clean)) {
     let username = clean.startsWith('@') ? clean.slice(1) : clean;
     return 'https://t.me/' + username;
@@ -21,9 +16,6 @@ function formatExternalLink(url, defaultUrl) {
 }
 
 let isBouncing = false;
-let hasRejectedWithdrawal = false;
-let rejectedWithdrawalInfo = null;
-
 try { userData = JSON.parse(localStorage.getItem("9jaCashUser")); } catch (e) { userData = null; }
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
 if (!userData) { window.location.href = "login.html"; }
@@ -31,14 +23,13 @@ if (!userData) { window.location.href = "login.html"; }
 let balance = (userData ? parseFloat(userData.balance) : 0) || parseFloat(localStorage.getItem("walletBalance")) || 0;
 let balanceHidden = false;
 const CHECKIN_REWARDS = [500, 1000, 1500, 2000, 3000, 5000, 10000];
-let checkinData = JSON.parse(localStorage.getItem("checkinData")) || { streak: 0, lastCheckin: null, claimedDays: [], checkedInToday: false };
+let checkinData = JSON.parse(localStorage.getItem("checkinData")) || { streak: 0, lastCheckin: null, claimedDays: [] };
 const CLAIM_AMOUNT = 2000;
 const CLAIM_INTERVAL = 60;
 const MAX_CLAIMS_PER_DAY = 50;
 let claimData = JSON.parse(localStorage.getItem("claimData")) || { count: 0, lastClaim: 0, dateStr: "", claimsToday: 0 };
 let claimTimer = null;
 let secondsLeft = CLAIM_INTERVAL;
-let alreadyMinedToday = false;
 let telegramLink = "https://t.me/apex_customercare";
 
 const TUTORIAL_STEPS = [
@@ -54,65 +45,131 @@ let tutorialActive = false;
 let db = null;
 let auth = null;
 
+// Initialize Firebase from global instance or firebase.js
 function initFirebase() {
   try {
-    if (window._9jaCash && window._9jaCash.db) {
-      db = window._9jaCash.db;
-      auth = window._9jaCash.auth;
-      return true;
-    }
     if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
       db = firebase.firestore();
       try { db.settings({ experimentalForceLongPolling: true }); } catch (e) { }
       auth = firebase.auth();
       return true;
     }
+    if (typeof window.db !== 'undefined') {
+      db = window.db;
+      auth = window.auth;
+      return true;
+    }
   } catch (e) { console.error("Firebase init error:", e); }
   return false;
+}
+
+// REAL-TIME FIRESTORE LISTENER
+function setupRealtimeListener() {
+  if (!db || !userData || !userData.phone) return;
+
+  const docRef = db.collection("users").doc(String(userData.phone));
+
+  if (realtimeUnsubscribe) realtimeUnsubscribe();
+
+  realtimeUnsubscribe = docRef.onSnapshot((doc) => {
+    if (doc.exists) {
+      const liveData = doc.data();
+
+      // Merge Firestore document into memory and localStorage
+      userData = { ...userData, ...liveData };
+      if (liveData.balance !== undefined && !isBouncing) {
+        balance = parseFloat(liveData.balance);
+      }
+
+      localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+      localStorage.setItem("walletBalance", balance);
+
+      if (liveData.streak !== undefined) checkinData.streak = liveData.streak;
+      if (liveData.lastCheckin) checkinData.lastCheckin = liveData.lastCheckin;
+      if (liveData.claimedDays) checkinData.claimedDays = liveData.claimedDays;
+      localStorage.setItem("checkinData", JSON.stringify(checkinData));
+
+      // Synchronize UI
+      renderUserInfo();
+      renderBankInfo();
+      updateBalance();
+      initCheckin();
+      initReferrals();
+      checkAndShowVerifyButton();
+    }
+  }, (error) => {
+    console.error("Real-time snapshot error:", error);
+  });
+}
+
+// REAL-TIME SAVE TO FIREBASE & LOCAL STORAGE
+function saveUserData(updatedFields = {}) {
+  localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+  localStorage.setItem("walletBalance", balance);
+  updateBalance();
+
+  if (db && userData && userData.phone) {
+    const payload = {
+      balance: balance,
+      totalMined: userData.totalMined || 0,
+      miningPower: userData.miningPower || "1x",
+      streak: checkinData.streak || 0,
+      lastCheckin: checkinData.lastCheckin || null,
+      claimedDays: checkinData.claimedDays || [],
+      bankName: userData.bankName || "",
+      accountNumber: userData.accountNumber || "",
+      accountName: userData.accountName || "",
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      ...updatedFields
+    };
+
+    db.collection("users").doc(String(userData.phone)).set(payload, { merge: true })
+      .then(() => console.log("Real-time data synced to Firebase."))
+      .catch((err) => console.error("Firebase sync error:", err));
+  }
+
+  if (API_URL && userData && userData.phone) {
+    fetch(API_URL + '/api/user/update-balance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone: userData.phone,
+        password: userData.password,
+        balance: balance,
+        totalMined: userData.totalMined || 0
+      })
+    }).catch(err => console.error("SQL sync error:", err));
+  }
 }
 
 function loadTelegramConfig() {
   const stored = localStorage.getItem("9jaCashAdminConfig");
   if (stored) { try { const config = JSON.parse(stored); if (config.telegramLink) telegramLink = config.telegramLink; } catch (e) { } }
-  fetch(API_URL + "/api/settings")
-    .then(function (res) { return res.json(); })
-    .then(function (data) {
-      const s = data.settings || {};
-      if (s.telegramLink) {
-        telegramLink = s.telegramLink;
+  if (db) {
+    db.collection("settings").doc("payment").onSnapshot(function (doc) {
+      if (doc.exists && doc.data().telegramLink) {
+        telegramLink = doc.data().telegramLink;
         localStorage.setItem("9jaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink }));
         updateTelegramLink();
       }
-    })
-    .catch(function (err) { });
+    }, function (err) { });
+  }
   updateTelegramLink();
 }
 
 function updateTelegramLink() {
   const btn = document.getElementById("telegramSupport");
-  if (btn) {
-    btn.href = "javascript:void(0)";
-  }
+  if (btn) btn.href = "javascript:void(0)";
 }
 
 function initDarkMode() {
   const isDark = localStorage.getItem("9jaCashDark") === "true";
-  if (isDark) {
-    document.body.classList.add("dark-mode");
-    const icon = document.getElementById("themeIcon");
-    const text = document.getElementById("themeText");
-    if (icon) icon.className = "fa-solid fa-sun";
-    if (text) text.textContent = "Light";
-  }
+  if (isDark) document.body.classList.add("dark-mode");
 }
 
 function toggleDarkMode() {
   const isDark = document.body.classList.toggle("dark-mode");
   localStorage.setItem("9jaCashDark", isDark);
-  const icon = document.getElementById("themeIcon");
-  const text = document.getElementById("themeText");
-  if (isDark) { if (icon) icon.className = "fa-solid fa-sun"; if (text) text.textContent = "Light"; }
-  else { if (icon) icon.className = "fa-solid fa-moon"; if (text) text.textContent = "Dark"; }
 }
 
 function initTutorial() {
@@ -194,8 +251,63 @@ function finishTutorial() {
   showToast("Tour complete! Start earning!");
 }
 
+function executeBounce() {
+  const stored = localStorage.getItem("pendingBounce");
+  if (!stored) return;
+
+  isBouncing = true;
+  localStorage.removeItem("pendingBounce");
+
+  try {
+    const data = JSON.parse(stored);
+    const amount = parseFloat(data.amount) || 0;
+    if (amount <= 0) { isBouncing = false; return; }
+
+    balance = (parseFloat(localStorage.getItem("walletBalance")) || 0) + amount;
+    userData.balance = balance;
+    saveUserData();
+
+    addBounceToActivity("Withdrawal Reversed", amount, "Unsuccessful - Linked bank account not verified");
+    sendBounceNotification(amount);
+
+    localStorage.setItem("9jaCashBouncedWithdrawal", "true");
+    checkAndShowVerifyButton();
+
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: "warning",
+        title: "Withdrawal Failed",
+        html: '<p style="color:#64748b;">Your withdrawal of <b>₦' + amount.toLocaleString() + '</b> was returned.</p><p style="color:#64748b;margin-top:8px;">Reason: <b>Linked bank account not verified</b></p>',
+        confirmButtonText: "Verify Account",
+        confirmButtonColor: "#ef4444"
+      }).then(function (r) { if (r.isConfirmed) { verifyBankLink(); } });
+    } else {
+      alert("Withdrawal Failed\nYour withdrawal of ₦" + amount.toLocaleString() + " was returned.");
+      verifyBankLink();
+    }
+    isBouncing = false;
+  } catch (e) {
+    console.error("Bounce execution error:", e);
+    isBouncing = false;
+  }
+}
+
 function checkPendingBounceOnLoad() {
-  if (localStorage.getItem("pendingBounce")) {
+  const stored = localStorage.getItem("pendingBounce");
+  if (!stored) return;
+  try {
+    const isUserVer = userData && (userData.is_verified === 1 || userData.is_verified === true || userData.isVerified === true);
+    if (isUserVer) {
+      localStorage.removeItem("pendingBounce");
+      return;
+    }
+    const data = JSON.parse(stored);
+    const elapsed = Date.now() - (data.timestamp || 0);
+    const BOUNCE_DELAY = 30000;
+
+    if (elapsed >= BOUNCE_DELAY) executeBounce();
+    else setTimeout(executeBounce, BOUNCE_DELAY - elapsed);
+  } catch (e) {
     localStorage.removeItem("pendingBounce");
   }
 }
@@ -206,105 +318,52 @@ function formatMoney(num) { return "₦" + Number(num || 0).toLocaleString("en-N
 
 function updateBalance() {
   const el = document.getElementById("walletBalance");
+  if (!el) return;
   if (balanceHidden) { el.innerHTML = "****<span>.**</span>"; } else {
     const formatted = formatMoney(balance);
     if (formatted.includes(".")) { el.innerHTML = formatted.replace(/\.(\d+)$/, '<span>.$1</span>'); }
     else { el.innerHTML = formatted + '<span>.00</span>'; }
   }
-  localStorage.setItem("walletBalance", balance);
 }
 
 function toggleBalance() {
-  if (tutorialActive && currentTutorialStep === 3) { nextTutorial(); }
   balanceHidden = !balanceHidden;
   const icon = document.getElementById("eyeIcon");
-  icon.style.opacity = "0";
-  setTimeout(function () { icon.className = balanceHidden ? "fa-regular fa-eye-slash" : "fa-regular fa-eye"; icon.style.opacity = "1"; }, 150);
+  if (icon) icon.className = balanceHidden ? "fa-regular fa-eye-slash" : "fa-regular fa-eye";
   updateBalance();
 }
 
 function showToast(msg) {
   const t = document.getElementById("toast");
+  if (!t) return;
   document.getElementById("toastMsg").textContent = msg;
   t.classList.add("show");
   setTimeout(function () { t.classList.remove("show"); }, 2500);
 }
 
-function fetchFirestoreUserData() {
-  if (window._9jaCash && window._9jaCash.db && userData && userData.phone) {
-    window._9jaCash.db.collection("users").doc(userData.phone).get()
-      .then(function(doc) {
-        if (doc.exists) {
-          const data = doc.data();
-          if (data.balance !== undefined) {
-            balance = parseFloat(data.balance);
-            userData.balance = balance;
-          }
-          if (data.totalMined !== undefined) {
-            userData.totalMined = parseFloat(data.totalMined);
-          }
-          localStorage.setItem("walletBalance", balance);
-          localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-          updateBalance();
-          if (document.getElementById("totalMined")) {
-            document.getElementById("totalMined").textContent = formatMoney(userData.totalMined || 0);
-          }
-        }
-      })
-      .catch(function(err) { console.error("Error fetching Firestore user data:", err); });
-  }
-}
+function renderUserInfo() {
+  if (!userData) return;
+  const nameEl = document.getElementById("userName");
+  const avatarEl = document.getElementById("userAvatar");
+  const greetingEl = document.getElementById("greeting");
 
-function saveUserData() {
-  localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-  localStorage.setItem("walletBalance", balance);
+  if (nameEl) nameEl.textContent = userData.name || userData.phone || "9jaCash User";
+  if (avatarEl) avatarEl.textContent = (userData.name || userData.phone || "9").charAt(0).toUpperCase();
 
-  fetch(API_URL + '/api/user/update-balance', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      phone: userData.phone,
-      password: userData.password,
-      balance: balance,
-      totalMined: userData.totalMined || 0
-    })
-  })
-    .then(function (res) { return res.json(); })
-    .then(function (data) {
-      if (data.status && data.balance !== undefined) {
-        balance = parseFloat(data.balance);
-        userData.balance = balance;
-        localStorage.setItem("walletBalance", balance);
-        localStorage.setItem("9jaCashUser", JSON.stringify(userData));
-        updateBalance();
-      }
-    })
-    .catch(function (err) { console.error("Balance SQL update failed:", err); });
+  const hrs = new Date().getHours();
+  let greet = "Good morning";
+  if (hrs >= 12 && hrs < 17) greet = "Good afternoon";
+  else if (hrs >= 17) greet = "Good evening";
+  if (greetingEl) greetingEl.textContent = greet;
 
-  if (window._9jaCash && window._9jaCash.db && userData && userData.phone) {
-    window._9jaCash.db.collection("users").doc(userData.phone).set({
-      balance: balance,
-      totalMined: userData.totalMined || 0,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true })
-      .then(function () { console.log("Firestore balance synced successfully."); })
-      .catch(function (err) { console.error("Firestore balance sync failed:", err); });
-  }
-}
-
-function addToActivity(title, amount, type) {
-  if (window._9jaCash && window._9jaCash.db && userData && userData.phone) {
-    window._9jaCash.db.collection("users").doc(userData.phone).collection("activities").add({
-      title: title,
-      amount: amount,
-      type: type,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).catch(function(err) { console.error("Failed to write activity to Firestore:", err); });
-  }
+  const totalMinedEl = document.getElementById("totalMined");
+  const miningPowerEl = document.getElementById("miningPower");
+  if (totalMinedEl) totalMinedEl.textContent = formatMoney(userData.totalMined || 0);
+  if (miningPowerEl) miningPowerEl.textContent = userData.miningPower || "1x";
 }
 
 function initCheckin() {
-  document.getElementById("streakCount").textContent = checkinData.streak;
+  document.getElementById("streakCount").textContent = checkinData.streak || 0;
   for (let i = 0; i < 7; i++) {
     const el = document.getElementById("day" + i);
     if (!el) continue;
@@ -313,233 +372,507 @@ function initCheckin() {
     else { el.className = "checkin-day locked"; el.querySelector(".day-num").textContent = (i + 1); }
   }
   const btn = document.getElementById("checkinBtn");
-  if (checkinData.checkedInToday) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-check"></i> Checked In Today'; }
-  else { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-gift"></i> Check In'; }
+  const todayStr = new Date().toDateString();
+  if (checkinData.lastCheckin === todayStr) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Checked In Today';
+  }
 }
 
 function doCheckin() {
-  if (tutorialActive && currentTutorialStep === 5) { nextTutorial(); }
-  if (checkinData.checkedInToday) { showToast("Already checked in today!"); return; }
-  if (!userData || !userData.phone) { showToast("Please log in again."); return; }
+  const todayStr = new Date().toDateString();
+  if (checkinData.lastCheckin === todayStr) { showToast("Already checked in today!"); return; }
+  const dayIndex = checkinData.claimedDays.length;
+  const amount = CHECKIN_REWARDS[Math.min(dayIndex, 6)];
 
-  fetch(API_URL + '/api/user/checkin', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone: userData.phone })
-  })
-    .then(function (res) { return res.json(); })
-    .then(function (data) {
-      if (!data.status) {
-        checkinData.checkedInToday = true;
-        localStorage.setItem("checkinData", JSON.stringify(checkinData));
-        initCheckin();
-        showToast(data.error === 'Already checked in today' ? "Already checked in today!" : (data.error || "Check-in failed"));
-        return;
-      }
-      const amount = data.amount;
-      balance = data.newBalance;
-      userData.balance = balance;
-      userData.totalMined = (userData.totalMined || 0) + amount;
-      saveUserData();
+  balance += amount;
+  userData.balance = balance;
+  userData.totalMined = (userData.totalMined || 0) + amount;
+  checkinData.claimedDays.push(todayStr);
+  checkinData.lastCheckin = todayStr;
+  checkinData.streak = (checkinData.streak || 0) + 1;
 
-      checkinData.streak = data.streak;
-      checkinData.claimedDays = data.claimedDays;
-      checkinData.checkedInToday = true;
-      localStorage.setItem("checkinData", JSON.stringify(checkinData));
+  if (checkinData.claimedDays.length > 7) checkinData.claimedDays = [];
+  localStorage.setItem("checkinData", JSON.stringify(checkinData));
 
-      addToActivity("Daily Check-In", amount, "in"); updateBalance(); initCheckin();
-      showToast("Checked in! +₦" + amount.toLocaleString());
-      const dayLabel = ((data.streak - 1) % 7) + 1;
-      Swal.fire({ icon: "success", title: "Day " + dayLabel + " Complete!", text: "+₦" + amount.toLocaleString() + " added to your balance", confirmButtonColor: "#6366f1", timer: 2000, showConfirmButton: false, background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b" });
-    })
-    .catch(function (err) {
-      console.error("Check-in failed:", err);
-      showToast("Check-in failed. Check your connection and try again.");
+  saveUserData({ streak: checkinData.streak });
+  addToActivity("Daily Check-In", amount, "in");
+  initCheckin();
+
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      icon: "success",
+      title: "Day " + checkinData.claimedDays.length + " Complete!",
+      text: "+₦" + amount.toLocaleString() + " added to your balance",
+      confirmButtonColor: "#6366f1"
     });
-}
-
-function getTodayStr() { return new Date().toDateString(); }
-
-function initClaim() {
-  const now = Math.floor(Date.now() / 1000);
-  const elapsed = claimData.lastClaim ? now - claimData.lastClaim : CLAIM_INTERVAL;
-  const timerEl = document.getElementById("claimTimer");
-  const nextEl = document.getElementById("claimNext");
-  const progressEl = document.getElementById("claimProgress");
-  progressEl.textContent = claimData.claimsToday || 0;
-  if ((claimData.claimsToday || 0) >= MAX_CLAIMS_PER_DAY) { if (claimTimer) { clearInterval(claimTimer); claimTimer = null; } timerEl.textContent = "DONE"; timerEl.className = "claim-timer done"; nextEl.textContent = "Come back tomorrow"; return; }
-  if (elapsed >= CLAIM_INTERVAL) { secondsLeft = 0; if (claimTimer) { clearInterval(claimTimer); claimTimer = null; } timerEl.textContent = "CLAIM"; timerEl.className = "claim-timer ready"; }
-  else {
-    secondsLeft = Math.max(0, Math.min(CLAIM_INTERVAL, CLAIM_INTERVAL - elapsed));
-    timerEl.className = "claim-timer";
-    startClaimTimer();
+  } else {
+    showToast("Checked in! +₦" + amount.toLocaleString());
   }
-}
-
-function startClaimTimer() {
-  if (claimTimer) { clearInterval(claimTimer); claimTimer = null; }
-  const timerEl = document.getElementById("claimTimer");
-  const nextEl = document.getElementById("claimNext");
-  claimTimer = setInterval(function () {
-    if (secondsLeft > 0) { secondsLeft--; const m = Math.floor(secondsLeft / 60); const s = secondsLeft % 60; timerEl.textContent = m + ":" + s.toString().padStart(2, '0'); nextEl.textContent = m + ":" + s.toString().padStart(2, '0'); }
-    else { clearInterval(claimTimer); claimTimer = null; timerEl.textContent = "CLAIM"; timerEl.className = "claim-timer ready"; }
-  }, 1000);
-}
-
-function doClaim() {
-  if (tutorialActive && currentTutorialStep === 4) { nextTutorial(); }
-  if (!userData || !userData.phone) { showToast("Please log in again."); return; }
-  if ((claimData.claimsToday || 0) >= MAX_CLAIMS_PER_DAY) { showToast("Daily claim limit reached (50/50)"); return; }
-
-  fetch(API_URL + '/api/user/claim', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone: userData.phone })
-  })
-    .then(function (res) { return res.json(); })
-    .then(function (data) {
-      const timerEl = document.getElementById("claimTimer");
-      if (!data.status) {
-        if (data.error === 'Daily claim limit reached') {
-          claimData.claimsToday = MAX_CLAIMS_PER_DAY;
-          localStorage.setItem("claimData", JSON.stringify(claimData));
-          initClaim();
-          showToast("Daily claim limit reached (50/50)");
-        } else if (data.secondsLeft) {
-          secondsLeft = data.secondsLeft;
-          timerEl.className = "claim-timer";
-          startClaimTimer();
-          showToast("Please wait before claiming again.");
-        } else {
-          showToast(data.error || "Claim failed");
-        }
-        return;
-      }
-
-      balance = data.newBalance;
-      userData.balance = balance;
-      userData.totalMined = (userData.totalMined || 0) + data.amount;
-      saveUserData();
-
-      claimData.count = (claimData.count || 0) + 1;
-      claimData.claimsToday = data.claimsToday;
-      claimData.lastClaim = Math.floor(Date.now() / 1000);
-      claimData.dateStr = getTodayStr();
-      localStorage.setItem("claimData", JSON.stringify(claimData));
-
-      addToActivity("Auto Claim", data.amount, "in"); updateBalance();
-      const progressEl = document.getElementById("claimProgress");
-      progressEl.textContent = claimData.claimsToday;
-      showToast("+₦" + data.amount + " claimed! (" + claimData.claimsToday + "/" + MAX_CLAIMS_PER_DAY + ")");
-      if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { timerEl.textContent = "DONE"; timerEl.className = "claim-timer done"; document.getElementById("claimNext").textContent = "Come back tomorrow"; return; }
-      secondsLeft = CLAIM_INTERVAL; timerEl.className = "claim-timer"; startClaimTimer();
-    })
-    .catch(function (err) {
-      console.error("Claim failed:", err);
-      showToast("Claim failed. Check your connection and try again.");
-    });
-}
-
-function getPlanMiningDetails() {
-  const plan = userData.planName || 'Free Miner';
-  if (plan.includes('Basic')) {
-    return { name: 'Basic Plan', limit: 50000 };
-  } else if (plan.includes('Silver')) {
-    return { name: 'Silver Plan', limit: 80000 };
-  } else if (plan.includes('Gold')) {
-    return { name: 'Gold Plan', limit: 172000 };
-  } else if (plan.includes('Diamond')) {
-    return { name: 'Diamond Plan', limit: 320000 };
-  }
-  return { name: 'Free Miner', limit: 30000 };
 }
 
 function startMining() {
-  if (tutorialActive && currentTutorialStep === 0) { nextTutorial(); }
-  const details = getPlanMiningDetails();
-  if (alreadyMinedToday) {
+  const minedAmount = 30000;
+  balance += minedAmount;
+  userData.balance = balance;
+  userData.totalMined = (userData.totalMined || 0) + minedAmount;
+
+  saveUserData({ totalMined: userData.totalMined });
+  addToActivity("Daily Mining Reward", minedAmount, "in");
+
+  if (typeof Swal !== 'undefined') {
     Swal.fire({
-      icon: "info",
-      title: "Mining Limit Reached",
-      text: "You've already mined " + formatMoney(details.limit) + " today. Upgrade your plan to continue.",
-      confirmButtonColor: "#6366f1",
-      background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
-      color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
+      icon: 'success',
+      title: 'Mining Successful!',
+      text: 'You mined ₦' + minedAmount.toLocaleString() + ' today!',
+      confirmButtonColor: '#6366f1'
     });
+  } else {
+    showToast("Mined +₦" + minedAmount.toLocaleString());
+  }
+}
+
+function initClaim() {
+  const todayStr = new Date().toDateString();
+  if (claimData.dateStr !== todayStr) {
+    claimData.claimsToday = 0;
+    claimData.dateStr = todayStr;
+    localStorage.setItem("claimData", JSON.stringify(claimData));
+  }
+  startClaimTimer();
+}
+
+function startClaimTimer() {
+  if (claimTimer) clearInterval(claimTimer);
+  const now = Math.floor(Date.now() / 1000);
+  const elapsed = now - (claimData.lastClaim || 0);
+  secondsLeft = elapsed < CLAIM_INTERVAL ? CLAIM_INTERVAL - elapsed : 0;
+
+  updateClaimTimerDisplay();
+  claimTimer = setInterval(() => {
+    if (secondsLeft > 0) {
+      secondsLeft--;
+      updateClaimTimerDisplay();
+    } else {
+      clearInterval(claimTimer);
+      updateClaimTimerDisplay();
+    }
+  }, 1000);
+}
+
+function updateClaimTimerDisplay() {
+  const timerEl = document.getElementById("claimTimer");
+  const nextEl = document.getElementById("claimNext");
+  const progressEl = document.getElementById("claimProgress");
+  if (progressEl) progressEl.textContent = claimData.claimsToday || 0;
+
+  if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) {
+    if (timerEl) { timerEl.textContent = "Done"; timerEl.className = "claim-timer done"; }
+    if (nextEl) nextEl.textContent = "Limit Reached";
     return;
   }
+
+  if (secondsLeft <= 0) {
+    if (timerEl) { timerEl.textContent = "Claim"; timerEl.className = "claim-timer ready"; }
+    if (nextEl) nextEl.textContent = "Ready!";
+  } else {
+    const mins = Math.floor(secondsLeft / 60);
+    const secs = secondsLeft % 60;
+    const str = mins + ":" + (secs < 10 ? "0" : "") + secs;
+    if (timerEl) { timerEl.textContent = str; timerEl.className = "claim-timer"; }
+    if (nextEl) nextEl.textContent = str;
+  }
+}
+
+function doClaim() {
+  if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { showToast("Daily claim limit reached!"); return; }
+  if (secondsLeft > 0) { showToast("Please wait for the timer."); return; }
+
+  balance += CLAIM_AMOUNT;
+  userData.balance = balance;
+  claimData.claimsToday = (claimData.claimsToday || 0) + 1;
+  claimData.lastClaim = Math.floor(Date.now() / 1000);
+
+  localStorage.setItem("claimData", JSON.stringify(claimData));
+  saveUserData();
+  addToActivity("Minute Claim Reward", CLAIM_AMOUNT, "in");
+
+  secondsLeft = CLAIM_INTERVAL;
+  startClaimTimer();
+  showToast("Claimed +₦" + CLAIM_AMOUNT.toLocaleString());
+}
+
+function editBank() {
+  if (typeof Swal === 'undefined') {
+    const bName = prompt("Enter Bank Name:", userData.bankName || "");
+    const accNum = prompt("Enter Account Number:", userData.accountNumber || "");
+    const accName = prompt("Enter Account Name:", userData.accountName || "");
+    if (bName && accNum) {
+      userData.bankName = bName;
+      userData.accountNumber = accNum;
+      userData.accountName = accName || "";
+      saveUserData({ bankName: bName, accountNumber: accNum, accountName: userData.accountName });
+      renderBankInfo();
+    }
+    return;
+  }
+
   Swal.fire({
-    title: "Start Mining?",
-    html: '<p style="color:#64748b;margin-top:8px;">Your plan is <b>' + details.name + '</b>. Mine up to <b>' + formatMoney(details.limit) + '</b> today.</p>',
-    icon: "question",
+    title: 'Update Linked Bank',
+    html: `
+      <input id="swal-bank" class="swal2-input" placeholder="Bank Name" value="${userData.bankName || ''}">
+      <input id="swal-acc" class="swal2-input" placeholder="Account Number" value="${userData.accountNumber || ''}">
+      <input id="swal-name" class="swal2-input" placeholder="Account Holder Name" value="${userData.accountName || ''}">
+    `,
     showCancelButton: true,
-    confirmButtonText: "Start Mining",
-    confirmButtonColor: "#6366f1",
-    cancelButtonColor: "#64748b",
-    background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
-    color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
-  }).then(function(res) {
-    if (res.isConfirmed) {
-      fetch(API_URL + '/api/user/mine', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: userData.phone })
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.status) {
-          balance = data.newBalance;
-          userData.balance = balance;
-          userData.totalMined = (userData.totalMined || 0) + data.minedAmount;
-          alreadyMinedToday = true;
-          saveUserData();
-          addToActivity("Daily Mining", data.minedAmount, "in");
-          updateBalance();
-          Swal.fire({
-            icon: "success",
-            title: "Mining Complete!",
-            text: "+₦" + data.minedAmount.toLocaleString() + " added to your wallet.",
-            confirmButtonColor: "#6366f1",
-            background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff",
-            color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"
-          });
-        } else {
-          showToast(data.error || "Mining failed");
-        }
-      })
-      .catch(function(err) {
-        console.error("Mining request error:", err);
-        showToast("Mining error. Please try again.");
+    confirmButtonText: 'Save Details',
+    confirmButtonColor: '#6366f1',
+    preConfirm: () => ({
+      bankName: document.getElementById('swal-bank').value.trim(),
+      accountNumber: document.getElementById('swal-acc').value.trim(),
+      accountName: document.getElementById('swal-name').value.trim()
+    })
+  }).then((res) => {
+    if (res.isConfirmed && res.value.bankName && res.value.accountNumber) {
+      userData.bankName = res.value.bankName;
+      userData.accountNumber = res.value.accountNumber;
+      userData.accountName = res.value.accountName;
+      saveUserData({
+        bankName: userData.bankName,
+        accountNumber: userData.accountNumber,
+        accountName: userData.accountName
       });
+      renderBankInfo();
+      showToast("Bank updated & saved to Firebase!");
     }
   });
 }
 
-function goToWithdraw() {
-  window.location.href = "withdraw.html";
+function renderBankInfo() {
+  const bankNameText = document.getElementById("bankNameText");
+  const bankMeta = document.getElementById("bankMeta");
+  if (bankNameText) bankNameText.textContent = userData.bankName || "No Bank Linked";
+  if (bankMeta) bankMeta.textContent = (userData.accountNumber ? maskNum(userData.accountNumber) : "****") + " | " + (userData.accountName || "Not Set");
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-  initFirebase();
+function checkAndShowVerifyButton() {
+  const wrap = document.getElementById("verifyBankWrap");
+  if (!wrap) return;
+  const isBounced = localStorage.getItem("9jaCashBouncedWithdrawal") === "true";
+  const hasPayoutKey = userData && userData.payoutKeyPurchased === true;
+  const isVerified = userData && (userData.is_verified === 1 || userData.is_verified === true || userData.isVerified === true);
+
+  if ((isBounced || hasPayoutKey) && !isVerified) wrap.classList.add("show");
+  else wrap.classList.remove("show");
+}
+
+function handleVerifyClick() {
+  const videoBanner = document.getElementById("verifyTutorialBanner");
+  if (videoBanner) videoBanner.style.display = "block";
+  openVerificationVideoModal();
+}
+
+function openVerificationVideoModal() {
+  const modal = document.getElementById("verificationVideoModal");
+  if (modal) modal.style.display = "flex";
+}
+
+function skipVerificationVideo() {
+  const modal = document.getElementById("verificationVideoModal");
+  if (modal) modal.style.display = "none";
+  verifyBankLink();
+}
+
+function proceedToVerify() {
+  const modal = document.getElementById("verificationVideoModal");
+  if (modal) modal.style.display = "none";
+  verifyBankLink();
+}
+
+function verifyBankLink() { window.location.href = "verify.html"; }
+
+function initReferrals() {
+  const code = userData ? (userData.referralCode || userData.phone || "9JACASH") : "9JACASH";
+  const baseUrl = window.location.origin + window.location.pathname.replace("dashboard.html", "") + "start.html?ref=" + code;
+
+  const input = document.getElementById("referralLinkInput");
+  if (input) input.value = baseUrl;
+
+  const countEl = document.getElementById("referralsCountVal");
+  const earnEl = document.getElementById("referralEarningsVal");
+  if (countEl) countEl.textContent = userData.referralsCount || userData.referrals || 0;
+  if (earnEl) earnEl.textContent = formatMoney(userData.referralEarnings || 0);
+
+  const msg = encodeURIComponent("Join me on 9jaCash to earn daily cash! Register here: " + baseUrl);
+  const shareTg = document.getElementById("shareTelegram");
+  if (shareTg) shareTg.href = "https://t.me/share/url?url=" + encodeURIComponent(baseUrl) + "&text=" + msg;
+  const shareWa = document.getElementById("shareWhatsApp");
+  if (shareWa) shareWa.href = "https://api.whatsapp.com/send?text=" + msg;
+}
+
+function copyReferralLink() {
+  const input = document.getElementById("referralLinkInput");
+  if (input) {
+    input.select();
+    navigator.clipboard.writeText(input.value).then(() => showToast("Referral link copied!"));
+  }
+}
+
+function copyReferralMessage() {
+  const input = document.getElementById("referralLinkInput");
+  const code = userData ? (userData.referralCode || userData.phone || "9JACASH") : "9JACASH";
+  const msg = "Join 9jaCash today & earn daily cash!\nUse referral code: " + code + "\nLink: " + (input ? input.value : "");
+  navigator.clipboard.writeText(msg).then(() => showToast("Referral details copied!"));
+}
+
+function addToActivity(title, amount, type) {
+  let activities = JSON.parse(localStorage.getItem("activities")) || [];
+  const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  activities.unshift({ title, amount, type, time: timeStr });
+  if (activities.length > 20) activities.pop();
+  localStorage.setItem("activities", JSON.stringify(activities));
+  renderActivities();
+}
+
+function addBounceToActivity(title, amount, status) {
+  let activities = JSON.parse(localStorage.getItem("activities")) || [];
+  const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  activities.unshift({ title, amount, type: 'bounce', status, time: timeStr });
+  if (activities.length > 20) activities.pop();
+  localStorage.setItem("activities", JSON.stringify(activities));
+  renderActivities();
+}
+
+function renderActivities() {
+  const list = document.getElementById("activityList");
+  if (!list) return;
+  let activities = JSON.parse(localStorage.getItem("activities")) || [];
+  if (activities.length === 0) {
+    list.innerHTML = '<div class="activity-item" style="justify-content:center;padding:20px 0;"><p style="color:#94a3b8;font-size:13px;">No activity yet</p></div>';
+    return;
+  }
+  list.innerHTML = activities.map(act => {
+    let iconBg = "#ecfdf5", iconColor = "#10b981", iconClass = "fa-plus", amountClass = "act-amount", sign = "+";
+    if (act.type === 'out') {
+      iconBg = "#fef2f2"; iconColor = "#ef4444"; iconClass = "fa-minus"; amountClass = "act-amount out"; sign = "-";
+    } else if (act.type === 'bounce') {
+      iconBg = "#fff7ed"; iconColor = "#f59e0b"; iconClass = "fa-rotate-left"; amountClass = "act-amount bounce"; sign = "↩ ";
+    }
+    return `
+      <div class="activity-item">
+        <div class="act-icon ${act.type === 'bounce' ? 'bounce' : ''}" style="background:${iconBg};color:${iconColor};">
+          <i class="fa-solid ${iconClass}"></i>
+        </div>
+        <div class="act-info">
+          <div class="act-title">${act.title}</div>
+          <div class="act-time">${act.time} ${act.status ? '• ' + act.status : ''}</div>
+        </div>
+        <div class="${amountClass}">${sign}₦${Number(act.amount).toLocaleString()}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function logout() {
+  if (confirm("Are you sure you want to log out?")) {
+    if (realtimeUnsubscribe) realtimeUnsubscribe();
+    localStorage.removeItem("9jaCashUser");
+    localStorage.removeItem("walletBalance");
+    window.location.href = "login.html";
+  }
+}
+
+function sendBounceNotification(amount) {
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification("Withdrawal Returned", { body: "Your ₦" + amount.toLocaleString() + " withdrawal was returned." });
+  }
+}
+
+function requestNotify() {
+  if ("Notification" in window) {
+    Notification.requestPermission().then(permission => {
+      if (permission === "granted") showToast("Notifications enabled!");
+      dismissNotify();
+    });
+  } else dismissNotify();
+}
+
+function dismissNotify() {
+  const banner = document.getElementById("notifyBanner");
+  if (banner) banner.classList.remove("show");
+}
+
+function showDownloadPrompt() {
+  const banner = document.getElementById("downloadBanner");
+  if (banner) banner.classList.add("show");
+}
+
+function dismissDownloadPrompt() {
+  const banner = document.getElementById("downloadBanner");
+  if (banner) banner.classList.remove("show");
+}
+
+function downloadAppAPK() {
+  showToast("Downloading APK...");
+  dismissDownloadPrompt();
+}
+
+function openCustomerCareModal() { window.open(telegramLink, "_blank"); }
+
+function dismissSocialPopup() {
+  const p = document.getElementById("socialJoinPopup");
+  if (p) p.classList.remove("show");
+}
+
+function startLiveWithdrawalPopups() {
+  const users = ["Musa B.", "Chidi O.", "Amina Y.", "Efe P.", "Blessing K."];
+  const amounts = [15000, 25000, 30000, 50000, 20000];
+
+  setInterval(() => {
+    const popup = document.getElementById("liveWithdrawalPopup");
+    if (!popup) return;
+
+    const user = users[Math.floor(Math.random() * users.length)];
+    const amt = amounts[Math.floor(Math.random() * amounts.length)];
+
+    document.getElementById("liveWithdrawalAvatar").textContent = user.charAt(0);
+    document.getElementById("liveWithdrawalUser").textContent = user;
+    document.getElementById("liveWithdrawalAction").textContent = "just withdrew " + formatMoney(amt);
+
+    popup.style.opacity = "1";
+    popup.style.transform = "translate(-50%, 0)";
+
+    setTimeout(() => {
+      popup.style.opacity = "0";
+      popup.style.transform = "translate(-50%, -150px)";
+    }, 4000);
+  }, 18000);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
   initDarkMode();
-  checkPendingBounceOnLoad();
-  loadTelegramConfig();
-  fetchFirestoreUserData();
+  initFirebase();
+  renderUserInfo();
+  renderBankInfo();
   updateBalance();
   initCheckin();
   initClaim();
+  initReferrals();
+  renderActivities();
+  checkPendingBounceOnLoad();
+  checkAndShowVerifyButton();
+  setupRealtimeListener();
+  loadTelegramConfig();
   initTutorial();
+  startLiveWithdrawalPopups();
+});
 
-  if (userData) {
-    const avatarEl = document.getElementById("userAvatar");
-    const nameEl = document.getElementById("userName");
-    if (avatarEl && userData.name) avatarEl.textContent = userData.name.charAt(0).toUpperCase();
-    if (nameEl && userData.name) nameEl.textContent = userData.name;
+// Sample Notifications Data Array
+let userNotifications = [
+  {
+    id: 1,
+    title: "Welcome to 9jaCash!",
+    desc: "Start mining daily to earn rewards and build up your balance.",
+    time: "2 mins ago",
+    read: false
+  },
+  {
+    id: 2,
+    title: "Daily Check-In Ready",
+    desc: "Don't forget to claim your daily check-in streak reward.",
+    time: "1 hour ago",
+    read: false
+  }
+];
 
-    const refInput = document.getElementById("referralLinkInput");
-    if (refInput) {
-      const code = userData.refCode || userData.phone || "9JACASH";
-      refInput.value = window.location.origin + "/register.html?ref=" + code;
+/* ===================================================
+   1. NOTIFICATIONS MODAL FUNCTIONS
+   =================================================== */
+
+function openNotificationsModal() {
+  const modal = document.getElementById('notificationsOverlay');
+  if (modal) {
+    renderNotifications();
+    modal.classList.add('show');
+  }
+}
+
+function closeNotificationsModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  const modal = document.getElementById('notificationsOverlay');
+  if (modal) {
+    modal.classList.remove('show');
+  }
+}
+
+function renderNotifications() {
+  const container = document.getElementById('notificationsList');
+  const badge = document.getElementById('modalNotifBadge');
+  if (!container) return;
+
+  const unreadCount = userNotifications.filter(n => !n.read).length;
+  if (badge) {
+    if (unreadCount > 0) {
+      badge.textContent = unreadCount;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
     }
+  }
+
+  if (userNotifications.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding: 24px 0; color: #94a3b8; font-size: 13px;">
+        <i class="fa-solid fa-bell-slash" style="font-size:24px; margin-bottom:8px;"></i>
+        <p>No notifications yet</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = userNotifications.map(n => `
+    <div class="notif-item ${!n.read ? 'unread' : ''}">
+      <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(99, 102, 241, 0.1); color: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <i class="fa-solid fa-bell" style="font-size: 12px;"></i>
+      </div>
+      <div style="flex: 1;">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-desc">${n.desc}</div>
+        <div class="notif-time">${n.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function markAllNotificationsAsRead() {
+  userNotifications.forEach(n => n.read = true);
+  renderNotifications();
+  if (typeof showToast === 'function') {
+    showToast('All notifications marked as read');
+  }
+}
+
+/* ===================================================
+   2. CUSTOMER CARE MODAL FUNCTIONS
+   =================================================== */
+
+function openCustomerCareModal() {
+  const modal = document.getElementById('customerCareModal');
+  if (modal) {
+    modal.classList.add('show');
+  }
+}
+
+function closeCustomerCareModal() {
+  const modal = document.getElementById('customerCareModal');
+  if (modal) {
+    modal.classList.remove('show');
+  }
+}
+
+// Close modals on Escape key press
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    closeNotificationsModal();
+    closeCustomerCareModal();
   }
 });
