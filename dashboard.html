@@ -1830,7 +1830,7 @@
       </div>
       <div style="display: flex; gap: 8px; align-items: center;">
         <button class="notify-btn" onclick="showDownloadPrompt()" id="downloadHeaderBtn" title="Download App"><i class="fa-solid fa-download"></i></button>
-        <button class="notify-btn" onclick="openNotificationsModal()" id="notifyBtn"><i class="fa-regular fa-bell"></i></button>
+        <button class="notify-btn" onclick="openNotificationsModal()" id="notifyBtn" title="Notifications" style="position:relative;"><i class="fa-regular fa-bell"></i><span id="bellDot" style="display:none;position:absolute;top:8px;right:9px;width:9px;height:9px;border-radius:50%;background:#ef4444;border:2px solid #fff;"></span></button>
         <button class="notify-btn logout-btn-head" onclick="logout()" id="logoutBtn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
@@ -2145,6 +2145,49 @@
   
 <!-- MODALS -->  <!-- ✅ Correct -->
 
+  <!-- VIDEO CHALLENGE MODAL -->
+  <div id="videoChallengeModal"
+    class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden"
+    style="transition: all 0.3s ease;">
+    <div class="w-[90%] max-w-[400px] bg-[#131a2e] border border-[#2c3b63] rounded-[28px] p-6 relative overflow-hidden"
+      style="box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+      <div class="absolute -top-20 -left-20 w-44 h-44 bg-violet-600/10 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-20 -right-20 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl"></div>
+
+      <div class="text-center relative z-10">
+        <div
+          class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl shadow-lg shadow-amber-500/20">
+          <i class="fa-solid fa-video animate-pulse"></i>
+        </div>
+
+        <span
+          class="inline-block px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full text-[10px] font-extrabold text-amber-400 uppercase tracking-widest mb-3"
+          style="letter-spacing:1px;">
+          ₦500,000 Prize Pool
+        </span>
+
+        <h3 class="text-lg font-extrabold text-white mb-2 leading-tight">Video Testimony Challenge</h3>
+
+        <p class="text-xs text-[#94a3b8] leading-relaxed mb-6">
+          Record a professional video about 9jaCash and get rewarded instantly upon approval, with automated entry to
+          the ₦500,000 prize pool draw!
+        </p>
+
+        <div class="flex flex-col gap-2">
+          <button onclick="goToVideoChallenge()"
+            class="w-full py-3.5 bg-gradient-to-r from-violet-500 to-indigo-600 text-white font-extrabold rounded-2xl text-xs hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none cursor-pointer">
+            <i class="fa-solid fa-rocket"></i> JOIN CHALLENGE &amp; WIN
+          </button>
+          <button onclick="dismissVideoChallenge()"
+            class="w-full py-3 bg-[#1c2642] text-[#94a3b8] font-bold rounded-2xl text-xs hover:bg-[#253054] transition-all border-none cursor-pointer">
+            Maybe Later
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS (body level so they sit above all page layers) -->
   <!-- Dedicated Notifications Modal -->
   <div class="notifications-modal-overlay" id="notificationsOverlay" onclick="closeNotificationsModal(event)">
     <div class="notifications-modal-content" onclick="event.stopPropagation()">
@@ -2172,9 +2215,9 @@
   </div>
 
   <!-- CUSTOMER CARE SELECTION MODAL -->
-  <div id="customerCareModal" class="customer-care-modal-overlay"
+  <div id="customerCareModal" class="customer-care-modal-overlay" onclick="closeCustomerCareModal(event)"
     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); z-index:99999; align-items:center; justify-content:center;">
-    <div
+    <div onclick="event.stopPropagation()"
       style="background:linear-gradient(145deg, #111827, #0f172a); border:1px solid rgba(255,255,255,0.12); border-radius:24px; width:90%; max-width:400px; padding:28px 24px; text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); position:relative;">
       <button onclick="closeCustomerCareModal()"
         style="position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.08); border:none; color:#94a3b8; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">✕</button>
@@ -2215,48 +2258,6 @@
             <div style="font-size:11px; opacity:0.85; font-weight:500;">Direct Support Chat</div>
           </div>
         </a>
-      </div>
-    </div>
-  </div>
-  
-    <!-- VIDEO CHALLENGE MODAL -->
-  <div id="videoChallengeModal"
-    class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden"
-    style="transition: all 0.3s ease;">
-    <div class="w-[90%] max-w-[400px] bg-[#131a2e] border border-[#2c3b63] rounded-[28px] p-6 relative overflow-hidden"
-      style="box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
-      <div class="absolute -top-20 -left-20 w-44 h-44 bg-violet-600/10 rounded-full blur-3xl"></div>
-      <div class="absolute -bottom-20 -right-20 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl"></div>
-
-      <div class="text-center relative z-10">
-        <div
-          class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl shadow-lg shadow-amber-500/20">
-          <i class="fa-solid fa-video animate-pulse"></i>
-        </div>
-
-        <span
-          class="inline-block px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full text-[10px] font-extrabold text-amber-400 uppercase tracking-widest mb-3"
-          style="letter-spacing:1px;">
-          ₦500,000 Prize Pool
-        </span>
-
-        <h3 class="text-lg font-extrabold text-white mb-2 leading-tight">Video Testimony Challenge</h3>
-
-        <p class="text-xs text-[#94a3b8] leading-relaxed mb-6">
-          Record a professional video about 9jaCash and get rewarded instantly upon approval, with automated entry to
-          the ₦500,000 prize pool draw!
-        </p>
-
-        <div class="flex flex-col gap-2">
-          <button onclick="goToVideoChallenge()"
-            class="w-full py-3.5 bg-gradient-to-r from-violet-500 to-indigo-600 text-white font-extrabold rounded-2xl text-xs hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none cursor-pointer">
-            <i class="fa-solid fa-rocket"></i> JOIN CHALLENGE &amp; WIN
-          </button>
-          <button onclick="dismissVideoChallenge()"
-            class="w-full py-3 bg-[#1c2642] text-[#94a3b8] font-bold rounded-2xl text-xs hover:bg-[#253054] transition-all border-none cursor-pointer">
-            Maybe Later
-          </button>
-        </div>
       </div>
     </div>
   </div>
