@@ -725,7 +725,6 @@ function downloadAppAPK() {
 function showSocialPopup() {
   const p = document.getElementById("socialJoinPopup");
   if (!p) return;
-  if (sessionStorage.getItem("socialPopupDismissed") === "true") return;
 
   const icon = document.getElementById("socialPopupIcon");
   const btn = document.getElementById("socialPopupBtn");
@@ -741,12 +740,11 @@ function showSocialPopup() {
 function dismissSocialPopup() {
   const p = document.getElementById("socialJoinPopup");
   if (p) p.classList.remove("show");
-  try { sessionStorage.setItem("socialPopupDismissed", "true"); } catch (e) { }
 }
 
 function initSocialPopup() {
-  // Wait a few seconds after load so the popup doesn't clash with the tutorial/page render
-  setTimeout(showSocialPopup, 4000);
+  // Show the popup 3 seconds after every page load
+  setTimeout(showSocialPopup, 3000);
 }
 
 function startLiveWithdrawalPopups() {
