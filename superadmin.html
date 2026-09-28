@@ -247,7 +247,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
   <div class="nav-item active" onclick="switchTab('overview',this)" title="Overview"><i class="fa-solid fa-chart-pie"></i></div>
   <div class="nav-item" onclick="switchTab('payments',this)" title="Payments"><i class="fa-solid fa-credit-card"></i></div>
   <div class="nav-item" onclick="switchTab('users',this)" title="Users"><i class="fa-solid fa-users"></i></div>
-  <div class="nav-item" onclick="switchTab('uploads',this)" title="Uploads"><i class="fa-solid fa-cloud-arrow-up"></i><span class="badge" id="uploadsBadge" style="display:none;">0</span></div>
+  <div class="nav-item" onclick="switchTab('uploads',this)" title="Uploads"><i class="fa-solid fa-cloud-arrow-up"></i></div>
   <div class="nav-item" onclick="switchTab('tasks',this)" title="Tasks"><i class="fa-solid fa-list-check"></i></div>
   <div class="nav-item" onclick="switchTab('keys',this)" title="Keys"><i class="fa-solid fa-key"></i><span class="badge" id="keyBadge">0</span></div>
   <div class="nav-item" onclick="switchTab('redirects',this)" title="Redirects"><i class="fa-solid fa-route"></i></div>
@@ -562,37 +562,10 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
     </button>
   </div>
 
-  <!-- Status stat cards -->
-  <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
-    <div class="stat-card amber">
-      <div class="stat-icon amber"><i class="fa-solid fa-hourglass-half"></i></div>
-      <div class="stat-num amber" id="uploadsPendingCount">—</div>
-      <div class="stat-label">Pending</div>
-    </div>
-    <div class="stat-card green">
-      <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
-      <div class="stat-num green" id="uploadsApprovedCount">—</div>
-      <div class="stat-label">Approved</div>
-    </div>
-    <div class="stat-card red">
-      <div class="stat-icon red"><i class="fa-solid fa-circle-xmark"></i></div>
-      <div class="stat-num red" id="uploadsRejectedCount">—</div>
-      <div class="stat-label">Rejected</div>
-    </div>
-  </div>
-
   <div class="panel">
     <div class="panel-header">
       <div class="panel-icon purple"><i class="fa-solid fa-list"></i></div>
       <div><div class="panel-title" id="uploadsListTitle">Payment Receipts</div><div class="panel-sub">20 per page • newest first</div></div>
-      <div style="margin-left:auto;">
-        <select id="uploadsStatusFilter" class="form-input" style="padding:10px 14px;font-size:12px;" onchange="reloadUploadsList()">
-          <option value="pending" selected>Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-          <option value="all">All</option>
-        </select>
-      </div>
     </div>
     <div class="history-list" id="uploadsList" style="max-height:none;">
       <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Loading...</div>
@@ -615,16 +588,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
 
     <div id="uploadDetailMedia" style="margin-bottom:16px;"></div>
 
-    <div id="uploadDetailFields" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <button class="save-btn" style="margin:0;background:linear-gradient(135deg,var(--danger),var(--danger2));" onclick="setUploadStatus('rejected')">
-        <i class="fa-solid fa-circle-xmark"></i> Reject
-      </button>
-      <button class="save-btn" style="margin:0;" onclick="setUploadStatus('approved')">
-        <i class="fa-solid fa-circle-check"></i> Approve
-      </button>
-    </div>
+    <div id="uploadDetailFields" style="display:flex;flex-direction:column;gap:10px;"></div>
   </div>
 </div>
 
@@ -1154,7 +1118,6 @@ async function loadData(){
     
     document.getElementById('loadingScreen').classList.remove('active');
     document.getElementById('mainApp').classList.remove('hidden');
-    updateUploadsBadge();
   }catch(err){
     console.error('Load error:',err);
     document.getElementById('loadingScreen').classList.remove('active');
@@ -1404,49 +1367,31 @@ async function saveUserEdit(){
   }
 }
 
-// ========== UPLOADS MANAGEMENT ==========
+// ========== UPLOADS MANAGEMENT (view-only) ==========
 let uploadsInited=false;
 let currentUploadTab='receipts';
-let currentDetailRef=null; // {collection, id}
 
 const uploadsConfig={
   receipts:{
     collection:'paymentReceipts',
     orderField:'createdAt',
-    statuses:['pending','approved','rejected'],
     label:'Payment Receipts'
   },
   videos:{
     collection:'videoChallenge',
     orderField:'submittedAt',
-    statuses:['Pending','Approved','Rejected'],
     label:'Video Submissions'
   }
 };
 
 // per sub-tab pagination state
 const uploadsPageState={
-  receipts:{pages:[],index:0,filter:'pending'},
-  videos:{pages:[],index:0,filter:'Pending'}
+  receipts:{pages:[],index:0},
+  videos:{pages:[],index:0}
 };
 
 function initUploadsTab(){
   switchUploadSubtab('receipts');
-}
-
-async function updateUploadsBadge(){
-  const badge=document.getElementById('uploadsBadge');
-  try{
-    const [r,v]=await Promise.all([
-      db.collection('paymentReceipts').where('status','==','pending').count().get(),
-      db.collection('videoChallenge').where('status','==','Pending').count().get()
-    ]);
-    const total=(r.data().count||0)+(v.data().count||0);
-    if(total>0){badge.textContent=total>99?'99+':String(total);badge.style.display='flex';}
-    else{badge.style.display='none';}
-  }catch(err){
-    console.warn('Uploads badge error:',err.message);
-  }
 }
 
 function fmtUploadDate(v){
@@ -1480,43 +1425,6 @@ function switchUploadSubtab(tab){
 
   document.getElementById('uploadsListTitle').textContent=cfg.label;
 
-  // Rebuild filter dropdown to match this collection's status casing
-  const sel=document.getElementById('uploadsStatusFilter');
-  sel.innerHTML=cfg.statuses.map(s=>`<option value="${s}">${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')+'<option value="all">All</option>';
-  sel.value=uploadsPageState[tab].filter;
-
-  loadUploadsCounts();
-  fetchUploadsPage(0);
-}
-
-async function loadUploadsCounts(){
-  const cfg=uploadsConfig[currentUploadTab];
-  const col=db.collection(cfg.collection);
-  const [pendingEl,approvedEl,rejectedEl]=[
-    document.getElementById('uploadsPendingCount'),
-    document.getElementById('uploadsApprovedCount'),
-    document.getElementById('uploadsRejectedCount')
-  ];
-  pendingEl.textContent='—';approvedEl.textContent='—';rejectedEl.textContent='—';
-  try{
-    const [p,a,r]=await Promise.all([
-      col.where('status','==',cfg.statuses[0]).count().get(),
-      col.where('status','==',cfg.statuses[1]).count().get(),
-      col.where('status','==',cfg.statuses[2]).count().get()
-    ]);
-    pendingEl.textContent=p.data().count.toLocaleString();
-    approvedEl.textContent=a.data().count.toLocaleString();
-    rejectedEl.textContent=r.data().count.toLocaleString();
-  }catch(err){
-    console.warn('Uploads count error:',err.message);
-  }
-}
-
-function reloadUploadsList(){
-  const state=uploadsPageState[currentUploadTab];
-  state.filter=document.getElementById('uploadsStatusFilter').value;
-  state.pages=[];
-  state.index=0;
   fetchUploadsPage(0);
 }
 
@@ -1527,9 +1435,7 @@ async function fetchUploadsPage(index){
   list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Loading...</div>';
   try{
     if(!state.pages[index]){
-      let q=db.collection(cfg.collection);
-      if(state.filter!=='all')q=q.where('status','==',state.filter);
-      q=q.orderBy(cfg.orderField,'desc').limit(20);
+      let q=db.collection(cfg.collection).orderBy(cfg.orderField,'desc').limit(20);
       if(index>0){
         const prev=state.pages[index-1];
         q=q.startAfter(prev.last);
@@ -1540,7 +1446,7 @@ async function fetchUploadsPage(index){
     state.index=index;
     renderUploadsPage();
   }catch(err){
-    list.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger);font-size:13px;">'+err.message+(err.message&&err.message.indexOf('index')>-1?' — open the link Firebase prints in the browser console to build the required index.':'')+'</div>';
+    list.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger);font-size:13px;">'+err.message+'</div>';
   }
 }
 
@@ -1558,6 +1464,19 @@ function renderUploadsPage(){
   document.getElementById('uploadsPageLabel').textContent='Page '+(state.index+1);
   document.getElementById('uploadsPrevBtn').disabled=state.index===0;
   document.getElementById('uploadsNextBtn').disabled=docs.length<20;
+}
+
+function uploadsNextPage(){
+  const state=uploadsPageState[currentUploadTab];
+  const page=state.pages[state.index];
+  if(!page||page.docs.length<20)return;
+  fetchUploadsPage(state.index+1);
+}
+
+function uploadsPrevPage(){
+  const state=uploadsPageState[currentUploadTab];
+  if(state.index===0)return;
+  fetchUploadsPage(state.index-1);
 }
 
 function buildUploadListItem(id,data){
@@ -1586,8 +1505,6 @@ function buildUploadListItem(id,data){
 }
 
 function openUploadDetail(id,data){
-  const cfg=uploadsConfig[currentUploadTab];
-  currentDetailRef={collection:cfg.collection,id:id};
   const isReceipt=currentUploadTab==='receipts';
 
   document.getElementById('uploadDetailTitle').textContent=isReceipt?'Payment Receipt':'Video Submission';
@@ -1651,29 +1568,6 @@ function openUploadDetail(id,data){
 
 function closeUploadDetail(){
   document.getElementById('uploadDetailOverlay').style.display='none';
-  currentDetailRef=null;
-}
-
-async function setUploadStatus(newStatus){
-  if(!currentDetailRef)return;
-  const cfg=uploadsConfig[currentUploadTab];
-  // Match each collection's existing status casing convention
-  const value=currentUploadTab==='videos'?(newStatus.charAt(0).toUpperCase()+newStatus.slice(1)):newStatus;
-  try{
-    await db.collection(currentDetailRef.collection).doc(currentDetailRef.id).update({
-      status:value,
-      reviewedAt:firebase.firestore.FieldValue.serverTimestamp()
-    });
-    showToast('Marked as '+value,'success');
-    closeUploadDetail();
-    const state=uploadsPageState[currentUploadTab];
-    state.pages=[];
-    fetchUploadsPage(0);
-    loadUploadsCounts();
-    updateUploadsBadge();
-  }catch(err){
-    showToast('Failed: '+err.message,'error');
-  }
 }
 
 function showToast(msg,type){
