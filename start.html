@@ -1043,36 +1043,41 @@ document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'f
 
 // ========== TOAST ========== 
 // ========== PROMO VIDEOS (loaded from Firestore: loginVideos) ========== 
-async function playPromoVideo() { 
-const btn = document.getElementById('promoVideoBtn'); 
-const original = btn ? btn.innerHTML : ''; 
-if (btn) {
-  btn.disabled = true; 
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Loading video...</span>'; 
+// Put this at the top of your <script>
+const API_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:')
+  ? 'http://localhost:3000' : '';
+
+async function playPromoVideo() {
+  const btn = document.getElementById('promoVideoBtn');
+  if (btn.disabled) return;
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Loading video...</span>';
+
+  try {
+    if (typeof showTikTokModal !== 'function') throw new Error('Player script not loaded');
+
+    const res = await fetch(API_URL + '/api/login-videos');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    const videos = (data.videos || []).filter(function (v) {
+      return v.video_url && v.video_url.trim() !== '';
+    });
+
+    if (!data.status || videos.length === 0) {
+      showToast('No promo videos uploaded yet.', 'error');
+      return;
+    }
+    showTikTokModal(videos, 0);
+  } catch (err) {
+    console.error('Promo video load error:', err);
+    showToast('Error loading video player.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+  }
 }
-try { 
-const db = (window._9jaCash && window._9jaCash.db) || (typeof firebase !== 'undefined' && firebase.apps.length ? firebase.firestore() : null); 
-if (!db) throw new Error('Firestore not available'); 
-const snap = await db.collection('loginVideos').get(); 
-const videos = snap.docs 
-.map(function(d) { return Object.assign({ id: d.id }, d.data()); }) 
-.filter(function(v) { return v.active !== false && (v.video_url || v.videoUrl || v.url || '').trim() !== ''; }) 
-.sort(function(a, b) { return (a.order || 0) - (b.order || 0); }); 
-if (videos.length === 0) { 
-showToast('No promo videos uploaded yet.', 'error'); 
-} else { 
-showTikTokModal(videos, 0); 
-} 
-} catch (err) { 
-console.error('Promo video load error:', err); 
-showToast('Error loading video player.', 'error'); 
-} finally { 
-if (btn) {
-  btn.disabled = false; 
-  btn.innerHTML = original; 
-}
-} 
-} 
 
 function showToast(msg, type) { 
 const t = document.getElementById('toast'); 
