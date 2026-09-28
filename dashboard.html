@@ -1582,6 +1582,129 @@
     .d4 { animation-delay: 0.4s; }
     .d5 { animation-delay: 0.5s; }
     
+    /* Notifications Modal Styles */
+    .notifications-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .notifications-modal-overlay.active {
+      display: flex;
+    }
+
+    .notifications-modal-content {
+      background: #fff;
+      width: 100%;
+      max-width: 480px;
+      border-radius: 24px 24px 0 0;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      border: 1px solid #f1f5f9;
+      border-bottom: none;
+    }
+
+    body.dark-mode .notifications-modal-content {
+      background: #1e293b;
+      border-color: #334155;
+    }
+
+    .notifications-modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    body.dark-mode .notifications-modal-header {
+      border-color: #334155;
+    }
+
+    .close-modal-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    body.dark-mode .close-modal-btn {
+      background: #334155;
+      color: #94a3b8;
+    }
+
+    .close-modal-btn:hover {
+      background: #e2e8f0;
+      color: #ef4444;
+    }
+
+    body.dark-mode .close-modal-btn:hover {
+      background: #475569;
+      color: #ef4444;
+    }
+
+    .notifications-modal-body {
+      padding: 12px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .notifications-modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: center;
+    }
+
+    body.dark-mode .notifications-modal-footer {
+      border-color: #334155;
+    }
+
+    .mark-read-btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      background: #f1f5f9;
+      color: #6366f1;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body.dark-mode .mark-read-btn {
+      background: #334155;
+      color: #818cf8;
+    }
+
+    .mark-read-btn:hover {
+      background: #e2e8f0;
+    }
+
+    body.dark-mode .mark-read-btn:hover {
+      background: #475569;
+    }
+    
   </style>
 </head>
 
@@ -1674,7 +1797,9 @@
       <div style="display: flex; gap: 8px; align-items: center;">
         <button class="notify-btn" onclick="showDownloadPrompt()" id="downloadHeaderBtn" title="Download App"><i class="fa-solid fa-download"></i></button>
         <button class="notify-btn" onclick="openNotificationsModal()" id="notifyBtn" title="Notifications" style="position:relative;"><i class="fa-regular fa-bell"></i><span id="bellDot" style="display:none;position:absolute;top:8px;right:9px;width:9px;height:9px;border-radius:50%;background:#ef4444;border:2px solid #fff;"></span></button>
-        <button class="notify-btn logout-btn-head" onclick="logout()" id="logoutBtn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+        <button class="notify-btn" onclick="logoutUser()" title="Logout"
+          style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2);"><i
+            class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
 
