@@ -246,6 +246,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
   <div class="nav-logo">9</div>
   <div class="nav-item active" onclick="switchTab('overview',this)" title="Overview"><i class="fa-solid fa-chart-pie"></i></div>
   <div class="nav-item" onclick="switchTab('payments',this)" title="Payments"><i class="fa-solid fa-credit-card"></i></div>
+  <div class="nav-item" onclick="switchTab('users',this)" title="Users"><i class="fa-solid fa-users"></i></div>
   <div class="nav-item" onclick="switchTab('tasks',this)" title="Tasks"><i class="fa-solid fa-list-check"></i></div>
   <div class="nav-item" onclick="switchTab('keys',this)" title="Keys"><i class="fa-solid fa-key"></i><span class="badge" id="keyBadge">0</span></div>
   <div class="nav-item" onclick="switchTab('redirects',this)" title="Redirects"><i class="fa-solid fa-route"></i></div>
@@ -450,8 +451,87 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
   </div>
 </div>
 
+<!-- USERS TAB -->
+<div class="tab-panel" id="tab-users">
+  <div class="content-header">
+    <div class="header-left">
+      <div>
+        <div class="header-title">Users</div>
+        <div class="header-sub">View & manage user accounts</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon blue"><i class="fa-solid fa-magnifying-glass"></i></div>
+      <div><div class="panel-title">Find User</div><div class="panel-sub">Search by phone number</div></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <input type="text" id="userSearchInput" class="form-input" placeholder="Enter phone number, e.g. 2347071134122" onkeydown="if(event.key==='Enter')searchUser()">
+      <button class="save-btn" style="width:auto;margin:0;padding:0 22px;" onclick="searchUser()"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </div>
+    <div id="userSearchStatus" style="font-size:12px;color:var(--text3);margin-top:10px;"></div>
+  </div>
+
+  <!-- Recent users list -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-icon purple"><i class="fa-solid fa-list"></i></div>
+      <div><div class="panel-title">Recent Users</div><div class="panel-sub">Last 20 created accounts</div></div>
+    </div>
+    <div class="history-list" id="userList">
+      <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- USER EDIT MODAL -->
+<div id="userEditOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeUserEdit()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div class="panel-title">Edit User</div>
+      <div onclick="closeUserEdit()" style="cursor:pointer;color:var(--text3);font-size:18px;"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Phone (ID)</label>
+      <input type="text" id="ueuPhone" class="form-input" disabled style="opacity:0.6;">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Full Name</label>
+      <input type="text" id="ueuFullName" class="form-input" placeholder="Full name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" id="ueuEmail" class="form-input" placeholder="user@example.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Balance (₦)</label>
+      <input type="number" id="ueuBalance" class="form-input" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Created At</label>
+      <input type="text" id="ueuCreatedAt" class="form-input" disabled style="opacity:0.6;">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Referred By</label>
+      <input type="text" id="ueuReferredBy" class="form-input" disabled style="opacity:0.6;">
+    </div>
+    <div class="form-group" style="margin-bottom:0;">
+      <label class="form-label">New Password <span style="text-transform:none;font-weight:500;">(leave blank to keep unchanged)</span></label>
+      <input type="text" id="ueuPassword" class="form-input" placeholder="Set a new password">
+    </div>
+
+    <button class="save-btn" style="margin-top:20px;margin-bottom:0;" id="userSaveBtn" onclick="saveUserEdit()">
+      <i class="fa-solid fa-floppy-disk"></i> <span id="userSaveBtnText">Save Changes</span>
+    </button>
+  </div>
+</div>
+
 <!-- TASKS TAB -->
 <div class="tab-panel" id="tab-tasks">
+
   <div class="content-header">
     <div class="header-left">
       <div>
@@ -741,6 +821,7 @@ function switchTab(tab,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el)el.classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
+  if(tab==='users'&&!usersLoaded)loadRecentUsers();
 }
 
 // ========== TOGGLES ==========
@@ -1053,6 +1134,123 @@ async function saveAll(){
     updatePreview();showToast('All saved!','success');
   }catch(err){showToast('Failed: '+err.message,'error');}
   finally{btn.disabled=false;txt.textContent=orig;}
+}
+
+// ========== USERS ==========
+let usersLoaded=false;
+let currentEditPhone=null;
+
+function fmtUserDate(v){
+  if(!v)return '—';
+  try{
+    if(typeof v.toDate==='function')return v.toDate().toLocaleString();
+    const d=new Date(v);
+    if(!isNaN(d))return d.toLocaleString();
+  }catch(e){}
+  return String(v);
+}
+
+function fmtBalance(v){
+  const n=Number(v)||0;
+  return '₦'+n.toLocaleString('en-NG');
+}
+
+async function loadRecentUsers(){
+  const list=document.getElementById('userList');
+  try{
+    const snap=await db.collection('users').orderBy('createdAt','desc').limit(20).get();
+    if(snap.empty){
+      list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No users yet</div>';
+      usersLoaded=true;
+      return;
+    }
+    list.innerHTML='';
+    snap.forEach(doc=>list.appendChild(buildUserListItem(doc.id,doc.data())));
+    usersLoaded=true;
+  }catch(err){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger);font-size:13px;">'+err.message+'</div>';
+  }
+}
+
+function buildUserListItem(phone,data){
+  const el=document.createElement('div');
+  el.className='history-item';
+  el.style.cursor='pointer';
+  el.innerHTML=`
+    <div style="min-width:0;">
+      <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(data.fullName||'Unnamed').replace(/</g,'&lt;')}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">${phone}</div>
+    </div>
+    <div style="font-size:13px;font-weight:700;color:var(--accent);white-space:nowrap;">${fmtBalance(data.balance)}</div>
+  `;
+  el.onclick=()=>openUserEdit(phone,data);
+  return el;
+}
+
+async function searchUser(){
+  const raw=document.getElementById('userSearchInput').value.trim();
+  const status=document.getElementById('userSearchStatus');
+  if(!raw){status.textContent='Enter a phone number to search.';status.style.color='var(--text3)';return;}
+  const phone=raw.replace(/[^\d]/g,'');
+  status.textContent='Searching...';status.style.color='var(--text3)';
+  try{
+    const doc=await db.collection('users').doc(phone).get();
+    if(!doc.exists){
+      status.textContent='No user found for "'+raw+'".';status.style.color='var(--danger)';
+      return;
+    }
+    status.textContent='';
+    openUserEdit(phone,doc.data());
+  }catch(err){
+    status.textContent='Error: '+err.message;status.style.color='var(--danger)';
+  }
+}
+
+function openUserEdit(phone,data){
+  currentEditPhone=phone;
+  document.getElementById('ueuPhone').value=phone;
+  document.getElementById('ueuFullName').value=data.fullName||'';
+  document.getElementById('ueuEmail').value=data.email||'';
+  document.getElementById('ueuBalance').value=(typeof data.balance==='number')?data.balance:(Number(data.balance)||0);
+  document.getElementById('ueuCreatedAt').value=fmtUserDate(data.createdAt);
+  document.getElementById('ueuReferredBy').value=data.referredBy||'—';
+  document.getElementById('ueuPassword').value='';
+  document.getElementById('userEditOverlay').style.display='flex';
+}
+
+function closeUserEdit(){
+  document.getElementById('userEditOverlay').style.display='none';
+  currentEditPhone=null;
+}
+
+async function saveUserEdit(){
+  if(!currentEditPhone)return;
+  const btn=document.getElementById('userSaveBtn');
+  const txt=document.getElementById('userSaveBtnText');
+  const orig=txt.textContent;
+
+  const fullName=document.getElementById('ueuFullName').value.trim();
+  const email=document.getElementById('ueuEmail').value.trim();
+  const balance=Number(document.getElementById('ueuBalance').value)||0;
+  const newPassword=document.getElementById('ueuPassword').value;
+
+  const update={fullName:fullName,email:email,balance:balance};
+  if(newPassword&&newPassword.trim()){
+    if(newPassword.trim().length<4){showToast('Password too short','error');return;}
+    update.password=newPassword.trim();
+  }
+
+  btn.disabled=true;txt.innerHTML='<div class="spin"></div> Saving...';
+  try{
+    await db.collection('users').doc(currentEditPhone).update(update);
+    showToast('User updated!','success');
+    closeUserEdit();
+    if(usersLoaded)loadRecentUsers();
+  }catch(err){
+    showToast('Failed: '+err.message,'error');
+  }finally{
+    btn.disabled=false;txt.textContent=orig;
+  }
 }
 
 function showToast(msg,type){
