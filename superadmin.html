@@ -545,32 +545,84 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
     <div class="header-left">
       <div>
         <div class="header-title">Uploads</div>
-        <div class="header-sub">Payment receipts & video submissions</div>
+        <div class="header-sub">Payment receipts, video submissions & login promo videos</div>
       </div>
     </div>
   </div>
 
   <!-- Sub-tab switch -->
-  <div style="display:flex;gap:10px;margin-bottom:20px;">
+  <div style="display:flex;gap:8px;margin-bottom:20px;">
     <button id="uploadsSubtabReceiptsBtn" onclick="switchUploadSubtab('receipts')"
-      style="flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--accent);background:var(--accent);color:#fff;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;">
-      <i class="fa-solid fa-receipt"></i> Payment Receipts
+      style="flex:1;padding:12px 6px;border-radius:12px;border:1.5px solid var(--accent);background:var(--accent);color:#fff;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.2s;">
+      <i class="fa-solid fa-receipt"></i> Receipts
     </button>
     <button id="uploadsSubtabVideosBtn" onclick="switchUploadSubtab('videos')"
-      style="flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;">
-      <i class="fa-solid fa-video"></i> Video Submissions
+      style="flex:1;padding:12px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-weight:700;font-size:12px;cursor:pointer;transition:all 0.2s;">
+      <i class="fa-solid fa-video"></i> Submissions
     </button>
+    <button id="uploadsSubtabLoginBtn" onclick="switchUploadSubtab('loginVideos')"
+      style="flex:1;padding:12px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-weight:700;font-size:12px;cursor:pointer;transition:all 0.2s;">
+      <i class="fa-solid fa-clapperboard"></i> Login Videos
+    </button>
+  </div>
+
+  <!-- LOGIN VIDEOS: add / edit form -->
+  <div class="panel" id="loginVideoFormPanel" style="display:none;">
+    <div class="panel-header">
+      <div class="panel-icon purple"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+      <div><div class="panel-title" id="lvFormTitle">Add Login Video</div><div class="panel-sub">Upload to Cloudinary or paste a URL</div></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Title</label>
+      <input type="text" id="lvTitle" class="form-input" placeholder="e.g. How 9jaCash works">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Order</label>
+        <input type="number" id="lvOrder" class="form-input" min="1" value="1">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Status</label>
+        <select id="lvStatus" class="form-input">
+          <option value="true">Active</option>
+          <option value="false">Disabled</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top:16px;">
+      <label class="form-label">Upload Video (Cloudinary)</label>
+      <input type="file" id="lvFile" accept="video/*" class="form-input" onchange="lvHandleFile(this)">
+      <div id="lvProgressWrap" style="display:none;margin-top:10px;">
+        <div style="height:8px;border-radius:6px;background:var(--surface3);overflow:hidden;">
+          <div id="lvProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.15s;"></div>
+        </div>
+        <div id="lvProgressText" style="font-size:11px;color:var(--text3);margin-top:6px;font-weight:600;">0%</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Video URL</label>
+      <input type="url" id="lvUrl" class="form-input" placeholder="Filled automatically after upload, or paste a link">
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="save-btn" id="lvSaveBtn" style="margin:0;" onclick="saveLoginVideo()"><i class="fa-solid fa-floppy-disk"></i> <span id="lvSaveTxt">Save Video</span></button>
+      <button class="save-btn" id="lvCancelBtn" style="margin:0;display:none;background:var(--surface3);color:var(--text2);box-shadow:none;width:auto;padding:18px 22px;" onclick="resetLoginVideoForm()">Cancel</button>
+    </div>
   </div>
 
   <div class="panel">
     <div class="panel-header">
       <div class="panel-icon purple"><i class="fa-solid fa-list"></i></div>
-      <div><div class="panel-title" id="uploadsListTitle">Payment Receipts</div><div class="panel-sub">20 per page • newest first</div></div>
+      <div><div class="panel-title" id="uploadsListTitle">Payment Receipts</div><div class="panel-sub" id="uploadsListSub">20 per page • newest first</div></div>
     </div>
     <div class="history-list" id="uploadsList" style="max-height:none;">
       <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Loading...</div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;">
+    <div id="uploadsPager" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;">
       <button class="save-btn" id="uploadsPrevBtn" style="width:auto;margin:0;padding:10px 18px;" onclick="uploadsPrevPage()" disabled><i class="fa-solid fa-chevron-left"></i> Prev</button>
       <div style="font-size:12px;color:var(--text3);font-weight:600;" id="uploadsPageLabel">Page 1</div>
       <button class="save-btn" id="uploadsNextBtn" style="width:auto;margin:0;padding:10px 18px;" onclick="uploadsNextPage()" disabled>Next <i class="fa-solid fa-chevron-right"></i></button>
@@ -1367,7 +1419,7 @@ async function saveUserEdit(){
   }
 }
 
-// ========== UPLOADS MANAGEMENT (view-only) ==========
+// ========== UPLOADS MANAGEMENT ==========
 let uploadsInited=false;
 let currentUploadTab='receipts';
 
@@ -1381,6 +1433,10 @@ const uploadsConfig={
     collection:'videoChallenge',
     orderField:'submittedAt',
     label:'Video Submissions'
+  },
+  loginVideos:{
+    collection:'loginVideos',
+    label:'Login Videos'
   }
 };
 
@@ -1415,16 +1471,27 @@ function switchUploadSubtab(tab){
   currentUploadTab=tab;
   const cfg=uploadsConfig[tab];
 
-  const rBtn=document.getElementById('uploadsSubtabReceiptsBtn');
-  const vBtn=document.getElementById('uploadsSubtabVideosBtn');
-  [rBtn,vBtn].forEach(b=>{
-    b.style.background='var(--surface2)';b.style.borderColor='var(--border)';b.style.color='var(--text2)';
+  const btns={receipts:'uploadsSubtabReceiptsBtn',videos:'uploadsSubtabVideosBtn',loginVideos:'uploadsSubtabLoginBtn'};
+  Object.keys(btns).forEach(k=>{
+    const b=document.getElementById(btns[k]);
+    const on=k===tab;
+    b.style.background=on?'var(--accent)':'var(--surface2)';
+    b.style.borderColor=on?'var(--accent)':'var(--border)';
+    b.style.color=on?'#fff':'var(--text2)';
   });
-  const activeBtn=tab==='receipts'?rBtn:vBtn;
-  activeBtn.style.background='var(--accent)';activeBtn.style.borderColor='var(--accent)';activeBtn.style.color='#fff';
 
   document.getElementById('uploadsListTitle').textContent=cfg.label;
 
+  const isLV=tab==='loginVideos';
+  document.getElementById('loginVideoFormPanel').style.display=isLV?'block':'none';
+  document.getElementById('uploadsPager').style.display=isLV?'none':'flex';
+  document.getElementById('uploadsListSub').textContent=isLV?'Shown on the login screen • ordered by #':'20 per page • newest first';
+
+  if(isLV){
+    resetLoginVideoForm();
+    fetchLoginVideos();
+    return;
+  }
   fetchUploadsPage(0);
 }
 
@@ -1567,7 +1634,219 @@ function openUploadDetail(id,data){
 }
 
 function closeUploadDetail(){
+  document.querySelectorAll('#uploadDetailMedia video').forEach(v=>v.pause());
   document.getElementById('uploadDetailOverlay').style.display='none';
+}
+
+// ========== LOGIN VIDEOS (loginVideos collection: add / edit / delete) ==========
+const CLOUDINARY_CLOUD='nhm2xhew';
+const CLOUDINARY_PRESET='login_videos';
+let lvCache=[];
+let lvEditingId=null;
+let lvUploading=false;
+let lvPublicId=null;
+
+function lvEsc(v){
+  return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function uploadToCloudinary(file,onProgress){
+  return new Promise((resolve,reject)=>{
+    const fd=new FormData();
+    fd.append('file',file);
+    fd.append('upload_preset',CLOUDINARY_PRESET);
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST','https://api.cloudinary.com/v1_1/'+CLOUDINARY_CLOUD+'/video/upload');
+    xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(Math.round(e.loaded/e.total*100));};
+    xhr.onload=()=>{
+      let res=null;
+      try{res=JSON.parse(xhr.responseText);}catch(e){}
+      if(xhr.status>=200&&xhr.status<300&&res&&res.secure_url)resolve(res);
+      else reject(new Error((res&&res.error&&res.error.message)||'Upload failed'));
+    };
+    xhr.onerror=()=>reject(new Error('Network error during upload'));
+    xhr.send(fd);
+  });
+}
+
+async function lvHandleFile(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  if(!file.type.startsWith('video/')){
+    showToast('Please choose a video file','error');
+    input.value='';
+    return;
+  }
+  const wrap=document.getElementById('lvProgressWrap');
+  const bar=document.getElementById('lvProgressBar');
+  const txt=document.getElementById('lvProgressText');
+  const saveBtn=document.getElementById('lvSaveBtn');
+  wrap.style.display='block';bar.style.width='0%';txt.textContent='Uploading... 0%';
+  lvUploading=true;saveBtn.disabled=true;
+  try{
+    const res=await uploadToCloudinary(file,pct=>{
+      bar.style.width=pct+'%';
+      txt.textContent='Uploading... '+pct+'%';
+    });
+    document.getElementById('lvUrl').value=res.secure_url;
+    lvPublicId=res.public_id||null;
+    if(!document.getElementById('lvTitle').value.trim()){
+      document.getElementById('lvTitle').value=file.name.replace(/\.[^.]+$/,'');
+    }
+    bar.style.width='100%';
+    txt.textContent='Upload complete — click Save to store it';
+    showToast('Video uploaded to Cloudinary');
+  }catch(err){
+    console.error('Cloudinary upload error:',err);
+    txt.textContent='Upload failed: '+err.message;
+    showToast('Upload failed: '+err.message,'error');
+    input.value='';
+  }finally{
+    lvUploading=false;saveBtn.disabled=false;
+  }
+}
+
+function resetLoginVideoForm(){
+  lvEditingId=null;lvPublicId=null;
+  document.getElementById('lvTitle').value='';
+  document.getElementById('lvUrl').value='';
+  document.getElementById('lvFile').value='';
+  document.getElementById('lvStatus').value='true';
+  const maxOrder=lvCache.reduce((m,v)=>Math.max(m,Number(v.order)||0),0);
+  document.getElementById('lvOrder').value=maxOrder+1;
+  document.getElementById('lvProgressWrap').style.display='none';
+  document.getElementById('lvFormTitle').textContent='Add Login Video';
+  document.getElementById('lvSaveTxt').textContent='Save Video';
+  document.getElementById('lvCancelBtn').style.display='none';
+}
+
+async function fetchLoginVideos(){
+  const list=document.getElementById('uploadsList');
+  list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Loading...</div>';
+  try{
+    const snap=await db.collection('loginVideos').get();
+    lvCache=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(Number(a.order)||0)-(Number(b.order)||0));
+    if(!lvEditingId){
+      const maxOrder=lvCache.reduce((m,v)=>Math.max(m,Number(v.order)||0),0);
+      document.getElementById('lvOrder').value=maxOrder+1;
+    }
+    renderLoginVideos();
+  }catch(err){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger);font-size:13px;">'+lvEsc(err.message)+'</div>';
+  }
+}
+
+function renderLoginVideos(){
+  const list=document.getElementById('uploadsList');
+  if(!lvCache.length){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No login videos yet. Use the form above to add one.</div>';
+    return;
+  }
+  list.innerHTML=lvCache.map((v,i)=>{
+    const disabled=v.active===false;
+    return `
+    <div class="history-item" style="gap:10px;${lvEditingId===v.id?'border-color:var(--accent);':''}">
+      <div style="min-width:0;flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:var(--surface3);color:var(--accent);">#${lvEsc(v.order||i+1)}</span>
+          <span style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lvEsc(v.title||'Untitled Video')}</span>
+          ${disabled?'<span style="font-size:9px;font-weight:700;color:var(--danger);text-transform:uppercase;">Disabled</span>':''}
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lvEsc(v.video_url||v.url||'')}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:2px;flex-shrink:0;">
+        <button onclick="previewLoginVideo(${i})" title="Preview" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:8px;font-size:15px;"><i class="fa-solid fa-circle-play"></i></button>
+        <button onclick="editLoginVideo(${i})" title="Edit" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:8px;font-size:15px;"><i class="fa-solid fa-pen-to-square"></i></button>
+        <button onclick="deleteLoginVideo(${i})" title="Delete" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:8px;font-size:15px;"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function editLoginVideo(i){
+  const v=lvCache[i];
+  if(!v)return;
+  lvEditingId=v.id;lvPublicId=null;
+  document.getElementById('lvTitle').value=v.title||'';
+  document.getElementById('lvUrl').value=v.video_url||v.url||'';
+  document.getElementById('lvOrder').value=v.order||1;
+  document.getElementById('lvStatus').value=v.active===false?'false':'true';
+  document.getElementById('lvFile').value='';
+  document.getElementById('lvProgressWrap').style.display='none';
+  document.getElementById('lvFormTitle').textContent='Edit Login Video';
+  document.getElementById('lvSaveTxt').textContent='Update Video';
+  document.getElementById('lvCancelBtn').style.display='flex';
+  renderLoginVideos();
+  document.getElementById('loginVideoFormPanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function saveLoginVideo(){
+  if(lvUploading){showToast('Wait for the upload to finish','error');return;}
+  const title=document.getElementById('lvTitle').value.trim();
+  const video_url=document.getElementById('lvUrl').value.trim();
+  const order=parseInt(document.getElementById('lvOrder').value,10)||1;
+  const active=document.getElementById('lvStatus').value==='true';
+
+  if(!title||!video_url){showToast('Title and video URL are required','error');return;}
+  if(!/^https?:\/\//i.test(video_url)){showToast('Video URL must start with http(s)://','error');return;}
+
+  const btn=document.getElementById('lvSaveBtn');
+  const txt=document.getElementById('lvSaveTxt');
+  const orig=txt.textContent;
+  btn.disabled=true;txt.textContent='Saving...';
+  try{
+    const data={title,video_url,order,active};
+    if(lvPublicId)data.cloudinary_public_id=lvPublicId;
+    if(lvEditingId){
+      data.updatedAt=firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('loginVideos').doc(lvEditingId).update(data);
+      showToast('Login video updated');
+    }else{
+      data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('loginVideos').add(data);
+      showToast('Login video added');
+    }
+    lvEditingId=null;
+    await fetchLoginVideos();
+    resetLoginVideoForm();
+  }catch(err){
+    console.error('Save login video error:',err);
+    showToast('Failed to save: '+err.message,'error');
+    txt.textContent=orig;
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+async function deleteLoginVideo(i){
+  const v=lvCache[i];
+  if(!v)return;
+  if(!confirm('Delete "'+(v.title||'this video')+'"? This cannot be undone.'))return;
+  try{
+    await db.collection('loginVideos').doc(v.id).delete();
+    showToast('Login video deleted');
+    if(lvEditingId===v.id)resetLoginVideoForm();
+    await fetchLoginVideos();
+  }catch(err){
+    console.error('Delete login video error:',err);
+    showToast('Could not delete: '+err.message,'error');
+  }
+}
+
+function previewLoginVideo(i){
+  const v=lvCache[i];
+  if(!v)return;
+  const url=v.video_url||v.url||'';
+  document.getElementById('uploadDetailTitle').textContent=v.title||'Login Video';
+  document.getElementById('uploadDetailMedia').innerHTML=url?`<video src="${lvEsc(url)}" controls playsinline autoplay style="width:100%;border-radius:12px;border:1px solid var(--border);max-height:320px;display:block;"></video>`:'';
+  const rows=[['Order',v.order||'—'],['Status',v.active===false?'Disabled':'Active'],['Created',fmtUploadDate(v.createdAt)]];
+  if(v.updatedAt)rows.push(['Updated',fmtUploadDate(v.updatedAt)]);
+  document.getElementById('uploadDetailFields').innerHTML=rows.map(([k,val])=>`
+    <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;border-bottom:1px solid var(--border);padding-bottom:8px;">
+      <span style="color:var(--text3);">${k}</span>
+      <span style="color:var(--text);font-weight:600;text-align:right;word-break:break-word;">${lvEsc(val)}</span>
+    </div>`).join('');
+  document.getElementById('uploadDetailOverlay').style.display='flex';
 }
 
 function showToast(msg,type){
