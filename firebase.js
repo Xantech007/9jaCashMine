@@ -3,8 +3,7 @@
 
 const firebaseConfig = {
   apiKey: "AIzaSyAN_9d137mx7SkgGyY1nMwD36wC8xgk6oI",
-  authDomain: "flutterwave-d3a50.firebaseapp.com",
-  databaseURL: "https://jacashmine-default-rtdb.firebaseio.com",
+  authDomain: "jacashmine.firebaseapp.com",
   projectId: "jacashmine",
   storageBucket: "jacashmine.firebasestorage.app",
   messagingSenderId: "375336303263",
