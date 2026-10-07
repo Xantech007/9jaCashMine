@@ -326,18 +326,7 @@ function checkPendingBounceOnLoad() {
 
 function maskNum(num) { if (!num || num.length < 4) return "****"; return "**** " + num.slice(-4); }
 
-function formatMoney(num) {
-  const val = Number(num || 0);
-  if (val >= 1000000) {
-    const formatted = (val / 1000000).toFixed(2).replace(/\.?0+$/, '');
-    return "₦" + formatted + "m";
-  }
-  if (val >= 100000) {
-    const formatted = (val / 1000).toFixed(2).replace(/\.?0+$/, '');
-    return "₦" + formatted + "k";
-  }
-  return "₦" + val.toLocaleString("en-NG");
-}
+function formatMoney(num) { return "₦" + Number(num || 0).toLocaleString("en-NG"); }
 
 function updateBalance() {
   const el = document.getElementById("walletBalance");
@@ -347,7 +336,49 @@ function updateBalance() {
     if (formatted.includes(".")) { el.innerHTML = formatted.replace(/\.(\d+)$/, '<span>.$1</span>'); }
     else { el.innerHTML = formatted + '<span>.00</span>'; }
   }
+  fitBalance();
 }
+
+// Shrinks the balance font so large amounts never overflow the card
+function fitBalance() {
+  const el = document.getElementById("walletBalance");
+  if (!el) return;
+  const container = el.parentElement;
+  if (!container) return;
+
+  // Reset to the stylesheet's font size before measuring
+  el.style.whiteSpace = "nowrap";
+  el.style.fontSize = "";
+
+  const cs = getComputedStyle(container);
+  const available = container.clientWidth - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+  if (available <= 0) return; // card not visible yet
+
+  const measure = function () {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    return range.getBoundingClientRect().width;
+  };
+
+  let width = measure();
+  if (width <= available) return;
+
+  const baseSize = parseFloat(getComputedStyle(el).fontSize);
+  const minSize = 14;
+  let size = Math.max(minSize, Math.floor(baseSize * (available / width)));
+  el.style.fontSize = size + "px";
+
+  // Fine-tune in case the decimal span isn't scaled proportionally
+  let guard = 0;
+  while (measure() > available && size > minSize && guard < 40) {
+    size -= 1;
+    el.style.fontSize = size + "px";
+    guard++;
+  }
+}
+
+window.addEventListener("resize", fitBalance);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBalance);
 
 function toggleBalance() {
   balanceHidden = !balanceHidden;
