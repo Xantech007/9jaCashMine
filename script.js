@@ -326,7 +326,18 @@ function checkPendingBounceOnLoad() {
 
 function maskNum(num) { if (!num || num.length < 4) return "****"; return "**** " + num.slice(-4); }
 
-function formatMoney(num) { return "₦" + Number(num || 0).toLocaleString("en-NG"); }
+function formatMoney(num) {
+  const val = Number(num || 0);
+  if (val >= 1000000) {
+    const formatted = (val / 1000000).toFixed(2).replace(/\.?0+$/, '');
+    return "₦" + formatted + "m";
+  }
+  if (val >= 100000) {
+    const formatted = (val / 1000).toFixed(2).replace(/\.?0+$/, '');
+    return "₦" + formatted + "k";
+  }
+  return "₦" + val.toLocaleString("en-NG");
+}
 
 function updateBalance() {
   const el = document.getElementById("walletBalance");
