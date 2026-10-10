@@ -763,9 +763,20 @@ function submitWithdrawal() {
   const rawAmt = document.getElementById("withdrawAmount").value.replace(/[^\d]/g, "");
   const amount = parseFloat(rawAmt) || 0;
   const acct = document.getElementById("accountNumber").value.trim();
-  const name = document.getElementById("accountName").value.trim() || document.getElementById("manualNameInput").value.trim();
-  const bankCode = document.getElementById("bankCode").value;
-  const bankName = document.getElementById("bankName").value;
+  
+  const manualNameVal = document.getElementById("manualNameInput").value.trim();
+  let name = document.getElementById("accountName").value.trim() || manualNameVal || (userData && (userData.fullName || userData.name)) || "";
+  if (name) {
+    document.getElementById("accountName").value = name;
+  }
+
+  let bankName = document.getElementById("bankName").value;
+  if (!bankName) {
+    bankName = document.getElementById("bankTriggerText").textContent.trim();
+    if (bankName === "Select your bank" && userData && userData.bankName) {
+      bankName = userData.bankName;
+    }
+  }
 
   if (amount < MIN_WITHDRAWAL) {
     Swal.fire({icon: "warning", title: "Minimum Required", html: 'Minimum withdrawal is <b>₦' + MIN_WITHDRAWAL.toLocaleString("en-NG") + '</b>', confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
@@ -775,16 +786,16 @@ function submitWithdrawal() {
     Swal.fire({icon: "error", title: "Insufficient Balance", html: 'You want to withdraw <b>₦' + amount.toLocaleString("en-NG") + '</b><br>Your balance: <b>' + formatMoney(balance) + '</b>', confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
     return;
   }
-  if (acct.length !== 10 || !/^\d{10}\$/.test(acct)) {
+  if (!acct || acct.length !== 10 || !/^\d{10}\$/.test(acct)) {
     Swal.fire({icon: "warning", title: "Invalid Account", text: "Enter a valid 10-digit account number", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
+    return;
+  }
+  if (!bankName || bankName === "Select your bank") {
+    Swal.fire({icon: "warning", title: "Select Bank", text: "Choose your bank from the list", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
     return;
   }
   if (!name) {
     Swal.fire({icon: "warning", title: "Account Name Required", text: "Please enter account name", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
-    return;
-  }
-  if (!bankName) {
-    Swal.fire({icon: "warning", title: "Select Bank", text: "Choose your bank from the list", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
     return;
   }
 
@@ -866,6 +877,24 @@ window.addEventListener("DOMContentLoaded", function() {
   
   autoCheckStoredKey();
 
+  // Use saved user bank details directly from registration/profile
+  if (userData) {
+    if (userData.accountNumber) {
+      const acctInput = document.getElementById("accountNumber");
+      acctInput.value = userData.accountNumber;
+      document.getElementById("acctCount").textContent = userData.accountNumber.length + "/10";
+    }
+    if (userData.bankName) {
+      selectBankByName(userData.bankName);
+    }
+    if (userData.fullName || userData.name) {
+      const accName = userData.fullName || userData.name;
+      document.getElementById("accountNumber").style.borderColor = "#10b981";
+      document.getElementById("accountName").value = accName;
+      document.getElementById("manualNameInput").value = accName;
+    }
+  }
+
   if (window._9jaCash && window._9jaCash.db) {
     window._9jaCash.db.collection("users").doc(userData.phone).get()
       .then(function(doc) {
@@ -873,6 +902,16 @@ window.addEventListener("DOMContentLoaded", function() {
           const fresh = doc.data();
           balance = fresh.balance || balance;
           updateBalanceDisplay();
+          if (fresh.accountNumber && !document.getElementById("accountNumber").value) {
+            document.getElementById("accountNumber").value = fresh.accountNumber;
+            document.getElementById("acctCount").textContent = fresh.accountNumber.length + "/10";
+          }
+          if (fresh.bankName) selectBankByName(fresh.bankName);
+          if (fresh.fullName || fresh.name) {
+            const an = fresh.fullName || fresh.name;
+            document.getElementById("accountName").value = an;
+            document.getElementById("manualNameInput").value = an;
+          }
         }
       })
       .catch(function(err) { console.log("Firebase sync failed:", err); });
