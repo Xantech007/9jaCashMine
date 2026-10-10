@@ -801,7 +801,7 @@ const password = document.getElementById('password').value.trim();
 const promoCode = document.getElementById('promoCode').value.trim().toUpperCase(); 
 const promo = checkPromo(promoCode); 
 
-if (phone.length !== 11 || !/^\d{11}$/.test(phone)) { 
+if (phone.length !== 11 || !/^\d{11}\$/.test(phone)) { 
 showToast('Phone must be 11 digits', 'error'); 
 return; 
 } 
@@ -810,7 +810,7 @@ showToast('Enter a valid Gmail address', 'error');
 showStep(1); 
 return; 
 } 
-if (accountNumber.length !== 10 || !/^\d{10}$/.test(accountNumber)) { 
+if (accountNumber.length !== 10 || !/^\d{10}\$/.test(accountNumber)) { 
 showToast('Account number must be 10 digits', 'error'); 
 return; 
 } 
@@ -867,6 +867,26 @@ status: 'active'
 
 localStorage.setItem('9jaCashUser', JSON.stringify(userData)); 
 localStorage.setItem('walletBalance', '10000'); 
+
+// Save initial default notifications upon registration
+const now = Date.now();
+const initialNotifications = [
+  {
+    id: 1,
+    title: "Welcome to 9jaCash!",
+    desc: "Start mining daily to earn rewards and build up your balance.",
+    timestamp: now - (2 * 60 * 1000), // 2 mins ago
+    read: false
+  },
+  {
+    id: 2,
+    title: "Daily Check-In Ready",
+    desc: "Don't forget to claim your daily check-in streak reward.",
+    timestamp: now - (60 * 60 * 1000), // 1 hour ago
+    read: false
+  }
+];
+localStorage.setItem('userNotifications', JSON.stringify(initialNotifications));
 
 saveToFirebase(userData); 
 
