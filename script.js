@@ -465,141 +465,127 @@ function doCheckin() {
   }
 }
 
-function startMining() {
-  const minedAmount = 30000;
-  balance += minedAmount;
-  userData.balance = balance;
-  userData.totalMined = (userData.totalMined || 0) + minedAmount;
 
-  saveUserData({ totalMined: userData.totalMined });
-  addToActivity("Daily Mining Reward", minedAmount, "in");
+// ---------- Mining cooldown ----------
+const MINE_AMOUNT = 30000;
+const MINE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+let isMining = false;
 
-  if (typeof Swal !== 'undefined') {
-    Swal.fire({
-      icon: 'success',
-      title: 'Mining Successful!',
-      text: 'You mined ₦' + minedAmount.toLocaleString() + ' today!',
-      confirmButtonColor: '#6366f1'
-    });
-  } else {
-    showToast("Mined +₦" + minedAmount.toLocaleString());
+// Turns anything stored for "last mined" into epoch milliseconds.
+function toMillis(v) {
+  if (!v) return 0;
+  if (typeof v === "number") return isFinite(v) ? v : 0;
+  if (typeof v === "string") {
+    if (/^\d{10,}$/.test(v)) return Number(v);
+    const t = new Date(v).getTime();
+    return isNaN(t) ? 0 : t;
   }
+  if (typeof v === "object") {
+    if (typeof v.toMillis === "function") return v.toMillis();
+    if (typeof v.toDate === "function") return v.toDate().getTime();
+    if (typeof v.seconds === "number") return v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6);
+  }
+  return 0;
 }
 
-function initClaim() {
-  const todayStr = new Date().toDateString();
-  if (claimData.dateStr !== todayStr) {
-    claimData.claimsToday = 0;
-    claimData.dateStr = todayStr;
-    localStorage.setItem("claimData", JSON.stringify(claimData));
-  }
-  startClaimTimer();
-}
+function mineKey() { return "9jaCashLastMine_" + String((userData && userData.phone) || ""); }
+function getLocalLastMine() { try { return toMillis(localStorage.getItem(mineKey())); } catch (e) { return 0; } }
 
-function startClaimTimer() {
-  if (claimTimer) clearInterval(claimTimer);
-  const now = Math.floor(Date.now() / 1000);
-  const elapsed = now - (claimData.lastClaim || 0);
-  secondsLeft = elapsed < CLAIM_INTERVAL ? CLAIM_INTERVAL - elapsed : 0;
+async function startMining() {
+  if (isMining) return;
+  isMining = true;
 
-  updateClaimTimerDisplay();
-  claimTimer = setInterval(() => {
-    if (secondsLeft > 0) {
-      secondsLeft--;
-      updateClaimTimerDisplay();
-    } else {
-      clearInterval(claimTimer);
-      updateClaimTimerDisplay();
-    }
-  }, 1000);
-}
-
-function updateClaimTimerDisplay() {
-  const timerEl = document.getElementById("claimTimer");
-  const nextEl = document.getElementById("claimNext");
-  const progressEl = document.getElementById("claimProgress");
-  if (progressEl) progressEl.textContent = claimData.claimsToday || 0;
-
-  if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) {
-    if (timerEl) { timerEl.textContent = "Done"; timerEl.className = "claim-timer done"; }
-    if (nextEl) nextEl.textContent = "Limit Reached";
-    return;
-  }
-
-  if (secondsLeft <= 0) {
-    if (timerEl) { timerEl.textContent = "Claim"; timerEl.className = "claim-timer ready"; }
-    if (nextEl) nextEl.textContent = "Ready!";
-  } else {
-    const mins = Math.floor(secondsLeft / 60);
-    const secs = secondsLeft % 60;
-    const str = mins + ":" + (secs < 10 ? "0" : "") + secs;
-    if (timerEl) { timerEl.textContent = str; timerEl.className = "claim-timer"; }
-    if (nextEl) nextEl.textContent = str;
-  }
-}
-
-function doClaim() {
-  if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { showToast("Daily claim limit reached!"); return; }
-  if (secondsLeft > 0) { showToast("Please wait for the timer."); return; }
-
-  balance += CLAIM_AMOUNT;
-  userData.balance = balance;
-  claimData.claimsToday = (claimData.claimsToday || 0) + 1;
-  claimData.lastClaim = Math.floor(Date.now() / 1000);
-
-  localStorage.setItem("claimData", JSON.stringify(claimData));
-  saveUserData();
-  addToActivity("Minute Claim Reward", CLAIM_AMOUNT, "in");
-
-  secondsLeft = CLAIM_INTERVAL;
-  startClaimTimer();
-  showToast("Claimed +₦" + CLAIM_AMOUNT.toLocaleString());
-}
-
-function editBank() {
-  if (typeof Swal === 'undefined') {
-    const bName = prompt("Enter Bank Name:", userData.bankName || "");
-    const accNum = prompt("Enter Account Number:", userData.accountNumber || "");
-    const accName = prompt("Enter Account Name:", userData.accountName || "");
-    if (bName && accNum) {
-      userData.bankName = bName;
-      userData.accountNumber = accNum;
-      userData.accountName = accName || "";
-      saveUserData({ bankName: bName, accountNumber: accNum, accountName: userData.accountName });
-      renderBankInfo();
-    }
-    return;
-  }
-
-  Swal.fire({
-    title: 'Update Linked Bank',
-    html: `
-      <input id="swal-bank" class="swal2-input" placeholder="Bank Name" value="${userData.bankName || ''}">
-      <input id="swal-acc" class="swal2-input" placeholder="Account Number" value="${userData.accountNumber || ''}">
-      <input id="swal-name" class="swal2-input" placeholder="Account Holder Name" value="${userData.accountName || ''}">
-    `,
-    showCancelButton: true,
-    confirmButtonText: 'Save Details',
-    confirmButtonColor: '#6366f1',
-    preConfirm: () => ({
-      bankName: document.getElementById('swal-bank').value.trim(),
-      accountNumber: document.getElementById('swal-acc').value.trim(),
-      accountName: document.getElementById('swal-name').value.trim()
-    })
-  }).then((res) => {
-    if (res.isConfirmed && res.value.bankName && res.value.accountNumber) {
-      userData.bankName = res.value.bankName;
-      userData.accountNumber = res.value.accountNumber;
-      userData.accountName = res.value.accountName;
-      saveUserData({
-        bankName: userData.bankName,
-        accountNumber: userData.accountNumber,
-        accountName: userData.accountName
+  const showCooldown = function (lastMine) {
+    const remainingMs = MINE_COOLDOWN_MS - (Date.now() - lastMine);
+    const hours = Math.max(0, Math.floor(remainingMs / (1000 * 60 * 60)));
+    const minutes = Math.max(0, Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60)));
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Already Mined Today!',
+        text: `You can only mine once every 24 hours. Please wait ${hours}h ${minutes}m before mining again.`,
+        confirmButtonColor: '#6366f1'
       });
-      renderBankInfo();
-      showToast("Bank updated & saved to Firebase!");
+    } else {
+      showToast(`Already mined! Wait ${hours}h ${minutes}m.`);
     }
-  });
+  };
+
+  try {
+    // 1. Local cooldown check
+    const localLast = Math.max(toMillis(userData && userData.lastMineTime), getLocalLastMine());
+    if (Date.now() - localLast < MINE_COOLDOWN_MS) { showCooldown(localLast); return; }
+
+    let newBalance, newTotal;
+    const mineTime = Date.now();
+
+    // 2. Server-side check + write in one transaction
+    if (db && userData && userData.phone) {
+      const ref = db.collection("users").doc(String(userData.phone));
+      let outcome;
+      try {
+        outcome = await db.runTransaction(async function (tx) {
+          const snap = await tx.get(ref);
+          const d = snap.exists ? snap.data() : {};
+          const serverLast = toMillis(d.lastMineTime);
+          if (Date.now() - Math.max(serverLast, localLast) < MINE_COOLDOWN_MS) {
+            return { ok: false, last: Math.max(serverLast, localLast) };
+          }
+          const base = d.balance !== undefined ? parseFloat(d.balance) || 0 : balance;
+          const total = (parseFloat(d.totalMined) || 0) + MINE_AMOUNT;
+          const nb = base + MINE_AMOUNT;
+          tx.set(ref, {
+            balance: nb,
+            totalMined: total,
+            lastMineTime: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          return { ok: true, balance: nb, totalMined: total };
+        });
+      } catch (err) {
+        console.error("Mining transaction failed:", err);
+        showToast("Couldn't reach the server. Check your connection and try again.");
+        return;
+      }
+
+      if (!outcome.ok) {
+        try { localStorage.setItem(mineKey(), String(outcome.last)); } catch (e) { }
+        userData.lastMineTime = outcome.last;
+        showCooldown(outcome.last);
+        return;
+      }
+      newBalance = outcome.balance;
+      newTotal = outcome.totalMined;
+    } else {
+      newBalance = balance + MINE_AMOUNT;
+      newTotal = (userData.totalMined || 0) + MINE_AMOUNT;
+    }
+
+    // 3. Apply locally
+    try { localStorage.setItem(mineKey(), String(mineTime)); } catch (e) { }
+    balance = newBalance;
+    userData.balance = balance;
+    userData.totalMined = newTotal;
+    userData.lastMineTime = mineTime;
+    localStorage.setItem("9jaCashUser", JSON.stringify(userData));
+    localStorage.setItem("walletBalance", balance);
+    updateBalance();
+    if (!(db && userData.phone)) saveUserData({ totalMined: userData.totalMined });
+    addToActivity("Daily Mining Reward", MINE_AMOUNT, "in");
+
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'success',
+        title: 'Mining Successful!',
+        text: 'You mined ₦' + MINE_AMOUNT.toLocaleString() + ' today! Come back in 24 hours.',
+        confirmButtonColor: '#6366f1'
+      });
+    } else {
+      showToast("Mined +₦" + MINE_AMOUNT.toLocaleString());
+    }
+  } finally {
+    isMining = false;
+  }
 }
 
 function renderBankInfo() {
