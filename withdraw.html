@@ -775,7 +775,7 @@ function submitWithdrawal() {
     Swal.fire({icon: "error", title: "Insufficient Balance", html: 'You want to withdraw <b>₦' + amount.toLocaleString("en-NG") + '</b><br>Your balance: <b>' + formatMoney(balance) + '</b>', confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
     return;
   }
-  if (acct.length !== 10 || !/^\d{10}\$/.test(acct)) {
+  if (acct.length !== 10 || !/^\d{10}$/.test(acct)) {
     Swal.fire({icon: "warning", title: "Invalid Account", text: "Enter a valid 10-digit account number", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
     return;
   }
