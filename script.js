@@ -1039,30 +1039,14 @@ document.addEventListener("DOMContentLoaded", function () {
   initSocialPopup();
 });
 
-// ---------- Notifications from localStorage with relative time formatting ----------
+// ---------- Notifications from localStorage (No hardcoded samples) ----------
 let userNotifications = [];
 try {
   const storedNotifs = localStorage.getItem("userNotifications");
   if (storedNotifs) {
     userNotifications = JSON.parse(storedNotifs);
   } else {
-    const now = Date.now();
-    userNotifications = [
-      {
-        id: 1,
-        title: "Welcome to 9jaCash!",
-        desc: "Start mining daily to earn rewards and build up your balance.",
-        timestamp: now - (2 * 60 * 1000), // 2 mins ago
-        read: false
-      },
-      {
-        id: 2,
-        title: "Daily Check-In Ready",
-        desc: "Don't forget to claim your daily check-in streak reward.",
-        timestamp: now - (60 * 60 * 1000), // 1 hour ago
-        read: false
-      }
-    ];
+    userNotifications = [];
     localStorage.setItem("userNotifications", JSON.stringify(userNotifications));
   }
 } catch (e) {
