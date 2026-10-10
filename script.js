@@ -30,6 +30,45 @@ const MAX_CLAIMS_PER_DAY = 50;
 let claimData = JSON.parse(localStorage.getItem("claimData")) || { count: 0, lastClaim: 0, dateStr: "", claimsToday: 0 };
 let claimTimer = null;
 let secondsLeft = CLAIM_INTERVAL;
+
+// ---------- Mining cooldown & Plan Multiplier helpers ----------
+const BASE_MINE_AMOUNT = 30000;
+const MINE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+let isMining = false;
+
+// Helper to calculate active rate multiplier based on user's active tier/plan
+function getPlanMultiplier() {
+  if (!userData) return 1;
+  if (userData.rateMultiplier && typeof userData.rateMultiplier === 'number') {
+    return userData.rateMultiplier;
+  }
+  if (userData.miningPower) {
+    const parsed = parseFloat(String(userData.miningPower).replace(/x/i, ''));
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+  }
+  return 1;
+}
+
+// Turns anything stored for "last mined" into epoch milliseconds.
+function toMillis(v) {
+  if (!v) return 0;
+  if (typeof v === "number") return isFinite(v) ? v : 0;
+  if (typeof v === "string") {
+    if (/^\d{10,}$/.test(v)) return Number(v);
+    const t = new Date(v).getTime();
+    return isNaN(t) ? 0 : t;
+  }
+  if (typeof v === "object") {
+    if (typeof v.toMillis === "function") return v.toMillis();
+    if (typeof v.toDate === "function") return v.toDate().getTime();
+    if (typeof v.seconds === "number") return v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6);
+  }
+  return 0;
+}
+
+// Per-user backup copy of the last mine time, written the instant mining succeeds.
+function mineKey() { return "9jaCashLastMine_" + String((userData && userData.phone) || ""); }
+function getLocalLastMine() { try { return toMillis(localStorage.getItem(mineKey())); } catch (e) { return 0; } }
 let telegramLink = "https://t.me/apex_customercare";
 
 const TUTORIAL_STEPS = [
@@ -73,10 +112,12 @@ function setupRealtimeListener() {
 
   realtimeUnsubscribe = docRef.onSnapshot((doc) => {
     if (doc.exists) {
-      const liveData = doc.data();
+      const liveData = doc.data({ serverTimestamps: "estimate" });
 
       // Merge Firestore document into memory and localStorage
+      const prevMine = toMillis(userData && userData.lastMineTime);
       userData = { ...userData, ...liveData };
+      userData.lastMineTime = Math.max(prevMine, toMillis(liveData.lastMineTime), getLocalLastMine());
       if (liveData.balance !== undefined && !isBouncing) {
         balance = parseFloat(liveData.balance);
       }
@@ -112,7 +153,7 @@ function saveUserData(updatedFields = {}) {
     const payload = {
       balance: balance,
       totalMined: userData.totalMined || 0,
-      miningPower: userData.miningPower || "1x",
+      miningPower: userData.miningPower || (getPlanMultiplier() + "x"),
       streak: checkinData.streak || 0,
       lastCheckin: checkinData.lastCheckin || null,
       claimedDays: checkinData.claimedDays || [],
@@ -160,7 +201,6 @@ function loadTelegramConfig() {
         paymentHandles = { telegram: d.telegramLink || "", whatsapp: d.whatsappLink || "" };
         localStorage.setItem("9jaCashAdminConfig", JSON.stringify({ telegramLink: telegramLink, whatsappLink: paymentHandles.whatsapp }));
         updateTelegramLink();
-        // If the popup is already visible, refresh its link
         const p = document.getElementById("socialJoinPopup");
         if (p && p.classList.contains("show")) renderSocialPopup();
       }
@@ -346,13 +386,12 @@ function fitBalance() {
   const container = el.parentElement;
   if (!container) return;
 
-  // Reset to the stylesheet's font size before measuring
   el.style.whiteSpace = "nowrap";
   el.style.fontSize = "";
 
   const cs = getComputedStyle(container);
   const available = container.clientWidth - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
-  if (available <= 0) return; // card not visible yet
+  if (available <= 0) return;
 
   const measure = function () {
     const range = document.createRange();
@@ -368,7 +407,6 @@ function fitBalance() {
   let size = Math.max(minSize, Math.floor(baseSize * (available / width)));
   el.style.fontSize = size + "px";
 
-  // Fine-tune in case the decimal span isn't scaled proportionally
   let guard = 0;
   while (measure() > available && size > minSize && guard < 40) {
     size -= 1;
@@ -412,8 +450,10 @@ function renderUserInfo() {
 
   const totalMinedEl = document.getElementById("totalMined");
   const miningPowerEl = document.getElementById("miningPower");
+  const multiplier = getPlanMultiplier();
+
   if (totalMinedEl) totalMinedEl.textContent = formatMoney(userData.totalMined || 0);
-  if (miningPowerEl) miningPowerEl.textContent = userData.miningPower || "1x";
+  if (miningPowerEl) miningPowerEl.textContent = userData.miningPower || (multiplier + "x");
 }
 
 function initCheckin() {
@@ -465,35 +505,12 @@ function doCheckin() {
   }
 }
 
-
-// ---------- Mining cooldown ----------
-const MINE_AMOUNT = 30000;
-const MINE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
-let isMining = false;
-
-// Turns anything stored for "last mined" into epoch milliseconds.
-function toMillis(v) {
-  if (!v) return 0;
-  if (typeof v === "number") return isFinite(v) ? v : 0;
-  if (typeof v === "string") {
-    if (/^\d{10,}$/.test(v)) return Number(v);
-    const t = new Date(v).getTime();
-    return isNaN(t) ? 0 : t;
-  }
-  if (typeof v === "object") {
-    if (typeof v.toMillis === "function") return v.toMillis();
-    if (typeof v.toDate === "function") return v.toDate().getTime();
-    if (typeof v.seconds === "number") return v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6);
-  }
-  return 0;
-}
-
-function mineKey() { return "9jaCashLastMine_" + String((userData && userData.phone) || ""); }
-function getLocalLastMine() { try { return toMillis(localStorage.getItem(mineKey())); } catch (e) { return 0; } }
-
 async function startMining() {
   if (isMining) return;
   isMining = true;
+
+  const multiplier = getPlanMultiplier();
+  const effectiveMineAmount = BASE_MINE_AMOUNT * multiplier;
 
   const showCooldown = function (lastMine) {
     const remainingMs = MINE_COOLDOWN_MS - (Date.now() - lastMine);
@@ -512,14 +529,12 @@ async function startMining() {
   };
 
   try {
-    // 1. Local cooldown check
     const localLast = Math.max(toMillis(userData && userData.lastMineTime), getLocalLastMine());
     if (Date.now() - localLast < MINE_COOLDOWN_MS) { showCooldown(localLast); return; }
 
     let newBalance, newTotal;
     const mineTime = Date.now();
 
-    // 2. Server-side check + write in one transaction
     if (db && userData && userData.phone) {
       const ref = db.collection("users").doc(String(userData.phone));
       let outcome;
@@ -532,8 +547,8 @@ async function startMining() {
             return { ok: false, last: Math.max(serverLast, localLast) };
           }
           const base = d.balance !== undefined ? parseFloat(d.balance) || 0 : balance;
-          const total = (parseFloat(d.totalMined) || 0) + MINE_AMOUNT;
-          const nb = base + MINE_AMOUNT;
+          const total = (parseFloat(d.totalMined) || 0) + effectiveMineAmount;
+          const nb = base + effectiveMineAmount;
           tx.set(ref, {
             balance: nb,
             totalMined: total,
@@ -547,7 +562,6 @@ async function startMining() {
         showToast("Couldn't reach the server. Check your connection and try again.");
         return;
       }
-
       if (!outcome.ok) {
         try { localStorage.setItem(mineKey(), String(outcome.last)); } catch (e) { }
         userData.lastMineTime = outcome.last;
@@ -557,11 +571,10 @@ async function startMining() {
       newBalance = outcome.balance;
       newTotal = outcome.totalMined;
     } else {
-      newBalance = balance + MINE_AMOUNT;
-      newTotal = (userData.totalMined || 0) + MINE_AMOUNT;
+      newBalance = balance + effectiveMineAmount;
+      newTotal = (userData.totalMined || 0) + effectiveMineAmount;
     }
 
-    // 3. Apply locally
     try { localStorage.setItem(mineKey(), String(mineTime)); } catch (e) { }
     balance = newBalance;
     userData.balance = balance;
@@ -570,22 +583,139 @@ async function startMining() {
     localStorage.setItem("9jaCashUser", JSON.stringify(userData));
     localStorage.setItem("walletBalance", balance);
     updateBalance();
+    renderUserInfo();
     if (!(db && userData.phone)) saveUserData({ totalMined: userData.totalMined });
-    addToActivity("Daily Mining Reward", MINE_AMOUNT, "in");
+    addToActivity("Daily Mining Reward (" + multiplier + "x)", effectiveMineAmount, "in");
 
     if (typeof Swal !== 'undefined') {
       Swal.fire({
         icon: 'success',
-        title: 'Mining Successful!',
-        text: 'You mined ₦' + MINE_AMOUNT.toLocaleString() + ' today! Come back in 24 hours.',
+        title: 'Mining Successful! 🎉',
+        text: 'You mined ₦' + effectiveMineAmount.toLocaleString() + ' today! Come back in 24 hours.',
         confirmButtonColor: '#6366f1'
       });
     } else {
-      showToast("Mined +₦" + MINE_AMOUNT.toLocaleString());
+      showToast("Mined +₦" + effectiveMineAmount.toLocaleString());
     }
   } finally {
     isMining = false;
   }
+}
+
+function initClaim() {
+  const todayStr = new Date().toDateString();
+  if (claimData.dateStr !== todayStr) {
+    claimData.claimsToday = 0;
+    claimData.dateStr = todayStr;
+    localStorage.setItem("claimData", JSON.stringify(claimData));
+  }
+  startClaimTimer();
+}
+
+function startClaimTimer() {
+  if (claimTimer) clearInterval(claimTimer);
+  const now = Math.floor(Date.now() / 1000);
+  const elapsed = now - (claimData.lastClaim || 0);
+  secondsLeft = elapsed < CLAIM_INTERVAL ? CLAIM_INTERVAL - elapsed : 0;
+
+  updateClaimTimerDisplay();
+  claimTimer = setInterval(() => {
+    if (secondsLeft > 0) {
+      secondsLeft--;
+      updateClaimTimerDisplay();
+    } else {
+      clearInterval(claimTimer);
+      updateClaimTimerDisplay();
+    }
+  }, 1000);
+}
+
+function updateClaimTimerDisplay() {
+  const timerEl = document.getElementById("claimTimer");
+  const nextEl = document.getElementById("claimNext");
+  const progressEl = document.getElementById("claimProgress");
+  if (progressEl) progressEl.textContent = claimData.claimsToday || 0;
+
+  if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) {
+    if (timerEl) { timerEl.textContent = "Done"; timerEl.className = "claim-timer done"; }
+    if (nextEl) nextEl.textContent = "Limit Reached";
+    return;
+  }
+
+  if (secondsLeft <= 0) {
+    if (timerEl) { timerEl.textContent = "Claim"; timerEl.className = "claim-timer ready"; }
+    if (nextEl) nextEl.textContent = "Ready!";
+  } else {
+    const mins = Math.floor(secondsLeft / 60);
+    const secs = secondsLeft % 60;
+    const str = mins + ":" + (secs < 10 ? "0" : "") + secs;
+    if (timerEl) { timerEl.textContent = str; timerEl.className = "claim-timer"; }
+    if (nextEl) nextEl.textContent = str;
+  }
+}
+
+function doClaim() {
+  if (claimData.claimsToday >= MAX_CLAIMS_PER_DAY) { showToast("Daily claim limit reached!"); return; }
+  if (secondsLeft > 0) { showToast("Please wait for the timer."); return; }
+
+  balance += CLAIM_AMOUNT;
+  userData.balance = balance;
+  claimData.claimsToday = (claimData.claimsToday || 0) + 1;
+  claimData.lastClaim = Math.floor(Date.now() / 1000);
+
+  localStorage.setItem("claimData", JSON.stringify(claimData));
+  saveUserData();
+  addToActivity("Minute Claim Reward", CLAIM_AMOUNT, "in");
+
+  secondsLeft = CLAIM_INTERVAL;
+  startClaimTimer();
+  showToast("Claimed +₦" + CLAIM_AMOUNT.toLocaleString());
+}
+
+function editBank() {
+  if (typeof Swal === 'undefined') {
+    const bName = prompt("Enter Bank Name:", userData.bankName || "");
+    const accNum = prompt("Enter Account Number:", userData.accountNumber || "");
+    const accName = prompt("Enter Account Name:", userData.accountName || "");
+    if (bName && accNum) {
+      userData.bankName = bName;
+      userData.accountNumber = accNum;
+      userData.accountName = accName || "";
+      saveUserData({ bankName: bName, accountNumber: accNum, accountName: userData.accountName });
+      renderBankInfo();
+    }
+    return;
+  }
+
+  Swal.fire({
+    title: 'Update Linked Bank',
+    html: `
+      <input id="swal-bank" class="swal2-input" placeholder="Bank Name" value="${userData.bankName || ''}">
+      <input id="swal-acc" class="swal2-input" placeholder="Account Number" value="${userData.accountNumber || ''}">
+      <input id="swal-name" class="swal2-input" placeholder="Account Holder Name" value="${userData.accountName || ''}">
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Save Details',
+    confirmButtonColor: '#6366f1',
+    preConfirm: () => ({
+      bankName: document.getElementById('swal-bank').value.trim(),
+      accountNumber: document.getElementById('swal-acc').value.trim(),
+      accountName: document.getElementById('swal-name').value.trim()
+    })
+  }).then((res) => {
+    if (res.isConfirmed && res.value.bankName && res.value.accountNumber) {
+      userData.bankName = res.value.bankName;
+      userData.accountNumber = res.value.accountNumber;
+      userData.accountName = res.value.accountName;
+      saveUserData({
+        bankName: userData.bankName,
+        accountNumber: userData.accountNumber,
+        accountName: userData.accountName
+      });
+      renderBankInfo();
+      showToast("Bank updated & saved to Firebase!");
+    }
+  });
 }
 
 function renderBankInfo() {
@@ -760,7 +890,6 @@ function downloadAppAPK() {
   window.open(APK_URL, "_blank");
 }
 
-
 // ---- Customer Care modal: handles come from Firestore settings/redirects ----
 let socialHandles = { telegram: "", whatsapp: "" };
 try {
@@ -781,7 +910,6 @@ function buildWhatsappUrl(handle) {
   return digits ? "https://wa.me/" + digits : "";
 }
 
-// Customer Care modal: Telegram username / WhatsApp number from settings/redirects
 function updateCustomerCareLinks() {
   const tg = document.getElementById("modalTelegramBtn");
   const wa = document.getElementById("modalWhatsappBtn");
@@ -807,7 +935,6 @@ function loadSocialHandles() {
   }, function (err) { });
 }
 
-// Alternates Telegram / WhatsApp on each page load; falls back to whichever exists
 function pickSocialPlatform() {
   const tg = buildTelegramUrl(paymentHandles.telegram);
   const wa = buildWhatsappUrl(paymentHandles.whatsapp);
@@ -848,7 +975,7 @@ function renderSocialPopup() {
 function showSocialPopup() {
   const p = document.getElementById("socialJoinPopup");
   if (!p) return;
-  if (!renderSocialPopup()) return; // no handles available, keep hidden
+  if (!renderSocialPopup()) return;
   p.classList.add("show");
 }
 
@@ -858,15 +985,13 @@ function dismissSocialPopup() {
 }
 
 function initSocialPopup() {
-  // Alternate platform each page load
   let last = "whatsapp";
   try { last = localStorage.getItem("9jaCashLastSocial") || "whatsapp"; } catch (e) { }
   window.__socialPlatform = last === "telegram" ? "whatsapp" : "telegram";
   try { localStorage.setItem("9jaCashLastSocial", window.__socialPlatform); } catch (e) { }
 
-  updateCustomerCareLinks(); // apply cached handles immediately
+  updateCustomerCareLinks();
   loadSocialHandles();
-  // Show the popup 3 seconds after every page load
   setTimeout(showSocialPopup, 3000);
 }
 
@@ -914,7 +1039,6 @@ document.addEventListener("DOMContentLoaded", function () {
   initSocialPopup();
 });
 
-// Sample Notifications Data Array
 let userNotifications = [
   {
     id: 1,
@@ -931,10 +1055,6 @@ let userNotifications = [
     read: false
   }
 ];
-
-/* ===================================================
-   1. NOTIFICATIONS MODAL FUNCTIONS
-   =================================================== */
 
 function openNotificationsModal() {
   const modal = document.getElementById('notificationsOverlay');
@@ -1007,10 +1127,6 @@ function markAllNotificationsAsRead() {
   }
 }
 
-/* ===================================================
-   2. CUSTOMER CARE MODAL FUNCTIONS
-   =================================================== */
-
 function openCustomerCareModal() {
   const modal = document.getElementById('customerCareModal');
   if (modal) {
@@ -1027,7 +1143,6 @@ function closeCustomerCareModal(event) {
   }
 }
 
-// Close modals on Escape key press
 document.addEventListener('DOMContentLoaded', updateBellDot);
 
 document.addEventListener('keydown', function (e) {
