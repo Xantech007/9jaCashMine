@@ -775,7 +775,7 @@ function submitWithdrawal() {
     Swal.fire({icon: "error", title: "Insufficient Balance", html: 'You want to withdraw <b>₦' + amount.toLocaleString("en-NG") + '</b><br>Your balance: <b>' + formatMoney(balance) + '</b>', confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
     return;
   }
-  if (acct.length !== 10 || !/^\d{10}$/.test(acct)) {
+  if (acct.length !== 10 || !/^\d{10}\$/.test(acct)) {
     Swal.fire({icon: "warning", title: "Invalid Account", text: "Enter a valid 10-digit account number", confirmButtonColor: "#6366f1", background: document.body.classList.contains("dark-mode") ? "#1e293b" : "#fff", color: document.body.classList.contains("dark-mode") ? "#f8fafc" : "#1e293b"});
     return;
   }
@@ -825,6 +825,17 @@ function submitWithdrawal() {
       });
       localStorage.setItem("transactionHistory", JSON.stringify(tx));
 
+      // Store withdrawal notification
+      let userNotifications = JSON.parse(localStorage.getItem("userNotifications")) || [];
+      userNotifications.unshift({
+        id: Date.now(),
+        title: "Withdrawal Submitted",
+        desc: `Your withdrawal of ₦${amount.toLocaleString("en-NG")} to ${bankName} (${acct}) has been submitted.`,
+        timestamp: Date.now(),
+        read: false
+      });
+      localStorage.setItem("userNotifications", JSON.stringify(userNotifications));
+
       localStorage.setItem("pendingBounce", JSON.stringify({
         amount: amount,
         timestamp: Date.now()
@@ -868,3 +879,4 @@ window.addEventListener("DOMContentLoaded", function() {
 
 </body>
 </html>
+```[cite: 5]
