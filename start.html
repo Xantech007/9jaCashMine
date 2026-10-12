@@ -810,7 +810,7 @@ showToast('Enter a valid Gmail address', 'error');
 showStep(1); 
 return; 
 } 
-if (accountNumber.length !== 10 || !/^\d{10}\$/.test(accountNumber)) { 
+if (accountNumber.length !== 10 || !/^\d{10}$/.test(accountNumber)) { 
 showToast('Account number must be 10 digits', 'error'); 
 return; 
 } 
