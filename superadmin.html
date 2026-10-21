@@ -544,13 +544,13 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
     <div class="header-left">
       <div>
         <div class="header-title">Uploads</div>
-        <div class="header-sub">Payment receipts, video submissions & login promo videos</div>
+        <div class="header-sub">Payment receipts, video submissions, login promo videos & verification tutorial</div>
       </div>
     </div>
   </div>
 
   <!-- Sub-tab switch -->
-  <div style="display:flex;gap:8px;margin-bottom:20px;">
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
     <button id="uploadsSubtabReceiptsBtn" onclick="switchUploadSubtab('receipts')"
       style="flex:1;padding:12px 6px;border-radius:12px;border:1.5px solid var(--accent);background:var(--accent);color:#fff;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.2s;">
       <i class="fa-solid fa-receipt"></i> Receipts
@@ -562,6 +562,39 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
     <button id="uploadsSubtabLoginBtn" onclick="switchUploadSubtab('loginVideos')"
       style="flex:1;padding:12px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-weight:700;font-size:12px;cursor:pointer;transition:all 0.2s;">
       <i class="fa-solid fa-clapperboard"></i> Login Videos
+    </button>
+    <button id="uploadsSubtabVerificationBtn" onclick="switchUploadSubtab('verificationTutorial')"
+      style="flex:1;padding:12px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-weight:700;font-size:12px;cursor:pointer;transition:all 0.2s;">
+      <i class="fa-solid fa-graduation-cap"></i> Verify Tutorial
+    </button>
+  </div>
+
+  <!-- VERIFICATION TUTORIAL -->
+  <div class="panel" id="verificationTutorialPanel" style="display:none;">
+    <div class="panel-header">
+      <div class="panel-icon purple"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+      <div><div class="panel-title">Verification Tutorial</div><div class="panel-sub">Shown when users choose Verify Linked Account</div></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Upload Video (Cloudinary)</label>
+      <input type="file" id="verificationTutorialFile" accept="video/*" class="form-input" onchange="handleVerificationTutorialFile(this)">
+      <div id="verificationTutorialProgressWrap" style="display:none;margin-top:10px;">
+        <div style="height:8px;border-radius:6px;background:var(--surface3);overflow:hidden;">
+          <div id="verificationTutorialProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.15s;"></div>
+        </div>
+        <div id="verificationTutorialProgressText" style="font-size:11px;color:var(--text3);margin-top:6px;font-weight:600;">0%</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Video URL</label>
+      <input type="url" id="verificationTutorialUrl" class="form-input" placeholder="Filled after upload, or paste a video URL" onchange="previewVerificationTutorial()">
+    </div>
+
+    <div id="verificationTutorialPreview" style="margin-bottom:16px;"></div>
+    <button class="save-btn" id="verificationTutorialSaveBtn" style="margin-top:0;" onclick="saveVerificationTutorial()">
+      <i class="fa-solid fa-floppy-disk"></i> Save Tutorial Video
     </button>
   </div>
 
@@ -613,7 +646,7 @@ select.form-input{cursor:pointer;appearance:none;background-image:url("data:imag
     </div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="uploadsListPanel">
     <div class="panel-header">
       <div class="panel-icon purple"><i class="fa-solid fa-list"></i></div>
       <div><div class="panel-title" id="uploadsListTitle">Payment Receipts</div><div class="panel-sub" id="uploadsListSub">20 per page • newest first</div></div>
@@ -1436,6 +1469,9 @@ const uploadsConfig={
   loginVideos:{
     collection:'loginVideos',
     label:'Login Videos'
+  },
+  verificationTutorial:{
+    label:'Verification Tutorial'
   }
 };
 
@@ -1467,10 +1503,14 @@ function statusBadgeColor(status){
 }
 
 function switchUploadSubtab(tab){
+  if(verificationTutorialUploading){
+    showToast('Wait for the verification tutorial upload to finish','error');
+    return;
+  }
   currentUploadTab=tab;
   const cfg=uploadsConfig[tab];
 
-  const btns={receipts:'uploadsSubtabReceiptsBtn',videos:'uploadsSubtabVideosBtn',loginVideos:'uploadsSubtabLoginBtn'};
+  const btns={receipts:'uploadsSubtabReceiptsBtn',videos:'uploadsSubtabVideosBtn',loginVideos:'uploadsSubtabLoginBtn',verificationTutorial:'uploadsSubtabVerificationBtn'};
   Object.keys(btns).forEach(k=>{
     const b=document.getElementById(btns[k]);
     const on=k===tab;
@@ -1482,10 +1522,17 @@ function switchUploadSubtab(tab){
   document.getElementById('uploadsListTitle').textContent=cfg.label;
 
   const isLV=tab==='loginVideos';
+  const isVerificationTutorial=tab==='verificationTutorial';
   document.getElementById('loginVideoFormPanel').style.display=isLV?'block':'none';
-  document.getElementById('uploadsPager').style.display=isLV?'none':'flex';
+  document.getElementById('verificationTutorialPanel').style.display=isVerificationTutorial?'block':'none';
+  document.getElementById('uploadsListPanel').style.display=isVerificationTutorial?'none':'block';
+  document.getElementById('uploadsPager').style.display=isLV||isVerificationTutorial?'none':'flex';
   document.getElementById('uploadsListSub').textContent=isLV?'Shown on the login screen • ordered by #':'20 per page • newest first';
 
+  if(isVerificationTutorial){
+    loadVerificationTutorial();
+    return;
+  }
   if(isLV){
     resetLoginVideoForm();
     fetchLoginVideos();
@@ -1666,6 +1713,94 @@ function uploadToCloudinary(file,onProgress){
     xhr.onerror=()=>reject(new Error('Network error during upload'));
     xhr.send(fd);
   });
+}
+
+let verificationTutorialUploading=false;
+
+async function handleVerificationTutorialFile(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  if(!file.type.startsWith('video/')){
+    showToast('Please choose a video file','error');
+    input.value='';
+    return;
+  }
+
+  const wrap=document.getElementById('verificationTutorialProgressWrap');
+  const bar=document.getElementById('verificationTutorialProgressBar');
+  const txt=document.getElementById('verificationTutorialProgressText');
+  const saveBtn=document.getElementById('verificationTutorialSaveBtn');
+  const urlInput=document.getElementById('verificationTutorialUrl');
+  wrap.style.display='block';bar.style.width='0%';txt.textContent='Uploading... 0%';
+  input.disabled=true;urlInput.disabled=true;
+  verificationTutorialUploading=true;saveBtn.disabled=true;
+  try{
+    const res=await uploadToCloudinary(file,pct=>{
+      bar.style.width=pct+'%';
+      txt.textContent='Uploading... '+pct+'%';
+    });
+    document.getElementById('verificationTutorialUrl').value=res.secure_url;
+    previewVerificationTutorial();
+    bar.style.width='100%';
+    txt.textContent='Upload complete — click Save Tutorial Video to publish it';
+    showToast('Verification tutorial uploaded to Cloudinary');
+  }catch(err){
+    console.error('Verification tutorial upload error:',err);
+    txt.textContent='Upload failed: '+err.message;
+    showToast('Upload failed: '+err.message,'error');
+    input.value='';
+  }finally{
+    input.disabled=false;urlInput.disabled=false;
+    verificationTutorialUploading=false;saveBtn.disabled=false;
+  }
+}
+
+function previewVerificationTutorial(){
+  const url=document.getElementById('verificationTutorialUrl').value.trim();
+  const preview=document.getElementById('verificationTutorialPreview');
+  preview.innerHTML=/^https?:\/\//i.test(url)
+    ?`<video src="${lvEsc(url)}" controls playsinline style="width:100%;max-height:320px;border-radius:12px;border:1px solid var(--border);background:#000;display:block;"></video>`
+    :'';
+}
+
+async function loadVerificationTutorial(){
+  const urlInput=document.getElementById('verificationTutorialUrl');
+  const progress=document.getElementById('verificationTutorialProgressWrap');
+  progress.style.display='none';
+  document.getElementById('verificationTutorialFile').value='';
+  document.getElementById('verificationTutorialPreview').innerHTML='';
+  urlInput.value='';
+  try{
+    const doc=await db.collection('settings').doc('verificationTutorial').get();
+    urlInput.value=doc.exists?(doc.data().videoUrl||''):'';
+    previewVerificationTutorial();
+  }catch(err){
+    console.error('Failed to load verification tutorial settings:',err);
+    showToast('Could not load tutorial settings: '+err.message,'error');
+  }
+}
+
+async function saveVerificationTutorial(){
+  if(verificationTutorialUploading){showToast('Wait for the upload to finish','error');return;}
+  const videoUrl=document.getElementById('verificationTutorialUrl').value.trim();
+  if(!videoUrl){showToast('Upload a video or enter a video URL','error');return;}
+  if(!/^https?:\/\//i.test(videoUrl)){showToast('Video URL must start with http(s)://','error');return;}
+
+  const btn=document.getElementById('verificationTutorialSaveBtn');
+  btn.disabled=true;
+  try{
+    await db.collection('settings').doc('verificationTutorial').set({
+      videoUrl,
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+    previewVerificationTutorial();
+    showToast('Verification tutorial saved');
+  }catch(err){
+    console.error('Failed to save verification tutorial:',err);
+    showToast('Failed to save tutorial: '+err.message,'error');
+  }finally{
+    btn.disabled=false;
+  }
 }
 
 async function lvHandleFile(input){

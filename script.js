@@ -742,20 +742,58 @@ function handleVerifyClick() {
   openVerificationVideoModal();
 }
 
-function openVerificationVideoModal() {
+async function openVerificationVideoModal() {
   const modal = document.getElementById("verificationVideoModal");
-  if (modal) modal.style.display = "flex";
+  const player = document.getElementById("verificationVideoModalPlayer");
+  const status = document.getElementById("verificationVideoModalStatus");
+  if (!modal || !player || !status) return;
+
+  player.onerror = null;
+  player.pause();
+  player.removeAttribute("src");
+  player.style.display = "none";
+  player.load();
+  status.textContent = "Loading verification tutorial...";
+  status.style.display = "block";
+  modal.style.display = "flex";
+
+  try {
+    if (!db) throw new Error("Firebase is not available");
+    const tutorialDoc = await db.collection("settings").doc("verificationTutorial").get();
+    const videoUrl = tutorialDoc.exists ? tutorialDoc.data().videoUrl : "";
+    if (typeof videoUrl !== "string" || !/^https?:\/\//i.test(videoUrl.trim())) {
+      status.textContent = "The verification tutorial is not available yet. You can skip to continue.";
+      return;
+    }
+
+    player.onerror = function () {
+      player.style.display = "none";
+      status.textContent = "Unable to play the verification tutorial. You can skip to continue.";
+      status.style.display = "block";
+    };
+    player.src = videoUrl.trim();
+    player.style.display = "block";
+    status.style.display = "none";
+    player.load();
+  } catch (err) {
+    console.error("Failed to load verification tutorial:", err);
+    status.textContent = "Unable to load the verification tutorial. You can skip to continue.";
+  }
 }
 
 function skipVerificationVideo() {
   const modal = document.getElementById("verificationVideoModal");
   if (modal) modal.style.display = "none";
+  const player = document.getElementById("verificationVideoModalPlayer");
+  if (player) player.pause();
   verifyBankLink();
 }
 
 function proceedToVerify() {
   const modal = document.getElementById("verificationVideoModal");
   if (modal) modal.style.display = "none";
+  const player = document.getElementById("verificationVideoModalPlayer");
+  if (player) player.pause();
   verifyBankLink();
 }
 
