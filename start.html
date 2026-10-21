@@ -736,8 +736,6 @@ name: fullName,
 bankName: bankName, 
 accountNumber: accountNumber, 
 password: password, 
-promoCode: null, 
-promoBonus: false, 
 createdAt: new Date().toISOString(), 
 balance: 10000, 
 miningPower: 1, 
@@ -862,6 +860,7 @@ localStorage.setItem('9jaCashDark', isDark);
 document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon'; 
 } 
 
+// ========== TOAST ========== 
 // ========== PROMO VIDEOS (loaded from Firestore: loginVideos) ========== 
 async function playPromoVideo() { 
 const btn = document.getElementById('promoVideoBtn'); 
