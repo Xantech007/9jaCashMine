@@ -26,6 +26,8 @@ body.dark-mode .inp::placeholder{color:#64748b;}
 body.dark-mode select.inp option{background:#1e293b;color:#f8fafc;} 
 body.dark-mode .lbl{color:#94a3b8;} 
 body.dark-mode .count{color:#64748b;} 
+body.dark-mode .promo-ok{color:#34d399;} 
+body.dark-mode .promo-bad{color:#f87171;} 
 body.dark-mode .skip-btn{color:#94a3b8;} 
 body.dark-mode .skip-btn:hover{color:#818cf8;} 
 body.dark-mode .skip-btn:disabled{color:#475569 !important;} 
@@ -75,6 +77,8 @@ body.dark-mode .password-toggle:hover{color:#818cf8;}
 /* Label */ 
 .lbl{display:block;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;} 
 /* Character count */ 
+.promo-ok{color:#10b981;font-weight:700;} 
+.promo-bad{color:#ef4444;font-weight:700;} 
 .count{text-align:right;font-size:11px;color:#94a3b8;margin-top:6px;font-weight:500;} 
 
 /* Primary button — matches dashboard */ 
@@ -460,7 +464,7 @@ const stepLabels = [
 "Step 2 of 5 — Account Number", 
 "Step 3 of 5 — Bank Selection", 
 "Step 4 of 5 — Full Name", 
-"Step 5 of 5 — Password & Promo Code" 
+"Step 5 of 5 — Password"
 ]; 
 const fields = ['fieldPhone', 'fieldAccount', 'fieldBank', 'fieldName', 'fieldPassword']; 
 const inputs = { 
@@ -542,9 +546,9 @@ showStep(currentStep - 1);
 } 
 } 
 
-function isValidGmail(v) {
-return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || '').trim());
-}
+function isValidGmail(v) { 
+return /^[a-z0-9](?:[a-z0-9._+-]*[a-z0-9])?@gmail\.com$/i.test((v || '').trim()); 
+} 
 
 function checkNextEnabled() { 
 const nextBtn = document.getElementById('nextBtn'); 
@@ -556,8 +560,8 @@ return;
 } 
 let valid = false; 
 const val = input.value.trim(); 
-if (currentStep === 1) valid = val.length === 11 && /^\d{11}\$/.test(val) && isValidGmail(document.getElementById('profileEmail').value); 
-else if (currentStep === 2) valid = val.length === 10 && /^\d{10}\$/.test(val); 
+if (currentStep === 1) valid = val.length === 11 && /^\d{11}$/.test(val) && isValidGmail(document.getElementById('profileEmail').value); 
+else if (currentStep === 2) valid = val.length === 10 && /^\d{10}$/.test(val); 
 else if (currentStep === 3) valid = val !== ''; 
 else if (currentStep === 4) valid = val.length > 2; 
 else if (currentStep === 5) valid = val.length >= 6; 
@@ -736,8 +740,6 @@ name: fullName,
 bankName: bankName, 
 accountNumber: accountNumber, 
 password: password, 
-promoCode: promoCode || null, 
-promoBonus: promo.bonus, 
 createdAt: new Date().toISOString(), 
 balance: 10000, 
 miningPower: 1, 
@@ -862,6 +864,7 @@ localStorage.setItem('9jaCashDark', isDark);
 document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon'; 
 } 
 
+// ========== TOAST ========== 
 // ========== PROMO VIDEOS (loaded from Firestore: loginVideos) ========== 
 async function playPromoVideo() { 
 const btn = document.getElementById('promoVideoBtn'); 
