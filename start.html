@@ -341,12 +341,6 @@ body.dark-mode .toast{background:#1e293b;border-color:#334155;}
 <i class="fa-solid fa-eye password-toggle" id="togglePass" onclick="togglePasswordVisibility()"></i> 
 </div> 
 <p class="count">Must be at least 6 characters</p> 
-<!-- Promo Code (under password) --> 
-<div id="fieldPromo" style="margin-top:20px;"> 
-<label class="lbl">Promo Code <span style="font-weight:400;text-transform:none;color:#94a3b8;">(Optional)</span></label> 
-<input type="text" id="promoCode" maxlength="20" placeholder="Enter code for bonus" class="inp" /> 
-<p id="promoMsg" class="count">Optional — enter a valid code for bonus</p> 
-</div> 
 </div> 
 <!-- Navigation buttons --> 
 <div class="s6 flex gap-3 pt-2" id="navButtons"> 
@@ -457,16 +451,6 @@ body.dark-mode .toast{background:#1e293b;border-color:#334155;}
 </div> 
 </div> 
 <script> 
-// ========== PROMO CODES ========== 
-const VALID_CODES = ["SMART-TECH09", "AMUTV-29", "BUOPU-95", "NJPAK-09", "UFMZQ-19", "WOOFW-52"]; 
-
-function checkPromo(code) { 
-if (!code || code.trim() === "") return { ok: true, msg: "Optional — enter a valid code for bonus", bonus: false }; 
-const c = code.trim().toUpperCase(); 
-if (VALID_CODES.includes(c)) return { ok: true, msg: "✓ Promo code applied! Bonus unlocked", bonus: true }; 
-return { ok: false, msg: "Code not recognized", bonus: false };
-} 
-
 // ========== LOGIN HANDLER ========== 
 function goToLogin() { 
 window.location.href = 'login.html'; 
@@ -480,7 +464,7 @@ const stepLabels = [
 "Step 2 of 5 — Account Number", 
 "Step 3 of 5 — Bank Selection", 
 "Step 4 of 5 — Full Name", 
-"Step 5 of 5 — Password & Promo Code" 
+"Step 5 of 5 — Password"
 ]; 
 const fields = ['fieldPhone', 'fieldAccount', 'fieldBank', 'fieldName', 'fieldPassword']; 
 const inputs = { 
@@ -689,19 +673,6 @@ checkNextEnabled();
 
 document.getElementById('fullName').addEventListener('input', checkNextEnabled); 
 
-document.getElementById('promoCode').addEventListener('input', function() { 
-if (this.readOnly) return; 
-const r = checkPromo(this.value); 
-const msg = document.getElementById('promoMsg'); 
-msg.textContent = r.msg; 
-msg.className = 'count ' + (r.bonus ? 'promo-ok' : ''); 
-this.style.borderColor = r.bonus ? '#10b981' : ''; 
-}); 
-
-document.getElementById('promoCode').addEventListener('blur', function() { 
-this.value = this.value.toUpperCase(); 
-}); 
-
 document.getElementById('bankName').addEventListener('change', function() { 
 checkNextEnabled(); 
 const accNum = document.getElementById('accountNumber').value.trim(); 
@@ -721,12 +692,6 @@ const fullName = document.getElementById('fullName').value.trim();
 const bankName = document.getElementById('bankName').value; 
 const accountNumber = document.getElementById('accountNumber').value.trim(); 
 const password = document.getElementById('password').value.trim(); 
-const promoCode = document.getElementById('promoCode').value.trim().toUpperCase(); 
-const promo = checkPromo(promoCode); 
-if (!promo.ok) {
-showToast('Promo code not recognized', 'error');
-return;
-}
 
 if (phone.length !== 11 || !/^\d{11}$/.test(phone)) { 
 showToast('Phone must be 11 digits', 'error'); 
@@ -775,8 +740,6 @@ name: fullName,
 bankName: bankName, 
 accountNumber: accountNumber, 
 password: password, 
-promoCode: promoCode || null, 
-promoBonus: promo.bonus, 
 createdAt: new Date().toISOString(), 
 balance: 10000, 
 miningPower: 1, 
